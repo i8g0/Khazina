@@ -21,6 +21,8 @@ Khazina/
 - Python 3.12+
 - Docker & Docker Compose (for containerized development)
 
+See [docs/progress.md](docs/progress.md) for sprint and phase status.
+
 ## Quick Start
 
 ### Using Docker

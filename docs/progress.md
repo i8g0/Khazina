@@ -6,24 +6,37 @@ Official progress tracker for the Khazina project.
 
 ## Project Status
 
-| Item | Value |
-|------|-------|
-| Project | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase | Phase 1 – Foundation |
-| Current Sprint | 1.4 |
-| Overall Status | Sprint 1.4 completed |
-| Last Updated | 2026-07-10 |
+| Item           | Value                                                         |
+| -------------- | ------------------------------------------------------------- |
+| Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
+| Current Phase  | Phase 2 – Frontend Foundation                                 |
+| Current Sprint | 2.1                                                           |
+| Overall Status | Phase 2 in progress                                           |
+| Last Updated   | 2026-07-10                                                    |
+
+---
+
+## Phase Progress
+
+| Phase                         | Status             |
+| ----------------------------- | ------------------ |
+| Phase 1 – Foundation          | ✅ Completed (5/5) |
+| Phase 2 – Frontend Foundation | ⏸ Pending          |
+| Phase 3 – Database            | ⏸ Pending          |
+| Phase 4 – Authentication      | ⏸ Pending          |
+| Phase 5 – AI Integration      | ⏸ Pending          |
 
 ---
 
 ## Sprint Summary
 
-| Sprint | Phase | Title | Status | Review | Commit |
-|--------|-------|-------|--------|--------|--------|
-| 1.1 | Foundation | Repository & Project Bootstrap | Completed | Approved | 3998ece |
-| 1.2 | Foundation | Development Environment Validation | Completed | Approved | - |
-| 1.3 | Foundation | Core Backend Infrastructure | Completed | Pending | - |
-| 1.4 | Foundation | Docker & Local Development Stability | Completed | Pending | - |
+| Sprint | Phase      | Title                                | Status    | Review   | Commit              |
+| ------ | ---------- | ------------------------------------ | --------- | -------- | ------------------- |
+| 1.1    | Foundation | Repository & Project Bootstrap       | Completed | Approved | 3998ece             |
+| 1.2    | Foundation | Development Environment Validation   | Completed | Approved | Included in 3998ece |
+| 1.3    | Foundation | Core Backend Infrastructure          | Completed | Approved | 1cac03a             |
+| 1.4    | Foundation | Docker & Local Development Stability | Completed | Approved | 0dc4184             |
+| 1.5    | Foundation | Foundation Freeze                    | Completed | Approved | Pending             |
 
 ---
 
@@ -34,6 +47,7 @@ Official progress tracker for the Khazina project.
 **Objective:** Prepare the repository with a clean, scalable project foundation (frontend, backend, database, Docker, and environment setup) so the team can start development.
 
 **Delivered:**
+
 - Next.js frontend (TypeScript, Tailwind, App Router, RTL)
 - FastAPI backend (config, logging, API v1, DB connection, Alembic init)
 - PostgreSQL connection infrastructure
@@ -42,16 +56,19 @@ Official progress tracker for the Khazina project.
 - Project folder structure (frontend, backend, ai, database, docker, docs, scripts)
 
 **Deferred:**
+
 - Business logic, models, migrations, AI services, authentication
 
 **Review Status:**
+
 - Cursor: ✅ Completed
 - Tech Lead: ✅ Approved
 - Claude: ⏭ Not Required
 
 **Git Information:**
+
 - Branch: `main`
-- Commit: Not committed (Sprint 1.1 files pending first project commit)
+- Commit: `3998ece`
 - Base commit: `75f9a92` (first commit)
 
 ---
@@ -61,6 +78,7 @@ Official progress tracker for the Khazina project.
 **Objective:** Validate that the Sprint 1.1 project foundation starts correctly before implementing application features.
 
 **Delivered:**
+
 - Local FastAPI backend startup verified
 - Local Next.js frontend startup verified
 - `GET /api/v1/health` returns HTTP 200
@@ -68,30 +86,33 @@ Official progress tracker for the Khazina project.
 - Docker Compose startup configuration fix (removed missing `env_file` references)
 
 **Deferred:**
+
 - Full Docker Compose runtime validation (Docker Desktop not installed on dev machine)
 - Database connection runtime test (no PostgreSQL running locally)
 
 **Review Status:**
+
 - Cursor: ✅ Completed
-- Tech Lead: ⏳ Pending
+- Tech Lead: ✅ Approved
 - Claude: ⏭ Not Required
 
 **Git Information:**
+
 - Branch: `main`
-- Commit: Pending
+- Commit: Included in Sprint 1.1 (`3998ece`)
 
 **Validation Results:**
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| FastAPI backend starts | ✅ Pass | Uvicorn on `http://127.0.0.1:8000` |
-| Next.js frontend starts | ✅ Pass | Dev server on `http://localhost:3000` |
-| `GET /api/v1/health` | ✅ Pass | HTTP 200, `{"status":"ok"}` |
-| Frontend browser load | ✅ Pass | HTTP 200, page renders Khazina |
+| Check                     | Result    | Notes                                     |
+| ------------------------- | --------- | ----------------------------------------- |
+| FastAPI backend starts    | ✅ Pass   | Uvicorn on `http://127.0.0.1:8000`        |
+| Next.js frontend starts   | ✅ Pass   | Dev server on `http://localhost:3000`     |
+| `GET /api/v1/health`      | ✅ Pass   | HTTP 200, `{"status":"ok"}`               |
+| Frontend browser load     | ✅ Pass   | HTTP 200, page renders Khazina            |
 | Docker Compose (postgres) | ⏸ Blocked | Not validated on this development machine |
-| Docker Compose (backend) | ⏸ Blocked | Not validated on this development machine |
+| Docker Compose (backend)  | ⏸ Blocked | Not validated on this development machine |
 | Docker Compose (frontend) | ⏸ Blocked | Not validated on this development machine |
-| Docker Compose (ollama) | ⏸ Blocked | Not validated on this development machine |
+| Docker Compose (ollama)   | ⏸ Blocked | Not validated on this development machine |
 
 ---
 
@@ -100,6 +121,7 @@ Official progress tracker for the Khazina project.
 **Objective:** Build shared backend infrastructure (config, responses, exceptions, logging) to be reused across the application.
 
 **Delivered:**
+
 - Configuration layer split into domain-specific settings (`app`, `database`, `logging`)
 - Standardized `ApiResponse` model with success/error helpers
 - Global exception handlers (`AppError`, `HTTPException`, `RequestValidationError`, unhandled)
@@ -107,26 +129,29 @@ Official progress tracker for the Khazina project.
 - Logging constants extracted for easier extension
 
 **Deferred:**
+
 - Authentication, database models, migrations, business logic, AI
 
 **Review Status:**
+
 - Cursor: ✅ Completed
-- Tech Lead: ⏳ Pending
+- Tech Lead: ✅ Approved
 - Claude: ⏭ Not Required
 
 **Git Information:**
+
 - Branch: `main`
-- Commit: Pending
+- Commit: `1cac03a`
 
 **Validation Results:**
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Backend imports | ✅ Pass | All modules load without errors |
-| Backend starts | ✅ Pass | Uvicorn on `http://127.0.0.1:8001` |
-| `GET /api/v1/health` | ✅ Pass | HTTP 200, standard `ApiResponse` format |
+| Check                         | Result  | Notes                                           |
+| ----------------------------- | ------- | ----------------------------------------------- |
+| Backend imports               | ✅ Pass | All modules load without errors                 |
+| Backend starts                | ✅ Pass | Uvicorn on `http://127.0.0.1:8001`              |
+| `GET /api/v1/health`          | ✅ Pass | HTTP 200, standard `ApiResponse` format         |
 | Config backward compatibility | ✅ Pass | Existing `settings.*` property access preserved |
-| Alembic config import | ✅ Pass | `settings.database_url` accessible |
+| Alembic config import         | ✅ Pass | `settings.database_url` accessible              |
 
 ---
 
@@ -135,6 +160,7 @@ Official progress tracker for the Khazina project.
 **Objective:** Complete and stabilize the local development environment without adding business features.
 
 **Delivered:**
+
 - Docker Compose project name, service healthchecks, and startup ordering
 - Removed redundant runtime `NEXT_PUBLIC_API_URL` from frontend service (moved to build args)
 - Backend Dockerfile: non-root user, healthcheck
@@ -144,29 +170,74 @@ Official progress tracker for the Khazina project.
 - `backend/.env.example` clarified for local vs Docker database host
 
 **Deferred:**
+
 - Full Docker Compose runtime validation on this machine (Docker not installed)
 - Application features, authentication, database tables
 
 **Review Status:**
+
 - Cursor: ✅ Completed
-- Tech Lead: ⏳ Pending
+- Tech Lead: ✅ Approved
 - Claude: ⏭ Not Required
 
 **Git Information:**
+
 - Branch: `main`
-- Commit: Pending
+- Commit: `0dc4184`
 
 **Validation Results:**
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| Compose file encoding | ✅ Pass | UTF-8, readable `git diff` |
-| Compose service definitions | ✅ Pass | postgres, backend, frontend, ollama configured |
-| Build contexts | ✅ Pass | `../backend`, `../frontend` relative to `docker/` |
-| Env defaults | ✅ Pass | `${VAR:-default}` pattern throughout compose |
-| Backend Dockerfile | ✅ Pass | Non-root user, layer caching, healthcheck |
-| Frontend Dockerfile | ✅ Pass | Multi-stage build, build arg for public env |
-| Docker Compose runtime | ⏸ Blocked | Not validated on this development machine |
+| Check                       | Result    | Notes                                             |
+| --------------------------- | --------- | ------------------------------------------------- |
+| Compose file encoding       | ✅ Pass   | UTF-8, readable `git diff`                        |
+| Compose service definitions | ✅ Pass   | postgres, backend, frontend, ollama configured    |
+| Build contexts              | ✅ Pass   | `../backend`, `../frontend` relative to `docker/` |
+| Env defaults                | ✅ Pass   | `${VAR:-default}` pattern throughout compose      |
+| Backend Dockerfile          | ✅ Pass   | Non-root user, layer caching, healthcheck         |
+| Frontend Dockerfile         | ✅ Pass   | Multi-stage build, build arg for public env       |
+| Docker Compose runtime      | ⏸ Blocked | Not validated on this development machine         |
+
+---
+
+### Sprint 1.5 - Foundation Freeze
+
+**Objective:** Final review and cleanup of the Phase 1 foundation before Phase 2.
+
+**Delivered:**
+
+- Backend `.env.example` aligned with settings (removed unused HOST/PORT)
+- Alembic `env.py` online migration engine fixed to use app settings
+- Frontend site metadata centralized in `app/site.ts`
+- Frontend `.env.example` simplified and documented
+- Duplicate Dockerfile healthchecks removed (compose owns orchestration healthchecks)
+- README linked to progress tracker
+- Sprint 1.2 review status corrected in tracker
+
+**Deferred:**
+
+- Database models, migrations, authentication, AI, business logic (Phase 2+)
+- Docker Compose runtime validation on this machine
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ✅ Approved
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: fd789b5
+
+**Validation Results:**
+
+| Check                     | Result    | Notes                                     |
+| ------------------------- | --------- | ----------------------------------------- |
+| Backend imports           | ✅ Pass   | `from app.main import app`                |
+| Frontend production build | ✅ Pass   | `npm run build`                           |
+| Alembic config            | ✅ Pass   | `alembic.ini` and `env.py` present        |
+| Docker compose file       | ✅ Pass   | UTF-8, four services configured           |
+| Docker Compose runtime    | ⏸ Blocked | Not validated on this development machine |
 
 ---
 

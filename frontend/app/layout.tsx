@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SITE_DESCRIPTION, SITE_NAME } from "./site";
 
 export const metadata: Metadata = {
-  title: "Khazina",
-  description: "Enterprise Financial Decision Intelligence Platform",
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
 };
 
 export default function RootLayout({
