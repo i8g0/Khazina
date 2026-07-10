@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 |------|-------|
 | Project | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase | Phase 1 – Foundation |
-| Current Sprint | 1.3 |
-| Overall Status | Sprint 1.3 completed |
+| Current Sprint | 1.4 |
+| Overall Status | Sprint 1.4 completed |
 | Last Updated | 2026-07-10 |
 
 ---
@@ -23,6 +23,7 @@ Official progress tracker for the Khazina project.
 | 1.1 | Foundation | Repository & Project Bootstrap | Completed | Approved | 3998ece |
 | 1.2 | Foundation | Development Environment Validation | Completed | Approved | - |
 | 1.3 | Foundation | Core Backend Infrastructure | Completed | Pending | - |
+| 1.4 | Foundation | Docker & Local Development Stability | Completed | Pending | - |
 
 ---
 
@@ -126,6 +127,46 @@ Official progress tracker for the Khazina project.
 | `GET /api/v1/health` | ✅ Pass | HTTP 200, standard `ApiResponse` format |
 | Config backward compatibility | ✅ Pass | Existing `settings.*` property access preserved |
 | Alembic config import | ✅ Pass | `settings.database_url` accessible |
+
+---
+
+### Sprint 1.4 - Docker & Local Development Stability
+
+**Objective:** Complete and stabilize the local development environment without adding business features.
+
+**Delivered:**
+- Docker Compose project name, service healthchecks, and startup ordering
+- Removed redundant runtime `NEXT_PUBLIC_API_URL` from frontend service (moved to build args)
+- Backend Dockerfile: non-root user, healthcheck
+- Frontend Dockerfile: build-time API URL arg, healthcheck, explicit lockfile copy
+- Centralized compose env defaults in `docker/.env.example` (including `LOG_LEVEL`)
+- README Quick Start updated for optional Docker env file and local dev on Windows
+- `backend/.env.example` clarified for local vs Docker database host
+
+**Deferred:**
+- Full Docker Compose runtime validation on this machine (Docker not installed)
+- Application features, authentication, database tables
+
+**Review Status:**
+- Cursor: ✅ Completed
+- Tech Lead: ⏳ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| Compose file encoding | ✅ Pass | UTF-8, readable `git diff` |
+| Compose service definitions | ✅ Pass | postgres, backend, frontend, ollama configured |
+| Build contexts | ✅ Pass | `../backend`, `../frontend` relative to `docker/` |
+| Env defaults | ✅ Pass | `${VAR:-default}` pattern throughout compose |
+| Backend Dockerfile | ✅ Pass | Non-root user, layer caching, healthcheck |
+| Frontend Dockerfile | ✅ Pass | Multi-stage build, build arg for public env |
+| Docker Compose runtime | ⏸ Blocked | Not validated on this development machine |
 
 ---
 
