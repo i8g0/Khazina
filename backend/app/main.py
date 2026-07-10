@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.api.v1.router import api_v1_router
 from app.core.config import settings
+from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -25,6 +26,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    register_exception_handlers(app)
     app.include_router(api_v1_router, prefix="/api/v1")
 
     return app
