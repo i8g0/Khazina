@@ -74,9 +74,9 @@ uvicorn app.main:app --reload
 
 ```bash
 cd frontend
-npm install
+pnpm install
 cp .env.example .env.local
-npm run dev
+pnpm dev
 ```
 
 ## API

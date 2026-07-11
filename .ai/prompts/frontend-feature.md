@@ -52,7 +52,7 @@ Before writing code, confirm:
 
 After completion:
 
-- [ ] Frontend builds successfully (`npm run build`)
+- [ ] Frontend builds successfully (`pnpm build`)
 - [ ] No console errors on affected pages (when applicable)
 - [ ] UTF-8 without BOM
 - [ ] Only intended files modified

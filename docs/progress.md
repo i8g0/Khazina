@@ -637,4 +637,15 @@ Official progress tracker for the Khazina project.
 
 ---
 
+### Maintenance — Package Manager Standardization (pnpm)
+
+**Date:** 2026-07-11
+
+- **pnpm adopted as the official package manager** for the project (pnpm v11.10.0, pinned via the `packageManager` field in `frontend/package.json`)
+- **Package manager standardization completed** — all project commands and documentation (README, CONTRIBUTING, ADR-004, AI prompts) now reference pnpm
+- **npm lockfile removed** — `frontend/package-lock.json` deleted after verifying `pnpm-lock.yaml` (lockfileVersion 9.0) is present and healthy
+- Verified: `pnpm install` completes with lockfile up to date; frontend starts and serves all routes via `pnpm dev`
+
+---
+
 <!-- Add new sprint rows to Sprint Summary and matching Sprint Details sections below -->

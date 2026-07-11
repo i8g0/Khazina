@@ -31,7 +31,7 @@ Khazina supports two development modes:
 | Mode | When to Use |
 |------|-------------|
 | Docker Compose | Full-stack integration testing; validating service interactions |
-| Native local | Fast iteration on backend (`uvicorn --reload`) or frontend (`npm run dev`) |
+| Native local | Fast iteration on backend (`uvicorn --reload`) or frontend (`pnpm dev`) |
 
 Rules established in Phase 1:
 

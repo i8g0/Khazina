@@ -214,7 +214,7 @@ Use Markdown only. English only. UTF-8 without BOM.
 Before submitting a sprint for review:
 
 - [ ] Backend starts: `uvicorn app.main:app --reload` (when backend in scope)
-- [ ] Frontend builds: `npm run build` (when frontend in scope)
+- [ ] Frontend builds: `pnpm build` (when frontend in scope)
 - [ ] Health endpoint returns expected `ApiResponse` format: `GET /api/v1/health`
 - [ ] Docker Compose starts when Docker files were modified
 - [ ] No secrets in staged files
