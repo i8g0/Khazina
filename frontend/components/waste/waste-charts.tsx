@@ -38,17 +38,17 @@ function WasteChartCard({
 }: WasteChartCardProps) {
   return (
     <article className="rounded-2xl border border-border/60 bg-surface">
-      <div className="space-y-2 border-b border-border/60 px-8 py-7">
-        <h3 className="text-xl font-semibold tracking-tight text-black-primary md:text-[1.35rem]">
+      <div className="space-y-1 border-b border-border/60 px-5 py-3.5">
+        <h3 className="text-base font-semibold tracking-tight text-black-primary md:text-[1.1rem]">
           {title}
         </h3>
-        <p className="text-sm leading-relaxed text-muted md:text-[15px]">
+        <p className="text-sm leading-relaxed text-muted">
           {description}
         </p>
       </div>
-      <div className="px-6 py-7 md:px-8 md:py-8">
+      <div className="px-2 py-2 md:px-2.5 md:py-2.5">
         <div
-          className={cn("w-full overflow-hidden rounded-xl bg-bg-light/30 px-3 py-4")}
+          className={cn("w-full overflow-hidden rounded-xl bg-bg-light/30 px-1 py-1.5")}
           style={{ minHeight: height }}
         >
           {children}
@@ -60,7 +60,7 @@ function WasteChartCard({
 
 export function WasteCharts() {
   return (
-    <div className="grid gap-7 xl:grid-cols-2 xl:gap-8">
+    <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
       <WasteChartCard
         title="اتجاه الهدر المالي الشهري"
         description="تطور الهدر المكتشف خلال الأشهر الستة الأخيرة"
@@ -69,7 +69,7 @@ export function WasteCharts() {
         <ChartContainer height={360}>
           <LineChart
             data={wasteTrend}
-            margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
+            margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           >
             <CartesianGrid stroke={chartTheme.grid} vertical={false} />
             <XAxis
@@ -106,7 +106,7 @@ export function WasteCharts() {
           <BarChart
             data={wasteByCategory}
             layout="vertical"
-            margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
+            margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           >
             <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
             <XAxis

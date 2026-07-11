@@ -11,11 +11,11 @@ export function DashboardBrand({
     return (
       <div className="flex justify-center py-1">
         <Image
-          src="/brand/khazina-logo-white.png"
+          src="/brand/khazina-logo-white.png?v=2"
           alt={SITE_NAME}
-          width={40}
-          height={40}
-          className="h-10 w-10 object-contain"
+          width={48}
+          height={48}
+          className="h-12 w-12 object-contain"
           priority
         />
       </div>
@@ -25,11 +25,11 @@ export function DashboardBrand({
   return (
     <div className={cn("flex items-center gap-4 py-1")}>
       <Image
-        src="/brand/khazina-logo-white.png"
+        src="/brand/khazina-logo-white.png?v=2"
         alt={SITE_NAME}
-        width={48}
-        height={48}
-        className="h-12 w-12 shrink-0 object-contain"
+        width={60}
+        height={60}
+        className="h-[60px] w-[60px] shrink-0 object-contain"
         priority
       />
       <div className="min-w-0 space-y-1">

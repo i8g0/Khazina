@@ -47,18 +47,18 @@ interface MitigationPlanItemProps {
 
 function MitigationPlanItem({ plan, isLast }: MitigationPlanItemProps) {
   return (
-    <li className="relative flex gap-6 pb-12 last:pb-0">
+    <li className="relative flex gap-4 pb-5 last:pb-0">
       {!isLast ? (
         <span
           aria-hidden="true"
-          className="absolute start-[21px] top-12 h-[calc(100%-2rem)] w-px bg-border/70"
+          className="absolute start-[17px] top-9 h-[calc(100%-1.25rem)] w-px bg-border/70"
         />
       ) : null}
-      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gold-primary/30 bg-gold-primary/10 text-gold-dark">
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gold-primary/30 bg-gold-primary/10 text-gold-dark">
         <ClipboardCheck className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden="true" />
       </span>
-      <article className="min-h-[196px] min-w-0 flex-1 rounded-2xl border border-border/60 bg-surface px-7 py-8 md:px-8 md:py-9">
-        <div className="mb-5 flex flex-wrap items-center gap-3">
+      <article className="min-w-0 flex-1 rounded-2xl border border-border/60 bg-surface px-5 py-4 md:px-6 md:py-5">
+        <div className="mb-3 flex flex-wrap items-center gap-2.5">
           <Badge
             variant={statusVariant(plan.status)}
             className="px-3 py-1 text-xs font-semibold"
@@ -69,13 +69,13 @@ function MitigationPlanItem({ plan, isLast }: MitigationPlanItemProps) {
             {plan.relatedRisk}
           </span>
         </div>
-        <h3 className="mb-3 text-base font-semibold leading-snug text-black-primary md:text-[17px]">
+        <h3 className="mb-2 text-[15px] font-semibold leading-snug text-black-primary md:text-base">
           {plan.title}
         </h3>
-        <p className="mb-6 text-sm leading-7 text-muted md:text-[15px]">
+        <p className="mb-3.5 text-sm leading-6 text-muted md:text-[15px]">
           {plan.description}
         </p>
-        <div className="flex flex-wrap gap-5 border-t border-border/60 pt-5 text-xs text-muted">
+        <div className="flex flex-wrap gap-4 border-t border-border/60 pt-3.5 text-xs text-muted">
           <span className="inline-flex items-center gap-1.5">
             <User className="h-3.5 w-3.5" strokeWidth={1.75} />
             {plan.owner}

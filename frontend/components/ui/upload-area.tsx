@@ -48,8 +48,8 @@ export function UploadArea({
       className={cn(
         "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed text-center transition-all",
         isProminent
-          ? "min-h-[280px] border-gold-primary/25 bg-surface px-8 py-12 md:min-h-[320px] md:px-12 md:py-14"
-          : "min-h-[180px] rounded-xl border-border bg-surface px-6 py-10 shadow-soft",
+          ? "min-h-[196px] border-gold-primary/25 bg-surface px-8 py-7 md:min-h-[216px] md:px-10 md:py-8"
+          : "min-h-[150px] rounded-xl border-border bg-surface px-6 py-7 shadow-soft",
         isDragging && "border-gold-primary bg-gold-primary/5 shadow-none",
         !disabled &&
           (isProminent
@@ -89,12 +89,12 @@ export function UploadArea({
       />
       <div
         className={cn(
-          "mb-5 flex items-center justify-center rounded-2xl bg-gold-primary/10 text-gold-primary",
-          isProminent ? "h-16 w-16" : "mb-4 h-12 w-12 rounded-full",
+          "mb-4 flex items-center justify-center rounded-2xl bg-gold-primary/10 text-gold-primary",
+          isProminent ? "h-12 w-12" : "mb-3 h-11 w-11 rounded-full",
         )}
       >
         <Upload
-          className={cn(isProminent ? "h-7 w-7" : "h-5 w-5")}
+          className={cn(isProminent ? "h-6 w-6" : "h-5 w-5")}
           strokeWidth={1.75}
         />
       </div>
@@ -119,7 +119,7 @@ export function UploadArea({
           type="button"
           variant="primary"
           size={isProminent ? "lg" : "md"}
-          className="pointer-events-none mt-6"
+          className="pointer-events-none mt-4"
           tabIndex={-1}
           aria-hidden="true"
         >

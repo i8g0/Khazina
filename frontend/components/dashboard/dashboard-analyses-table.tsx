@@ -57,7 +57,7 @@ export function DashboardAnalysesTable({
               ].map((header) => (
                 <th
                   key={header}
-                  className="px-7 py-5 text-start text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
+                  className="px-6 py-3.5 text-start text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
                 >
                   {header}
                 </th>
@@ -70,21 +70,21 @@ export function DashboardAnalysesTable({
                 key={row.id}
                 className="border-b border-border-subtle transition-colors last:border-0 hover:bg-bg-light/35"
               >
-                <td className="px-7 py-6 text-[15px] font-semibold text-black-primary">
+                <td className="px-6 py-4 text-[15px] font-semibold text-black-primary">
                   {row.title}
                 </td>
-                <td className="px-7 py-6">
+                <td className="px-6 py-4">
                   <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 text-xs font-medium text-gray-medium">
                     {row.type}
                   </span>
                 </td>
-                <td className="px-7 py-6">
+                <td className="px-6 py-4">
                   <FileTypeBadge filename={row.sourceFile} />
                 </td>
-                <td className="px-7 py-6 text-sm tabular-nums text-muted">
+                <td className="px-6 py-4 text-sm tabular-nums text-muted">
                   {row.date}
                 </td>
-                <td className="px-7 py-6">
+                <td className="px-6 py-4">
                   <StatusBadge status={row.status} />
                 </td>
               </tr>

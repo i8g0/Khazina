@@ -17,6 +17,10 @@ import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section
 import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline";
 import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
+
+/** Dashboard-only density experiment: ~15–20% tighter than the shared tokens */
+const dashboardPageSpacingClassName = "space-y-[2.75rem] md:space-y-[3.25rem]";
+const dashboardSectionSpacingClassName = "space-y-4 md:space-y-5";
 import {
   dashboardKpis,
   dashboardRecommendations,
@@ -44,14 +48,14 @@ export function DashboardPage() {
       navItems={getAppNavItems()}
     >
       <PageContainer className={executivePageContainerClassName}>
-        <div className="space-y-16 md:space-y-20">
+        <div className={dashboardPageSpacingClassName}>
           <DashboardHero
             title="نظرة تنفيذية"
             description={`${organization.executiveTitle} — ${organization.name}`}
             period={organization.reportingPeriod}
           />
 
-          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5 xl:gap-6">
+          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
             {dashboardKpis.map((kpi, index) => {
               const Icon = kpiIcons[index];
               return (
@@ -62,6 +66,8 @@ export function DashboardPage() {
                   hint={kpi.hint}
                   departmentBadge={kpi.departmentBadge}
                   trend={kpi.trend}
+                  emphasis
+                  dense
                   icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
                 />
               );
@@ -70,12 +76,13 @@ export function DashboardPage() {
 
           <DashboardCharts />
 
-          <section className="space-y-8">
+          <section className={dashboardSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="التوصيات ذات الأولوية"
               description="أهم التوصيات للمراجعة التنفيذية"
             />
-            <div className="grid gap-6 lg:grid-cols-3 lg:gap-7">
+            <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
               {dashboardRecommendations.map((item) => (
                 <DashboardRecommendationCard
                   key={item.id}
@@ -89,18 +96,20 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <section className="space-y-8">
+          <section className={dashboardSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="آخر التحديثات"
               description="أحدث الأحداث المالية المهمة"
             />
-            <div className="rounded-2xl border border-border/60 bg-surface px-8 py-8 md:px-10 md:py-10">
+            <div className="rounded-2xl border border-border/60 bg-surface px-4 py-4 md:px-5 md:py-4">
               <DashboardTimeline events={timelineEvents} maxVisible={5} />
             </div>
           </section>
 
-          <section className="space-y-8">
+          <section className={dashboardSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="التحليلات الأخيرة"
               description="آخر خمسة تحليلات مرتبطة بالملفات المرفوعة"
             />

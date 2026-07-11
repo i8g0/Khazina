@@ -30,13 +30,13 @@ export function RiskRecommendationCard({
   return (
     <article
       className={cn(
-        "flex h-full min-h-[280px] flex-col rounded-2xl border border-border/60 bg-surface px-7 py-8 transition-colors hover:border-gold-primary/25 md:px-8 md:py-9",
+        "flex h-full min-h-[220px] flex-col rounded-2xl border border-border/60 bg-surface px-5 py-5 transition-colors hover:border-gold-primary/25 md:px-6 md:py-6",
         className,
       )}
     >
       <Badge
         variant={isHigh ? "warning" : "secondary"}
-        className="mb-5 w-fit px-3 py-1 text-xs font-semibold"
+        className="mb-3.5 w-fit px-3 py-1 text-xs font-semibold"
       >
         {item.priority}
       </Badge>
@@ -46,17 +46,17 @@ export function RiskRecommendationCard({
       </h3>
 
       {department ? (
-        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.16em] text-gold-dark">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-gold-dark">
           {department}
         </p>
       ) : null}
 
-      <p className="mb-6 flex-1 text-sm leading-7 text-muted md:text-[15px]">
+      <p className="mb-4 flex-1 text-sm leading-6 text-muted md:text-[15px]">
         {item.description}
       </p>
 
       {confidence ? (
-        <div className="border-t border-border/60 pt-4">
+        <div className="border-t border-border/60 pt-3.5">
           <p className="text-sm font-medium text-gray-medium">
             ثقة{" "}
             <span className="font-semibold text-black-primary">{confidence}</span>

@@ -19,13 +19,14 @@ export function SimulationResultsSummary({
   const DeltaIcon = isPositiveDelta ? TrendingUp : TrendingDown;
 
   return (
-    <div className={cn("space-y-8", className)}>
-      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 xl:gap-7">
+    <div className={cn("space-y-6", className)}>
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 xl:gap-5">
         <DashboardStatCard
           label={forecast.baselineLabel}
           value={forecast.baselineValue}
           hint={`ثقة ${forecast.confidence}`}
           emphasis
+          dense
           icon={<BarChart3 className="h-[17px] w-[17px]" strokeWidth={1.75} />}
         />
         <DashboardStatCard
@@ -33,6 +34,7 @@ export function SimulationResultsSummary({
           value={forecast.projectedValue}
           hint="بعد تطبيق السيناريو"
           emphasis
+          dense
           icon={<LineChart className="h-[17px] w-[17px]" strokeWidth={1.75} />}
         />
         <DashboardStatCard
@@ -40,6 +42,7 @@ export function SimulationResultsSummary({
           value={forecast.deltaValue}
           hint={isPositiveDelta ? "زيادة متوقعة" : "انخفاض متوقع"}
           emphasis
+          dense
           icon={<DeltaIcon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
         />
       </section>

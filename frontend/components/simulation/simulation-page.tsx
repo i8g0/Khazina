@@ -15,8 +15,8 @@ import { SimulationScenarioCard } from "@/components/simulation/simulation-scena
 import { Button } from "@/components/ui/button";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { PageHeader } from "@/components/ui/page-header";
-import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
+import { PageHero } from "@/components/ui/page-hero";
+import { executivePageContainerClassName, executivePageSpacingClassName, executiveSectionSpacingClassName, getAppNavItems } from "@/lib/app-nav";
 import {
   organization,
   simulationActionItems,
@@ -68,12 +68,6 @@ export function SimulationPage() {
     setViewState("idle");
   }, []);
 
-  const periodBadge = (
-    <span className="inline-flex items-center rounded-full border border-gold-primary/30 bg-gold-primary/[0.07] px-3 py-1 text-xs font-medium text-gold-dark">
-      {organization.reportingPeriod}
-    </span>
-  );
-
   const assumptions = simulationAssumptions[activeScenarioId] ?? [];
   const chartData = simulationChartSeries[activeScenarioId] ?? [];
   const comparisonMetrics = simulationComparisonMetrics[activeScenarioId] ?? [];
@@ -93,16 +87,14 @@ export function SimulationPage() {
         <div
           className={cn(
             viewState === "ready"
-              ? "space-y-[4.5rem] md:space-y-[5.5rem]"
-              : "space-y-10 md:space-y-12",
+              ? executivePageSpacingClassName
+              : "space-y-6 md:space-y-8",
           )}
         >
-          <PageHeader
-            compact
+          <PageHero
             title="محاكاة الأعمال"
             description="بناء ومقارنة سيناريوهات مالية افتراضية لدعم القرارات التنفيذية."
-            meta={periodBadge}
-            className="!pb-3 md:!pb-4"
+            period={organization.reportingPeriod}
             actions={
               <Button variant="secondary" disabled>
                 <Plus className="h-4 w-4" strokeWidth={1.75} />
@@ -111,15 +103,16 @@ export function SimulationPage() {
             }
           />
 
-          <section className="space-y-8">
+          <section className={executiveSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="اختيار السيناريو"
               description="اختر سيناريو للمحاكاة — حتى 3 سيناريوهات متاحة"
             />
             <div
               role="listbox"
               aria-label="سيناريوهات المحاكاة"
-              className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-7"
+              className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-5"
             >
               {simulationScenarios.map((scenario) => (
                 <SimulationScenarioCard
@@ -132,7 +125,7 @@ export function SimulationPage() {
             </div>
           </section>
 
-          <section className="space-y-8">
+          <section className={executiveSectionSpacingClassName}>
             <SimulationAssumptions assumptions={assumptions} />
           </section>
 
@@ -162,7 +155,7 @@ export function SimulationPage() {
 
           {viewState === "loading" ? (
             <div className="space-y-8">
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <LoadingSkeleton key={index} className="min-h-[188px] rounded-2xl" />
                 ))}
@@ -174,8 +167,9 @@ export function SimulationPage() {
 
           {viewState === "ready" && activeForecast && resultSummary ? (
             <>
-              <section className="space-y-9 md:space-y-10">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="ملخص النتائج"
                   description="مؤشرات التوقع للسيناريو النشط"
                 />
@@ -185,21 +179,22 @@ export function SimulationPage() {
                 />
               </section>
 
-              <section className="space-y-9 md:space-y-10">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="مقارنة الأداء"
                   description="مؤشرات رئيسية — الوضع الحالي مقابل المحاكاة"
                 />
-                <div className="grid gap-6 lg:grid-cols-3 lg:gap-7">
+                <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
                   {comparisonMetrics.map((metric) => (
                     <article
                       key={metric.metric}
-                      className="rounded-2xl border border-border/60 bg-surface px-7 py-7 md:px-8 md:py-8"
+                      className="rounded-2xl border border-border/60 bg-surface px-5 py-5 md:px-6 md:py-5"
                     >
-                      <h3 className="mb-5 text-base font-semibold text-black-primary">
+                      <h3 className="mb-4 text-sm font-semibold text-black-primary">
                         {metric.metric}
                       </h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                             الحالي
@@ -219,7 +214,7 @@ export function SimulationPage() {
                       </div>
                       <p
                         className={cn(
-                          "mt-5 text-sm font-semibold tabular-nums",
+                          "mt-4 text-sm font-semibold tabular-nums",
                           changeTone(metric.direction),
                         )}
                       >
@@ -230,28 +225,31 @@ export function SimulationPage() {
                 </div>
               </section>
 
-              <section className="space-y-9 md:space-y-10">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="مخطط المقارنة"
                   description="الأساس مقابل المتوقع عبر الأرباع"
                 />
                 <SimulationComparisonChart data={chartData} />
               </section>
 
-              <section className="space-y-9 md:space-y-10">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="تفصيل الأثر المالي"
                   description="توزيع الأثر حسب الفئات والإدارات"
                 />
                 <SimulationImpactBreakdown items={impactItems} />
               </section>
 
-              <section className="space-y-9 md:space-y-10">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="توصيات الذكاء الاصطناعي"
                   description="إجراءات مقترحة بناءً على نتائج المحاكاة"
                 />
-                <div className="grid gap-7 lg:grid-cols-3 lg:gap-8">
+                <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
                   {simulationRecommendations.map((item) => (
                     <DashboardRecommendationCard
                       key={item.id}
@@ -265,8 +263,9 @@ export function SimulationPage() {
                 </div>
               </section>
 
-              <section className="space-y-9 md:space-y-10">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="ملخص الإجراءات"
                   description="الخطوات المقترحة بعد مراجعة نتائج المحاكاة"
                 />

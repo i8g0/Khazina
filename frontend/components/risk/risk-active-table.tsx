@@ -35,7 +35,7 @@ const columns: DataTableColumn<RiskItem>[] = [
   {
     key: "name",
     header: "الخطر",
-    className: "px-7 py-6 min-w-[200px]",
+    className: "px-6 py-4 min-w-[200px]",
     cell: (row) => (
       <div className="space-y-1">
         <p className="text-[15px] font-semibold text-black-primary">{row.name}</p>
@@ -46,7 +46,7 @@ const columns: DataTableColumn<RiskItem>[] = [
   {
     key: "department",
     header: "القسم",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 text-xs font-medium text-gray-medium">
         {row.department}
@@ -56,7 +56,7 @@ const columns: DataTableColumn<RiskItem>[] = [
   {
     key: "priority",
     header: "الأولوية",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <Badge
         variant={priorityBadgeVariant(row.priority)}
@@ -69,7 +69,7 @@ const columns: DataTableColumn<RiskItem>[] = [
   {
     key: "status",
     header: "الحالة",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <Badge
         variant={statusBadgeVariant(row.status)}
@@ -82,13 +82,13 @@ const columns: DataTableColumn<RiskItem>[] = [
   {
     key: "owner",
     header: "المسؤول",
-    className: "px-7 py-6 text-sm text-gray-medium",
+    className: "px-6 py-4 text-sm text-gray-medium",
     cell: (row) => row.owner,
   },
   {
     key: "lastUpdated",
     header: "آخر تحديث",
-    className: "px-7 py-6 text-sm tabular-nums text-muted",
+    className: "px-6 py-4 text-sm tabular-nums text-muted",
     cell: (row) => formatDate(row.lastUpdated),
   },
 ];

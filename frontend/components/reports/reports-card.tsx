@@ -36,12 +36,12 @@ export function ReportsCard({ report, className }: ReportsCardProps) {
     <>
       <article
         className={cn(
-          "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-7 py-7 transition-colors hover:border-gold-primary/25 md:px-8 md:py-8",
+          "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-5 py-5 transition-colors hover:border-gold-primary/25 md:px-6 md:py-5",
           className,
         )}
       >
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-primary/10 text-gold-dark">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold-primary/10 text-gold-dark">
             <FileText className="h-[18px] w-[18px]" strokeWidth={1.75} />
           </span>
           <Badge
@@ -52,15 +52,15 @@ export function ReportsCard({ report, className }: ReportsCardProps) {
           </Badge>
         </div>
 
-        <Badge variant="outline" className="mb-4 w-fit px-3 py-1 text-xs font-semibold">
+        <Badge variant="outline" className="mb-3 w-fit px-3 py-1 text-xs font-semibold">
           {report.type}
         </Badge>
 
-        <h3 className="mb-2 text-lg font-semibold leading-snug tracking-tight text-black-primary md:text-xl">
+        <h3 className="mb-2 text-base font-semibold leading-snug tracking-tight text-black-primary md:text-lg">
           {report.title}
         </h3>
 
-        <div className="mb-5 flex flex-wrap gap-2 text-xs text-muted">
+        <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted">
           <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 font-medium text-gray-medium">
             {report.department}
           </span>
@@ -71,7 +71,7 @@ export function ReportsCard({ report, className }: ReportsCardProps) {
 
         <p className="mb-2 text-xs font-medium text-muted">المصدر: {report.sourceFile}</p>
 
-        <div className="mt-auto border-t border-border/60 pt-5">
+        <div className="mt-auto border-t border-border/60 pt-4">
           <Button
             variant="secondary"
             className="w-full"

@@ -11,8 +11,8 @@ import { ReportsExportPanel } from "@/components/reports/reports-export-panel";
 import { ReportsHistoryTable } from "@/components/reports/reports-history-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
-import { PageHeader } from "@/components/ui/page-header";
-import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
+import { PageHero } from "@/components/ui/page-hero";
+import { executivePageContainerClassName, executivePageSpacingClassName, executiveSectionSpacingClassName, getAppNavItems } from "@/lib/app-nav";
 import {
   organization,
   reportFilterOptions,
@@ -43,12 +43,6 @@ export function ReportsPage() {
     });
   }, [typeFilter, departmentFilter]);
 
-  const periodBadge = (
-    <span className="inline-flex items-center rounded-full border border-gold-primary/30 bg-gold-primary/[0.07] px-3 py-1 text-xs font-medium text-gold-dark">
-      {organization.reportingPeriod}
-    </span>
-  );
-
   return (
     <AppLayout
       brand={<DashboardBrand />}
@@ -59,23 +53,21 @@ export function ReportsPage() {
       navItems={getAppNavItems()}
     >
       <PageContainer className={executivePageContainerClassName}>
-        <div className="space-y-[4.5rem] md:space-y-[5.5rem]">
-          <PageHeader
-            compact
+        <div className={executivePageSpacingClassName}>
+          <PageHero
             title="التقارير"
             description="عرض وتصفية وتصدير التقارير المالية والتحليلية للمراجعة التنفيذية."
-            meta={periodBadge}
-            className="!pb-3 md:!pb-4"
+            period={organization.reportingPeriod}
           />
 
           {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <LoadingSkeleton key={index} className="min-h-[188px] rounded-2xl" />
               ))}
             </div>
           ) : (
-            <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-7">
+            <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
               {reportSummaryKpis.map((kpi, index) => {
                 const Icon = summaryIcons[index];
                 return (
@@ -85,6 +77,7 @@ export function ReportsPage() {
                     value={kpi.value}
                     hint={kpi.hint}
                     emphasis
+                    dense
                     icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
                   />
                 );
@@ -92,12 +85,13 @@ export function ReportsPage() {
             </section>
           )}
 
-          <section className="space-y-6">
+          <section className={executiveSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="تصفية التقارير"
               description="تصفية حسب النوع والقسم والفترة"
             />
-            <div className="flex flex-wrap gap-6 rounded-2xl border border-border/60 bg-surface px-6 py-6 md:px-8 md:py-7">
+            <div className="flex flex-wrap gap-5 rounded-2xl border border-border/60 bg-surface px-5 py-5 md:px-6 md:py-5">
               <FilterGroup
                 label="النوع"
                 options={reportFilterOptions.type}
@@ -119,13 +113,14 @@ export function ReportsPage() {
             </div>
           </section>
 
-          <section className="space-y-9 md:space-y-10">
+          <section className={executiveSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="التقارير المُنشأة"
               description="معاينة التقارير الجاهزة والمسودات"
             />
             {isLoading ? (
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <LoadingSkeleton key={index} className="min-h-[320px] rounded-2xl" />
                 ))}
@@ -136,7 +131,7 @@ export function ReportsPage() {
                 description="سيتم إنشاء التقارير بعد إتمام التحليلات"
               />
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-7">
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-5">
                 {filteredReports.map((report) => (
                   <ReportsCard key={report.id} report={report} />
                 ))}
@@ -144,8 +139,9 @@ export function ReportsPage() {
             )}
           </section>
 
-          <section className="space-y-9 md:space-y-10">
+          <section className={executiveSectionSpacingClassName}>
             <DashboardSectionHeader
+              dense
               title="سجل التقارير"
               description="سجل كامل للتقارير المُنشأة"
             />
@@ -156,7 +152,7 @@ export function ReportsPage() {
             )}
           </section>
 
-          <section className="space-y-9 md:space-y-10">
+          <section className={executiveSectionSpacingClassName}>
             <ReportsExportPanel />
           </section>
         </div>

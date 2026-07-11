@@ -42,16 +42,16 @@ export function DashboardTimeline({
         const isLast = index === visibleEvents.length - 1;
 
         return (
-          <li key={event.id} className="relative flex gap-6 pb-10 last:pb-0">
+          <li key={event.id} className="relative flex gap-4 pb-5 last:pb-0">
             {!isLast ? (
               <span
                 aria-hidden="true"
-                className="absolute start-[21px] top-12 h-[calc(100%-2rem)] w-px bg-border/70"
+                className="absolute start-[17px] top-9 h-[calc(100%-1.25rem)] w-px bg-border/70"
               />
             ) : null}
             <span
               className={cn(
-                "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border",
+                "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
                 isAlert
                   ? "border-gold-primary/30 bg-gold-primary/10 text-gold-dark"
                   : "border-border/70 bg-bg-light text-gray-medium",
@@ -59,8 +59,8 @@ export function DashboardTimeline({
             >
               <Icon className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden="true" />
             </span>
-            <div className="min-w-0 flex-1 space-y-2.5 pt-1">
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <time
                   dateTime={event.date}
                   className="text-xs font-medium tabular-nums text-muted"
@@ -71,7 +71,7 @@ export function DashboardTimeline({
                   {event.type}
                 </span>
               </div>
-              <p className="text-base font-medium leading-snug text-black-primary md:text-[17px]">
+              <p className="text-[15px] font-medium leading-snug text-black-primary md:text-base">
                 {event.title}
               </p>
             </div>

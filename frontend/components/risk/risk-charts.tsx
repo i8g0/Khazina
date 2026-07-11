@@ -20,18 +20,18 @@ function RiskChartCard({
 }: RiskChartCardProps) {
   return (
     <article className="rounded-2xl border border-border/60 bg-surface">
-      <div className="space-y-3 border-b border-border/60 px-8 py-8 md:px-9 md:py-9">
-        <h3 className="text-xl font-semibold tracking-tight text-black-primary md:text-[1.35rem]">
+      <div className="space-y-1 border-b border-border/60 px-5 py-3.5">
+        <h3 className="text-base font-semibold tracking-tight text-black-primary md:text-[1.1rem]">
           {title}
         </h3>
-        <p className="text-sm leading-relaxed text-muted md:text-[15px]">
+        <p className="text-sm leading-relaxed text-muted">
           {description}
         </p>
       </div>
-      <div className="px-7 py-8 md:px-9 md:py-10">
+      <div className="px-2 py-2 md:px-2.5 md:py-2.5">
         <div
           className={cn(
-            "w-full overflow-hidden rounded-xl bg-bg-light/30 px-5 py-6 md:px-6 md:py-7",
+            "w-full overflow-hidden rounded-xl bg-bg-light/30 px-1 py-1.5",
           )}
           style={{ minHeight: height }}
         >
@@ -50,7 +50,7 @@ const severityColors: Record<string, string> = {
 
 export function RiskCharts() {
   return (
-    <div className="grid gap-8 xl:grid-cols-2 xl:gap-10">
+    <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
       <RiskChartCard
         title="توزيع المخاطر حسب القسم"
         description="مؤشر خطورة المخاطر النشطة لكل إدارة"
@@ -60,7 +60,7 @@ export function RiskCharts() {
           <BarChart
             data={riskByDepartment}
             layout="vertical"
-            margin={{ top: 20, right: 28, left: 12, bottom: 20 }}
+            margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           >
             <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
             <XAxis
@@ -97,7 +97,7 @@ export function RiskCharts() {
         <ChartContainer height={360}>
           <BarChart
             data={riskBySeverity}
-            margin={{ top: 20, right: 28, left: 12, bottom: 20 }}
+            margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           >
             <CartesianGrid stroke={chartTheme.grid} vertical={false} />
             <XAxis

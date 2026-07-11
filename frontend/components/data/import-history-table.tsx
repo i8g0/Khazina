@@ -30,25 +30,25 @@ const columns: DataTableColumn<ImportHistoryItem>[] = [
   {
     key: "date",
     header: "التاريخ",
-    className: "px-7 py-6 text-sm tabular-nums text-muted",
+    className: "px-6 py-4 text-sm tabular-nums text-muted",
     cell: (row) => formatDate(row.date),
   },
   {
     key: "file",
     header: "الملف",
-    className: "px-7 py-6 text-[15px] font-semibold",
+    className: "px-6 py-4 text-[15px] font-semibold",
     cell: (row) => row.file,
   },
   {
     key: "records",
     header: "السجلات",
-    className: "px-7 py-6 text-sm tabular-nums text-gray-medium",
+    className: "px-6 py-4 text-sm tabular-nums text-gray-medium",
     cell: (row) => row.records,
   },
   {
     key: "status",
     header: "الحالة",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <Badge
         variant={statusVariant(row.status)}

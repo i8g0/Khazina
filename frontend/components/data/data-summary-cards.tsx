@@ -15,7 +15,7 @@ export function DataSummaryCards({
   className,
 }: DataSummaryCardsProps) {
   return (
-    <div className={cn("grid gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-7", className)}>
+    <div className={cn("grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5", className)}>
       {validationItems.map((item, index) => {
         const Icon = validationIcons[index];
         return (
@@ -25,6 +25,7 @@ export function DataSummaryCards({
             value={item.result}
             hint={item.details}
             emphasis
+            dense
             icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
           />
         );

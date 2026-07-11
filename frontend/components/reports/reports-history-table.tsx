@@ -27,13 +27,13 @@ const columns: DataTableColumn<ReportItem>[] = [
   {
     key: "title",
     header: "التقرير",
-    className: "px-7 py-6 min-w-[220px] text-[15px] font-semibold",
+    className: "px-6 py-4 min-w-[220px] text-[15px] font-semibold",
     cell: (row) => row.title,
   },
   {
     key: "type",
     header: "النوع",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 text-xs font-medium text-gray-medium">
         {row.type}
@@ -43,25 +43,25 @@ const columns: DataTableColumn<ReportItem>[] = [
   {
     key: "department",
     header: "القسم",
-    className: "px-7 py-6 text-sm text-gray-medium",
+    className: "px-6 py-4 text-sm text-gray-medium",
     cell: (row) => row.department,
   },
   {
     key: "sourceFile",
     header: "ملف المصدر",
-    className: "px-7 py-6 text-sm text-muted",
+    className: "px-6 py-4 text-sm text-muted",
     cell: (row) => row.sourceFile,
   },
   {
     key: "date",
     header: "التاريخ",
-    className: "px-7 py-6 text-sm tabular-nums text-muted",
+    className: "px-6 py-4 text-sm tabular-nums text-muted",
     cell: (row) => formatDate(row.date),
   },
   {
     key: "status",
     header: "الحالة",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <Badge
         variant={statusVariant(row.status)}

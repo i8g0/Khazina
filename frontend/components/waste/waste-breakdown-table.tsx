@@ -29,7 +29,7 @@ export function WasteBreakdownTable({
                 {["الفئة", "المبلغ (ر.س)", "النسبة", "الإدارة"].map((header) => (
                   <th
                     key={header}
-                    className="px-7 py-5 text-start text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
+                    className="px-6 py-3.5 text-start text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
                   >
                     {header}
                   </th>
@@ -42,16 +42,16 @@ export function WasteBreakdownTable({
                   key={row.id}
                   className="border-b border-border-subtle transition-colors last:border-0 hover:bg-bg-light/35"
                 >
-                  <td className="px-7 py-6 text-[15px] font-semibold text-black-primary">
+                  <td className="px-6 py-4 text-[15px] font-semibold text-black-primary">
                     {row.category}
                   </td>
-                  <td className="px-7 py-6 text-sm tabular-nums text-black-primary">
+                  <td className="px-6 py-4 text-sm tabular-nums text-black-primary">
                     {formatAmount(row.amount)}
                   </td>
-                  <td className="px-7 py-6 text-sm tabular-nums text-muted">
+                  <td className="px-6 py-4 text-sm tabular-nums text-muted">
                     {row.percentage}
                   </td>
-                  <td className="px-7 py-6">
+                  <td className="px-6 py-4">
                     <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 text-xs font-medium text-gray-medium">
                       {row.department}
                     </span>
@@ -64,7 +64,7 @@ export function WasteBreakdownTable({
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border/60 bg-surface">
-        <div className="border-b border-border/60 px-7 py-5">
+        <div className="border-b border-border/60 px-6 py-3.5">
           <h3 className="text-base font-semibold text-black-primary">
             تفاصيل الهدر — الموردون
           </h3>
@@ -77,7 +77,7 @@ export function WasteBreakdownTable({
                   (header) => (
                     <th
                       key={header}
-                      className="px-7 py-5 text-start text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
+                      className="px-6 py-3.5 text-start text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
                     >
                       {header}
                     </th>
@@ -91,21 +91,21 @@ export function WasteBreakdownTable({
                   key={row.id}
                   className="border-b border-border-subtle transition-colors last:border-0 hover:bg-bg-light/35"
                 >
-                  <td className="px-7 py-6 text-[15px] font-semibold text-black-primary">
+                  <td className="px-6 py-4 text-[15px] font-semibold text-black-primary">
                     {row.vendor}
                   </td>
-                  <td className="px-7 py-6">
+                  <td className="px-6 py-4">
                     <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 text-xs font-medium text-gray-medium">
                       {row.category}
                     </span>
                   </td>
-                  <td className="px-7 py-6 text-sm tabular-nums text-black-primary">
+                  <td className="px-6 py-4 text-sm tabular-nums text-black-primary">
                     {formatAmount(row.amount)}
                   </td>
-                  <td className="px-7 py-6 text-sm font-medium text-warning">
+                  <td className="px-6 py-4 text-sm font-medium text-warning">
                     {row.deviation}
                   </td>
-                  <td className="px-7 py-6">
+                  <td className="px-6 py-4">
                     <Badge
                       variant={row.status === "حرج" ? "destructive" : "warning"}
                       className="px-3 py-1.5 text-xs font-semibold"

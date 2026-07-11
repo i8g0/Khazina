@@ -46,11 +46,11 @@ export function RiskPriorityMatrix({ className }: RiskPriorityMatrixProps) {
   return (
     <article
       className={cn(
-        "rounded-2xl border border-border/60 bg-surface px-6 py-7 md:px-8 md:py-8",
+        "rounded-2xl border border-border/60 bg-surface px-5 py-5 md:px-6 md:py-5",
         className,
       )}
     >
-      <div className="mb-8 space-y-2">
+      <div className="mb-6 space-y-1.5">
         <h3 className="text-xl font-semibold tracking-tight text-black-primary md:text-[1.35rem]">
           مصفوفة أولوية المخاطر
         </h3>
@@ -128,7 +128,7 @@ function MatrixCell({ likelihood, impact, items }: MatrixCellProps) {
   return (
     <div
       className={cn(
-        "min-h-[88px] rounded-xl border p-3 transition-colors",
+        "min-h-[72px] rounded-xl border p-2.5 transition-colors",
         cellTone(likelihood, impact),
       )}
     >

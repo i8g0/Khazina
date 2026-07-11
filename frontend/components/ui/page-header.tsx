@@ -21,17 +21,17 @@ export function PageHeader({
     <header
       className={cn(
         "border-b border-border/60",
-        compact ? "pb-4 md:pb-5" : "pb-8 md:pb-10",
+        compact ? "pb-4 md:pb-5" : "pb-5 md:pb-6",
         className,
       )}
     >
       <div
         className={cn(
           "flex flex-col lg:flex-row lg:items-center lg:justify-between",
-          compact ? "gap-3" : "gap-6 lg:items-end",
+          compact ? "gap-3" : "gap-4 lg:items-end",
         )}
       >
-        <div className={cn("max-w-3xl", compact ? "space-y-1.5" : "space-y-3")}>
+        <div className={cn("max-w-3xl", compact ? "space-y-1.5" : "space-y-2")}>
           <div className="flex flex-wrap items-center gap-2.5">
             <h1
               className={cn(

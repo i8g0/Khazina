@@ -22,7 +22,7 @@ export function WasteDepartmentBreakdown({ className }: { className?: string }) 
         return (
           <div
             key={item.department}
-            className="rounded-2xl border border-border/60 bg-surface px-6 py-5 md:px-7 md:py-6"
+            className="rounded-2xl border border-border/60 bg-surface px-5 py-4 md:px-6 md:py-5"
           >
             <div className="mb-3 flex items-center justify-between gap-4">
               <p className="text-sm font-semibold text-black-primary">

@@ -33,13 +33,13 @@ export function DashboardRecommendationCard({
   return (
     <article
       className={cn(
-        "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-7 py-7 transition-colors hover:border-gold-primary/25 md:px-8 md:py-8",
+        "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-5 py-5 transition-colors hover:border-gold-primary/25 md:px-6 md:py-6",
         className,
       )}
     >
       <Badge
         variant={isHigh ? "warning" : "secondary"}
-        className="mb-5 w-fit px-3 py-1 text-xs font-semibold"
+        className="mb-3.5 w-fit px-3 py-1 text-xs font-semibold"
       >
         {badge}
       </Badge>
@@ -54,11 +54,11 @@ export function DashboardRecommendationCard({
         </p>
       ) : null}
 
-      <p className="mb-6 flex-1 text-sm leading-7 text-muted md:text-[15px]">
+      <p className="mb-4 flex-1 text-sm leading-6 text-muted md:text-[15px]">
         {description}
       </p>
 
-      <div className="border-t border-border/60 pt-4">
+      <div className="border-t border-border/60 pt-3.5">
         <p className="text-sm font-medium text-gray-medium">
           ثقة <span className="font-semibold text-black-primary">{confidence}</span>
         </p>

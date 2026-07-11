@@ -30,13 +30,13 @@ const columns: DataTableColumn<UploadedFileItem>[] = [
   {
     key: "fileName",
     header: "اسم الملف",
-    className: "px-7 py-6 min-w-[200px] text-[15px] font-semibold",
+    className: "px-6 py-4 min-w-[200px] text-[15px] font-semibold",
     cell: (row) => row.fileName,
   },
   {
     key: "department",
     header: "القسم",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <span className="rounded-full border border-border/70 bg-bg-light px-3 py-1 text-xs font-medium text-gray-medium">
         {row.department}
@@ -46,19 +46,19 @@ const columns: DataTableColumn<UploadedFileItem>[] = [
   {
     key: "uploadDate",
     header: "تاريخ الرفع",
-    className: "px-7 py-6 text-sm tabular-nums text-muted",
+    className: "px-6 py-4 text-sm tabular-nums text-muted",
     cell: (row) => formatDate(row.uploadDate),
   },
   {
     key: "size",
     header: "الحجم",
-    className: "px-7 py-6 text-sm tabular-nums text-gray-medium",
+    className: "px-6 py-4 text-sm tabular-nums text-gray-medium",
     cell: (row) => row.size,
   },
   {
     key: "status",
     header: "الحالة",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <Badge
         variant={statusVariant(row.status)}

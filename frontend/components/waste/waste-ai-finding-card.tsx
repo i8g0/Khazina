@@ -14,7 +14,7 @@ export function WasteAiFindingCard({ item, className }: WasteAiFindingCardProps)
   return (
     <article
       className={cn(
-        "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-7 py-7 md:px-8 md:py-8",
+        "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-5 py-5 md:px-6 md:py-6",
         className,
       )}
     >

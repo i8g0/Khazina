@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 2 – Frontend Foundation                                 |
-| Current Sprint | 2.6                                                           |
-| Overall Status | Phase 2 in progress                                           |
+| Current Phase  | Phase 2 – Frontend Foundation (Frozen)                        |
+| Current Sprint | 2.8                                                           |
+| Overall Status | Phase 2 complete — awaiting review                            |
 | Last Updated   | 2026-07-11                                                    |
 
 ---
@@ -21,7 +21,7 @@ Official progress tracker for the Khazina project.
 | Phase                         | Status             |
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
-| Phase 2 – Frontend Foundation | 🔄 In Progress      |
+| Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
 | Phase 3 – Database            | ⏸ Pending          |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
@@ -43,6 +43,8 @@ Official progress tracker for the Khazina project.
 | 2.4    | Frontend   | Risk Management                      | Completed | Pending | Pending             |
 | 2.5    | Frontend   | Business Simulation                  | Completed | Pending | Pending             |
 | 2.6    | Frontend   | Reports & Data Management            | Completed | Pending | Pending             |
+| 2.7    | Frontend   | Final UI Polish & Phase 2 Freeze     | Completed | Pending | Pending             |
+| 2.8    | Frontend   | Final Density Pass                   | Completed | Pending | Pending             |
 
 ---
 
@@ -540,6 +542,98 @@ Official progress tracker for the Khazina project.
 | Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
 | Scope boundary | ✅ Pass | Reports + Data pages only; Phase 2 frontend complete |
 | Screenshots | ✅ Pass | `docs/screenshots/sprint-2.6-reports.png`, `docs/screenshots/sprint-2.6-data-management.png` |
+
+---
+
+### Sprint 2.7 - Final UI Polish & Phase 2 Freeze
+
+**Objective:** Unify the executive visual language across all Phase 2 pages, freeze the frontend foundation, and reposition Data Management as a financial data repository.
+
+**Delivered:**
+
+- Sticky enterprise sidebar (desktop) — remains visible while scrolling
+- Global spacing tokens: `executivePageSpacingClassName`, `executiveSectionSpacingClassName`
+- Unified section header typography, KPI card heights, and page container padding
+- Dashboard: reduced hero height, emphasized KPI numbers, denser timeline
+- Financial Waste: tighter idle/upload spacing (ready state unchanged)
+- Risk Management: denser mitigation cards, matrix polish, recommendation card alignment
+- Business Simulation: tighter scenario cards, comparison metrics, results summary
+- Reports: reduced card size and grid density
+- Data Management repositioned as **مستودع البيانات المالية** — repository-first layout with compact secondary upload
+- Fresh screenshots for all 6 pages
+- **Phase 2 Frontend Foundation — FROZEN**
+
+**Deferred:**
+
+- Phase 3+ backend, database, authentication, AI integration
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | All 7 routes compile |
+| Sticky sidebar | ✅ Pass | Desktop sidebar fixed on scroll |
+| Visual consistency | ✅ Pass | Unified spacing, typography, KPI hierarchy |
+| Data page repositioning | ✅ Pass | Repository-first; upload secondary |
+| Responsive review | ✅ Pass | 1440px / 1920px layouts verified |
+| Screenshots | ✅ Pass | 6 fresh screenshots in `docs/screenshots/` |
+
+---
+
+### Sprint 2.8 - Phase 2 UI Final Density Pass
+
+**Objective:** Global density polish (no redesign) so the application feels like a premium enterprise dashboard at 100% zoom on 1920×1080 — approximately 10–15% more compact.
+
+**Delivered:**
+
+- Wider effective content: container `max-w-[1760px]`, reduced page padding (`px-4/6/8`, `py-7/8`)
+- Vertical rhythm reduced ~20%: page spacing `3.25rem/4rem`, section spacing `space-y-5/6`
+- Hero: min-height 148/168px (was 180/210px), padding cut ~40%, title hierarchy unchanged
+- KPI cards: min-height 134–160px, tighter internal padding and icon size
+- Charts: card header/body padding reduced, inner chart margins cut (`top:12 right:16 bottom:8`), larger drawing area
+- Tables: cell padding `px-6 py-4` (was `px-7 py-6`), headers `py-3.5`; shared `DataTable` rows `py-2.5`
+- Upload zones: prominent variant 196/216px (was 280/320px), drag-and-drop preserved
+- Recommendation cards: padding `px-5/6 py-5/6`, min-height 220px (was 260px)
+- Timelines (dashboard + mitigation plans): 36px markers, `pb-5` gaps, tighter text spacing
+- Page headers: bottom padding `pb-5/6` (was `pb-8/10`); grid gaps normalized to `gap-5`
+- Sticky sidebar untouched; no font-size reductions; placeholder data unchanged
+
+**Deferred:**
+
+- Phase 3+ backend, database, authentication, AI integration
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | All 7 routes compile |
+| Density target | ✅ Pass | ~10–15% more compact; hero, cards, charts, tables tightened |
+| Typography preserved | ✅ Pass | No aggressive font-size reductions |
+| Sticky sidebar | ✅ Pass | Unchanged from Sprint 2.7 |
+| Responsive review | ✅ Pass | 1440px / 1920px verified; tablet/mobile classes untouched |
+| Screenshots | ✅ Pass | `docs/screenshots/density-*.png` (6 pages @ 1920×1080) |
 
 ---
 

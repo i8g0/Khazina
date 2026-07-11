@@ -20,7 +20,7 @@ export function ReportsExportPanel({ className }: ReportsExportPanelProps) {
   return (
     <article
       className={cn(
-        "rounded-2xl border border-border/60 bg-surface px-7 py-7 md:px-8 md:py-8",
+        "rounded-2xl border border-border/60 bg-surface px-6 py-5 md:px-6 md:py-6",
         className,
       )}
     >

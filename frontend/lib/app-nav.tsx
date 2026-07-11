@@ -39,4 +39,10 @@ export function getAppNavItems() {
 }
 
 export const executivePageContainerClassName =
-  "max-w-[1720px] px-5 py-12 md:px-8 md:py-14 lg:px-10";
+  "max-w-[1760px] px-4 py-7 md:px-6 md:py-8 lg:px-8";
+
+/** Unified vertical rhythm for executive pages (matches Dashboard density reference) */
+export const executivePageSpacingClassName = "space-y-[2.75rem] md:space-y-[3.25rem]";
+
+/** Spacing within a page section (header + content) */
+export const executiveSectionSpacingClassName = "space-y-4 md:space-y-5";

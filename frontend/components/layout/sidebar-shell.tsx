@@ -216,11 +216,7 @@ export function SidebarShell({
 
   return (
     <>
-      <div className="hidden shrink-0 lg:block">
-        <SidebarPanel {...panelProps} showCollapseToggle />
-      </div>
-
-      <div className="hidden shrink-0 md:block lg:hidden">
+      <div className="hidden shrink-0 self-start md:sticky md:top-0 md:z-30 md:block md:h-screen lg:sticky lg:top-0 lg:z-30 lg:h-screen">
         <SidebarPanel {...panelProps} showCollapseToggle />
       </div>
 

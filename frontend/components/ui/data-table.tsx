@@ -35,7 +35,7 @@ export function DataTable<T>({
                 <th
                   key={column.key}
                   className={cn(
-                    "px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted",
+                    "px-4 py-2.5 text-start text-xs font-semibold uppercase tracking-wide text-muted",
                     column.className,
                   )}
                 >
@@ -63,7 +63,7 @@ export function DataTable<T>({
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={cn("px-4 py-3 text-black-primary", column.className)}
+                      className={cn("px-4 py-2.5 text-black-primary", column.className)}
                     >
                       {column.cell(row)}
                     </td>

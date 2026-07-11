@@ -29,7 +29,7 @@ export function SimulationScenarioCard({
       aria-selected={active}
       onClick={onSelect}
       className={cn(
-        "flex h-full min-h-[168px] w-full flex-col rounded-2xl border bg-surface px-6 py-6 text-start transition-colors md:min-h-[180px] md:px-7 md:py-7",
+        "flex h-full min-h-[140px] w-full flex-col rounded-2xl border bg-surface px-5 py-5 text-start transition-colors md:min-h-[152px] md:px-6 md:py-6",
         active
           ? "border-gold-primary shadow-[0_0_0_1px_rgba(184,137,45,0.35)]"
           : "border-border/60 hover:border-gold-primary/25",
@@ -43,7 +43,7 @@ export function SimulationScenarioCard({
           {scenario.status}
         </Badge>
       </div>
-      <h3 className="mb-2 text-lg font-semibold leading-snug tracking-tight text-black-primary md:text-xl">
+      <h3 className="mb-1.5 text-base font-semibold leading-snug tracking-tight text-black-primary md:text-lg">
         {scenario.name}
       </h3>
       <p className="flex-1 text-sm leading-7 text-muted md:text-[15px]">

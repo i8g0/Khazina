@@ -38,7 +38,7 @@ export function WasteIdleContent({
   className,
 }: WasteIdleContentProps) {
   return (
-    <div className={cn("space-y-6 md:space-y-7", className)}>
+    <div className={cn("space-y-5 md:space-y-6", className)}>
       <div className="flex flex-wrap gap-2.5 md:gap-3">
         {helperItems.map((item) => {
           const Icon = item.icon;
@@ -93,7 +93,7 @@ export function WasteIdleContent({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border/60 bg-bg-light/40 px-6 py-8 text-center md:px-10 md:py-10">
+      <section className="rounded-2xl border border-border/60 bg-bg-light/40 px-6 py-6 text-center md:px-8 md:py-7">
         <div className="mx-auto flex max-w-xl flex-col items-center">
           <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-primary/10 text-gold-dark">
             <FileSpreadsheet className="h-6 w-6" strokeWidth={1.75} />

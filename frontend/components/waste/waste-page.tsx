@@ -21,9 +21,14 @@ import { WasteSavingsCard } from "@/components/waste/waste-savings-card";
 import { Button } from "@/components/ui/button";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { UploadArea } from "@/components/ui/upload-area";
-import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
+import {
+  executivePageContainerClassName,
+  executivePageSpacingClassName,
+  executiveSectionSpacingClassName,
+  getAppNavItems,
+} from "@/lib/app-nav";
 import {
   organization,
   wasteAnalysisResults,
@@ -80,12 +85,6 @@ export function WastePage() {
 
   const aiFindings = wasteRecommendations.filter((item) => item.badge === "عالية").slice(0, 2);
 
-  const periodBadge = (
-    <span className="inline-flex items-center rounded-full border border-gold-primary/30 bg-gold-primary/[0.07] px-3 py-1 text-xs font-medium text-gold-dark">
-      {organization.reportingPeriod}
-    </span>
-  );
-
   return (
     <AppLayout
       brand={<DashboardBrand />}
@@ -99,15 +98,14 @@ export function WastePage() {
         <div
           className={cn(
             viewState === "ready"
-              ? "space-y-16 md:space-y-20"
-              : "space-y-6 md:space-y-8",
+              ? executivePageSpacingClassName
+              : "space-y-4 md:space-y-5",
           )}
         >
-          <PageHeader
-            compact
+          <PageHero
             title="كشف الهدر المالي"
             description="رفع ملفات مالية وتحليل أنماط الهدر وفرص التوفير المؤسسية"
-            meta={periodBadge}
+            period={organization.reportingPeriod}
             actions={
               viewState === "ready" ? (
                 <Button
@@ -158,12 +156,12 @@ export function WastePage() {
 
           {viewState === "loading" ? (
             <div className="space-y-8">
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <LoadingSkeleton key={index} className="min-h-[168px] rounded-2xl" />
                 ))}
               </div>
-              <div className="grid gap-7 xl:grid-cols-2">
+              <div className="grid gap-5 xl:grid-cols-2">
                 <LoadingSkeleton className="min-h-[460px] rounded-2xl" />
                 <LoadingSkeleton className="min-h-[460px] rounded-2xl" />
               </div>
@@ -173,7 +171,7 @@ export function WastePage() {
 
           {viewState === "ready" ? (
             <>
-              <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
+              <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
                 {wasteSummaryKpis.map((kpi, index) => {
                   const Icon = summaryIcons[index];
                   return (
@@ -182,6 +180,8 @@ export function WastePage() {
                       label={kpi.label}
                       value={kpi.value}
                       hint={kpi.hint}
+                      emphasis
+                      dense
                       icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
                     />
                   );
@@ -190,17 +190,19 @@ export function WastePage() {
 
               <WasteCharts />
 
-              <section className="space-y-8">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="توزيع الهدر حسب الإدارات"
                   description="مقارنة مساهمة كل إدارة في إجمالي الهدر المكتشف"
                 />
                 <WasteDepartmentBreakdown />
               </section>
 
-              <section className="space-y-8">
+              <section className={executiveSectionSpacingClassName}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <DashboardSectionHeader
+                    dense
                     title="تفاصيل الهدر المالي"
                     description="تحليل الفئات والموردين مع إمكانية التصفية حسب الإدارة"
                   />
@@ -228,24 +230,26 @@ export function WastePage() {
                 />
               </section>
 
-              <section className="space-y-8">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="نتائج الذكاء الاصطناعي"
                   description="أهم الملاحظات المكتشفة آلياً من تحليل البيانات المرفوعة"
                 />
-                <div className="grid gap-6 lg:grid-cols-2 lg:gap-7">
+                <div className="grid gap-5 lg:grid-cols-2 lg:gap-5">
                   {aiFindings.map((item) => (
                     <WasteAiFindingCard key={item.id} item={item} />
                   ))}
                 </div>
               </section>
 
-              <section className="space-y-8">
+              <section className={executiveSectionSpacingClassName}>
                 <DashboardSectionHeader
+                  dense
                   title="فرص التوفير"
                   description="توصيات قابلة للتنفيذ مع تقدير التوفير المحتمل"
                 />
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-7">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
                   {wasteRecommendations.map((item) => (
                     <WasteSavingsCard key={item.id} item={item} />
                   ))}

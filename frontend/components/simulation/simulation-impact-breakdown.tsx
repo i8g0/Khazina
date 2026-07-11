@@ -19,25 +19,25 @@ const columns: DataTableColumn<SimulationImpactItem>[] = [
   {
     key: "category",
     header: "الفئة",
-    className: "px-7 py-6 text-[15px] font-semibold",
+    className: "px-6 py-4 text-[15px] font-semibold",
     cell: (row) => row.category,
   },
   {
     key: "baseline",
     header: "الأساس",
-    className: "px-7 py-6 tabular-nums",
+    className: "px-6 py-4 tabular-nums",
     cell: (row) => row.baseline,
   },
   {
     key: "projected",
     header: "المتوقع",
-    className: "px-7 py-6 tabular-nums",
+    className: "px-6 py-4 tabular-nums",
     cell: (row) => row.projected,
   },
   {
     key: "change",
     header: "التغير",
-    className: "px-7 py-6",
+    className: "px-6 py-4",
     cell: (row) => (
       <Badge
         variant={changeVariant(row.direction)}

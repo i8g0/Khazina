@@ -13,11 +13,11 @@ export function SimulationActionPanel({
   className,
 }: SimulationActionPanelProps) {
   return (
-    <div className={cn("grid gap-6 lg:grid-cols-3 lg:gap-7", className)}>
+    <div className={cn("grid gap-5 lg:grid-cols-3 lg:gap-5", className)}>
       {items.map((item) => (
         <article
           key={item.id}
-          className="flex min-h-[196px] flex-col rounded-2xl border border-border/60 bg-surface px-7 py-8 md:px-8 md:py-9"
+          className="flex min-h-[168px] flex-col rounded-2xl border border-border/60 bg-surface px-6 py-5 md:px-6 md:py-6"
         >
           <div className="mb-5 flex items-center justify-between gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold-primary/10 text-gold-dark">
