@@ -28,4 +28,7 @@ export { SectionHeader } from "@/components/ui/section-header";
 export { StatCard } from "@/components/ui/stat-card";
 export { Textarea } from "@/components/ui/textarea";
 export { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+export { HeroSection, HeroPeriodBadge } from "@/components/ui/hero-section";
+export { Timeline } from "@/components/ui/timeline";
+export { TimelineItem } from "@/components/ui/timeline-item";
 export { UploadArea } from "@/components/ui/upload-area";

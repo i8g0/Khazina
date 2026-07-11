@@ -25,6 +25,7 @@ export interface SidebarShellProps {
   onCollapsedChange?: (collapsed: boolean) => void;
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
+  variant?: "default" | "executive";
   className?: string;
 }
 
@@ -40,6 +41,7 @@ function SidebarPanel({
   onClose,
   showCollapseToggle,
   showCloseButton,
+  variant = "default",
   className,
 }: {
   brand: React.ReactNode;
@@ -53,24 +55,46 @@ function SidebarPanel({
   onClose?: () => void;
   showCollapseToggle?: boolean;
   showCloseButton?: boolean;
+  variant?: "default" | "executive";
   className?: string;
 }) {
+  const isExecutive = variant === "executive";
+  const renderedBrand =
+    React.isValidElement(brand) && collapsed !== undefined
+      ? React.cloneElement(brand as React.ReactElement<{ collapsed?: boolean }>, {
+          collapsed,
+        })
+      : brand;
+
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-e border-border bg-surface shadow-soft",
-        collapsed ? "w-[88px]" : "w-[280px]",
+        "flex h-full flex-col border-e",
+        isExecutive
+          ? "border-border/70 bg-surface shadow-none"
+          : "border-border bg-surface shadow-soft",
+        collapsed ? "w-[88px]" : isExecutive ? "w-[272px]" : "w-[280px]",
         className,
       )}
     >
-      <div className="flex h-16 items-center justify-between gap-2 border-b border-border px-4">
-        {!collapsed ? <div className="min-w-0 flex-1">{brand}</div> : null}
+      <div
+        className={cn(
+          "flex items-center justify-between gap-2 border-b px-5",
+          isExecutive
+            ? "min-h-[104px] border-border/70 py-6"
+            : "h-16 border-border px-4",
+        )}
+      >
+        <div className={cn("min-w-0 flex-1", collapsed && "flex justify-center")}>
+          {renderedBrand}
+        </div>
         {showCollapseToggle ? (
           <Button
             variant="ghost"
             size="icon"
             onClick={() => onCollapsedChange?.(!collapsed)}
             aria-label={collapsed ? "توسيع القائمة الجانبية" : "طي القائمة الجانبية"}
+            className={cn(isExecutive && "text-muted hover:bg-bg-light hover:text-black-primary")}
           >
             {collapsed ? (
               <PanelRightOpen className="h-4 w-4" />
@@ -85,13 +109,14 @@ function SidebarPanel({
             size="icon"
             onClick={onClose}
             aria-label="إغلاق القائمة"
+            className={cn(isExecutive && "text-muted hover:bg-bg-light hover:text-black-primary")}
           >
             <X className="h-4 w-4" />
           </Button>
         ) : null}
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className={cn("flex-1 overflow-y-auto", isExecutive ? "space-y-1.5 px-4 py-5" : "space-y-1 p-3")}>
         {navItems.map((item) => {
           const isActive = item.id === activeItemId;
           return (
@@ -100,10 +125,20 @@ function SidebarPanel({
               type="button"
               onClick={() => onNavItemClick?.(item)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                isActive
-                  ? "bg-gold-primary/10 text-gold-dark"
-                  : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+                "relative flex w-full items-center gap-3 rounded-xl font-medium transition-all",
+                isExecutive
+                  ? cn(
+                      "px-4 py-3.5 text-[15px]",
+                      isActive
+                        ? "bg-gold-primary text-white shadow-none"
+                        : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+                    )
+                  : cn(
+                      "px-3.5 py-3 text-sm",
+                      isActive
+                        ? "bg-gold-primary/10 text-gold-dark"
+                        : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+                    ),
                 collapsed && "justify-center px-2",
               )}
             >
@@ -118,7 +153,14 @@ function SidebarPanel({
       </nav>
 
       {footer ? (
-        <div className="border-t border-border p-4">{footer}</div>
+        <div
+          className={cn(
+            "border-t p-4",
+            isExecutive ? "border-border/70" : "border-border",
+          )}
+        >
+          {footer}
+        </div>
       ) : null}
     </aside>
   );
@@ -135,6 +177,7 @@ export function SidebarShell({
   onCollapsedChange,
   mobileOpen = false,
   onMobileOpenChange,
+  variant = "default",
   className,
 }: SidebarShellProps) {
   const panelProps = {
@@ -146,6 +189,7 @@ export function SidebarShell({
     onNavItemClick,
     collapsed,
     onCollapsedChange,
+    variant,
     className,
   };
 

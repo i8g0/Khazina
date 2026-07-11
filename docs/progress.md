@@ -10,7 +10,7 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 2 – Frontend Foundation                                 |
-| Current Sprint | 2.1                                                           |
+| Current Sprint | 2.2                                                           |
 | Overall Status | Phase 2 in progress                                           |
 | Last Updated   | 2026-07-11                                                    |
 
@@ -38,6 +38,7 @@ Official progress tracker for the Khazina project.
 | 1.4    | Foundation | Docker & Local Development Stability | Completed | Approved | 0dc4184             |
 | 1.5    | Foundation | Foundation Freeze                    | Completed | Approved | Pending             |
 | 2.1    | Frontend   | Design System Foundation             | Completed | Pending  | Pending             |
+| 2.2    | Frontend   | Dashboard Page                       | Completed | Pending | Pending             |
 
 ---
 
@@ -284,6 +285,55 @@ Official progress tracker for the Khazina project.
 | RTL / Arabic layout       | ✅ Pass | `lang="ar"`, `dir="rtl"`, IBM Plex Arabic  |
 | Business logic added      | ✅ Pass | None — design system components only       |
 | Backend integration       | ✅ Pass | None — no API calls                        |
+
+---
+
+### Sprint 2.2 - Dashboard Page
+
+**Objective:** Implement the executive Dashboard page using the Sprint 2.1 design system and official placeholder data only.
+
+**Delivered:**
+
+- Dashboard route at `/` replacing the design-system placeholder home page
+- Shared placeholder data module (`frontend/lib/placeholder-data.ts`) per PLACEHOLDER_DATA.md
+- HeroSection with executive summary (**نظرة تنفيذية**) and period badge (**الربع الثاني 2026**)
+- Five KPI StatCards with department context badges
+- Two dashboard charts: **توزيع الهدر حسب الإدارات** (bar) and **اتجاه الهدر المالي** (line)
+- Three priority RecommendationCards from waste recommendations (w01–w03)
+- Timeline section **آخر التحديثات** (5 events)
+- Recent Analyses DataTable (5 rows)
+- New minimal UI components: HeroSection, Timeline, TimelineItem
+- Minimal StatCard extension: optional `departmentBadge` prop for KPI department context
+- UI/UX polish pass: executive sidebar (dark, official logo, nav icons), premium hero/KPI/chart/recommendation/timeline/table styling, increased whitespace
+- Visual calibration pass: Stitch-aligned proportions — wider content (1720px), dominant hero/KPI typography, light executive sidebar with gold active state, stronger section hierarchy and vertical rhythm
+
+**Deferred:**
+
+- All other application pages, backend integration, API client, authentication, AI
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | `npm run build` |
+| TypeScript / lint | ✅ Pass | Build includes type check and ESLint |
+| Dashboard hierarchy | ✅ Pass | AppLayout → Hero → 5 KPIs → 2 charts → 3 recs → Timeline → table |
+| Arabic / RTL only | ✅ Pass | All user-facing dashboard text in Arabic |
+| Placeholder data only | ✅ Pass | Data from `lib/placeholder-data.ts`; no API calls |
+| Backend / auth / AI | ✅ Pass | None implemented |
+| Scope boundary | ✅ Pass | Dashboard page only; no other pages modified |
+| Screenshot | ✅ Pass | `docs/screenshots/sprint-2.2-dashboard-calibrated.png` |
 
 ---
 

@@ -19,6 +19,7 @@ export interface AppLayoutProps {
   navItems?: SidebarNavItem[];
   activeItemId?: string;
   onNavItemClick?: (item: SidebarNavItem) => void;
+  sidebarVariant?: "default" | "executive";
   className?: string;
   contentClassName?: string;
 }
@@ -34,6 +35,7 @@ export function AppLayout({
   navItems = [],
   activeItemId,
   onNavItemClick,
+  sidebarVariant = "default",
   className,
   contentClassName,
 }: AppLayoutProps) {
@@ -52,6 +54,7 @@ export function AppLayout({
         onCollapsedChange={setCollapsed}
         mobileOpen={mobileOpen}
         onMobileOpenChange={setMobileOpen}
+        variant={sidebarVariant}
       >
         {sidebarContent}
       </SidebarShell>
@@ -62,6 +65,7 @@ export function AppLayout({
           subtitle={subtitle}
           actions={headerActions}
           onMobileMenuClick={() => setMobileOpen(true)}
+          variant={sidebarVariant}
         />
         <main className={cn("flex-1 overflow-auto", contentClassName)}>
           {children}
