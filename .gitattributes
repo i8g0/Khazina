@@ -1,0 +1,7 @@
+# Enforce UTF-8 and LF for text; prevent Windows re-encoding regressions
+* text=auto eol=lf
+*.md text working-tree-encoding=UTF-8 eol=lf
+*.ini text working-tree-encoding=UTF-8 eol=lf
+*.mako text working-tree-encoding=UTF-8 eol=lf
+.dockerignore text working-tree-encoding=UTF-8 eol=lf
+*.png binary

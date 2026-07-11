@@ -65,6 +65,14 @@ If any red flag applies, reduce scope or wait for approval.
 
 ---
 
+## File Encoding (mandatory)
+
+- All text files must be UTF-8 without BOM.
+- Never create or overwrite files using PowerShell `>` or `Out-File` redirection — it writes UTF-16/BOM on Windows.
+- Create and edit files inside the editor only.
+
+---
+
 ## References
 
 - Minimal Changes Policy: [docs/AI_GUIDELINES.md](../../docs/AI_GUIDELINES.md)

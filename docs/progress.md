@@ -1,4 +1,4 @@
-﻿# Khazina - Development Tracker
+# Khazina - Development Tracker
 
 Official progress tracker for the Khazina project.
 
