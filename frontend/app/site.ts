@@ -1,3 +1,3 @@
-export const SITE_NAME = "Khazina";
+export const SITE_NAME = "خزينة";
 export const SITE_DESCRIPTION =
-  "Enterprise Financial Decision Intelligence Platform";
+  "منصة الذكاء المالي المؤسسية لاتخاذ القرارات";

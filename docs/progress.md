@@ -12,7 +12,7 @@ Official progress tracker for the Khazina project.
 | Current Phase  | Phase 2 – Frontend Foundation                                 |
 | Current Sprint | 2.1                                                           |
 | Overall Status | Phase 2 in progress                                           |
-| Last Updated   | 2026-07-10                                                    |
+| Last Updated   | 2026-07-11                                                    |
 
 ---
 
@@ -21,7 +21,7 @@ Official progress tracker for the Khazina project.
 | Phase                         | Status             |
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
-| Phase 2 – Frontend Foundation | ⏸ Pending          |
+| Phase 2 – Frontend Foundation | 🔄 In Progress      |
 | Phase 3 – Database            | ⏸ Pending          |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
@@ -37,6 +37,7 @@ Official progress tracker for the Khazina project.
 | 1.3    | Foundation | Core Backend Infrastructure          | Completed | Approved | 1cac03a             |
 | 1.4    | Foundation | Docker & Local Development Stability | Completed | Approved | 0dc4184             |
 | 1.5    | Foundation | Foundation Freeze                    | Completed | Approved | Pending             |
+| 2.1    | Frontend   | Design System Foundation             | Completed | Pending  | Pending             |
 
 ---
 
@@ -238,6 +239,51 @@ Official progress tracker for the Khazina project.
 | Alembic config            | ✅ Pass   | `alembic.ini` and `env.py` present        |
 | Docker compose file       | ✅ Pass   | UTF-8, four services configured           |
 | Docker Compose runtime    | ⏸ Blocked | Not validated on this development machine |
+
+---
+
+### Sprint 2.1 - Design System Foundation
+
+**Objective:** Build the complete reusable design system (layout shells, UI primitives, tokens, and state components) for the Khazina frontend without business logic or backend integration.
+
+**Delivered:**
+
+- IBM Plex Sans Arabic typography and Khazina color tokens in Tailwind v4 theme
+- Design tokens module (`lib/tokens.ts`) and motion utilities (`lib/motion.ts`)
+- Layout components: AppLayout, SidebarShell, HeaderShell, PageContainer, ResponsiveContainer
+- UI primitives: Button, Input, Textarea, SearchInput, Badge, Alert, Card, Modal, Tooltip
+- State components: LoadingSpinner, LoadingSkeleton, EmptyState, ErrorState
+- Domain shells: SectionHeader, StatCard, ChartCard, ChartContainer (Recharts), RecommendationCard, UploadArea, DataTable
+- Responsive sidebar: fixed (desktop), collapsible (tablet), drawer (mobile)
+- Dependencies added: shadcn/ui pattern (Radix + CVA), Framer Motion, Lucide React, Recharts
+- Arabic RTL root layout with TooltipProvider
+- Minimal foundation home page using AppLayout (no business features)
+
+**Deferred:**
+
+- Dashboard, financial analysis, API integration, authentication, AI features
+- Business data, charts with data, feature-specific pages
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check                     | Result  | Notes                                      |
+| ------------------------- | ------- | ------------------------------------------ |
+| Frontend production build | ✅ Pass | `npm run build`                            |
+| TypeScript / lint         | ✅ Pass | Build includes type check and ESLint       |
+| RTL / Arabic layout       | ✅ Pass | `lang="ar"`, `dir="rtl"`, IBM Plex Arabic  |
+| Business logic added      | ✅ Pass | None — design system components only       |
+| Backend integration       | ✅ Pass | None — no API calls                        |
 
 ---
 
