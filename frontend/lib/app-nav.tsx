@@ -12,6 +12,8 @@ import { dashboardNavItems } from "@/lib/placeholder-data";
 export const navRouteMap: Record<string, string> = {
   dashboard: "/",
   waste: "/financial-waste",
+  risk: "/risk-management",
+  simulation: "/business-simulation",
 };
 
 export const navIcons: Record<string, React.ReactNode> = {

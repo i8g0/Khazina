@@ -406,3 +406,674 @@ export const wasteDepartmentFilterOptions = [
   "الشؤون المالية",
   "تقنية المعلومات",
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Risk Management
+// ---------------------------------------------------------------------------
+
+export interface RiskSummaryKpi {
+  label: string;
+  value: string;
+  hint: string;
+}
+
+export const riskSummaryKpis: RiskSummaryKpi[] = [
+  {
+    label: "إجمالي المخاطر",
+    value: "7",
+    hint: "مخاطر نشطة وقيد المعالجة",
+  },
+  {
+    label: "المخاطر الحرجة",
+    value: "3",
+    hint: "أولوية عالية",
+  },
+  {
+    label: "المخاطر المتوسطة",
+    value: "2",
+    hint: "تتطلب متابعة",
+  },
+  {
+    label: "المخاطر المغلقة",
+    value: "0",
+    hint: "خلال الربع الحالي",
+  },
+];
+
+export const riskBySeverity = [
+  { level: "عالية", count: 3 },
+  { level: "متوسطة", count: 2 },
+  { level: "منخفضة", count: 2 },
+];
+
+export const riskByDepartment = [
+  { department: "المشتريات", score: 69 },
+  { department: "العمليات", score: 78 },
+  { department: "الشؤون المالية", score: 62 },
+  { department: "تقنية المعلومات", score: 42 },
+];
+
+export const riskChartByCategory = [
+  { category: "مالي", score: 78 },
+  { category: "تشغيلي", score: 65 },
+  { category: "امتثال", score: 82 },
+  { category: "استراتيجي", score: 55 },
+  { category: "تقني", score: 42 },
+];
+
+export interface RiskItem {
+  id: string;
+  name: string;
+  description: string;
+  priority: string;
+  score: number;
+  department: string;
+  status: string;
+  owner: string;
+  lastUpdated: string;
+}
+
+export const riskItems: RiskItem[] = [
+  {
+    id: "risk-001",
+    name: "تجاوز الميزانية التشغيلية",
+    description: "تجاوز 8% عن ميزانية Q2 في المشتريات",
+    priority: "عالية",
+    score: 87,
+    department: "المشتريات",
+    status: "نشط",
+    owner: "مدير المشتريات",
+    lastUpdated: "2026-06-28",
+  },
+  {
+    id: "risk-002",
+    name: "تركّز الموردين",
+    description: "62% من الإنفاق مع 3 موردين فقط",
+    priority: "عالية",
+    score: 82,
+    department: "المشتريات",
+    status: "نشط",
+    owner: "مدير المشتريات",
+    lastUpdated: "2026-06-25",
+  },
+  {
+    id: "risk-003",
+    name: "تأخر تحصيل الذمم",
+    description: "متوسط التحصيل 47 يوماً",
+    priority: "متوسطة",
+    score: 65,
+    department: "الشؤون المالية",
+    status: "نشط",
+    owner: "مدير الشؤون المالية",
+    lastUpdated: "2026-06-22",
+  },
+  {
+    id: "risk-004",
+    name: "فجوة الامتثال",
+    description: "2 عملية بدون موافقة مطلوبة",
+    priority: "عالية",
+    score: 78,
+    department: "العمليات",
+    status: "قيد المعالجة",
+    owner: "مدير العمليات",
+    lastUpdated: "2026-06-20",
+  },
+  {
+    id: "risk-005",
+    name: "تقلب أسعار الصرف",
+    description: "تأثير 3.2% على تكلفة الواردات",
+    priority: "متوسطة",
+    score: 58,
+    department: "الشؤون المالية",
+    status: "نشط",
+    owner: "مدير الشؤون المالية",
+    lastUpdated: "2026-06-18",
+  },
+  {
+    id: "risk-006",
+    name: "نقص البيانات",
+    description: "15% من السجلات بدون تصنيف",
+    priority: "منخفضة",
+    score: 42,
+    department: "تقنية المعلومات",
+    status: "نشط",
+    owner: "مدير تقنية المعلومات",
+    lastUpdated: "2026-06-15",
+  },
+  {
+    id: "risk-007",
+    name: "تأخر تقارير الموردين",
+    description: "4 موردين متأخرين عن الجدول",
+    priority: "منخفضة",
+    score: 38,
+    department: "المشتريات",
+    status: "نشط",
+    owner: "مدير المشتريات",
+    lastUpdated: "2026-06-12",
+  },
+];
+
+export interface RiskMatrixItem {
+  id: string;
+  name: string;
+  likelihood: "منخفض" | "متوسط" | "مرتفع";
+  impact: "منخفض" | "متوسط" | "مرتفع";
+  priority: string;
+}
+
+export const riskMatrixItems: RiskMatrixItem[] = [
+  {
+    id: "risk-001",
+    name: "تجاوز الميزانية",
+    likelihood: "مرتفع",
+    impact: "مرتفع",
+    priority: "عالية",
+  },
+  {
+    id: "risk-002",
+    name: "تركّز الموردين",
+    likelihood: "مرتفع",
+    impact: "متوسط",
+    priority: "عالية",
+  },
+  {
+    id: "risk-003",
+    name: "تأخر التحصيل",
+    likelihood: "متوسط",
+    impact: "متوسط",
+    priority: "متوسطة",
+  },
+  {
+    id: "risk-004",
+    name: "فجوة الامتثال",
+    likelihood: "متوسط",
+    impact: "مرتفع",
+    priority: "عالية",
+  },
+  {
+    id: "risk-005",
+    name: "تقلب الصرف",
+    likelihood: "منخفض",
+    impact: "متوسط",
+    priority: "متوسطة",
+  },
+  {
+    id: "risk-006",
+    name: "نقص البيانات",
+    likelihood: "منخفض",
+    impact: "منخفض",
+    priority: "منخفضة",
+  },
+];
+
+export interface RiskRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+}
+
+export const riskRecommendations: RiskRecommendation[] = [
+  {
+    id: "rec-r01",
+    title: "تنويع قاعدة الموردين",
+    description: "تقليل الاعتماد على 3 موردين رئيسيين إلى أقل من 40%",
+    priority: "عالية",
+  },
+  {
+    id: "rec-r02",
+    title: "تفعيل تنبيهات الميزانية",
+    description: "تنبيه تلقائي عند 90% من حد الميزانية",
+    priority: "عالية",
+  },
+  {
+    id: "rec-r03",
+    title: "مراجعة سياسة التحصيل",
+    description: "تقليل متوسط أيام التحصيل إلى 35 يوماً",
+    priority: "متوسطة",
+  },
+];
+
+export interface RiskMitigationPlan {
+  id: string;
+  title: string;
+  description: string;
+  relatedRisk: string;
+  status: string;
+  targetDate: string;
+  owner: string;
+}
+
+export const riskMitigationPlans: RiskMitigationPlan[] = [
+  {
+    id: "mit-001",
+    title: "خطة تقليل تركّز الموردين",
+    description: "إعادة توزيع 20% من الإنفاق على موردين بديلين خلال Q3",
+    relatedRisk: "تركّز الموردين",
+    status: "قيد التنفيذ",
+    targetDate: "2026-09-30",
+    owner: "مدير المشتريات",
+  },
+  {
+    id: "mit-002",
+    title: "تفعيل ضوابط الامتثال",
+    description: "تطبيق موافقات إلزامية على العمليات الحرجة",
+    relatedRisk: "فجوة الامتثال",
+    status: "قيد المراجعة",
+    targetDate: "2026-08-15",
+    owner: "مدير العمليات",
+  },
+  {
+    id: "mit-003",
+    title: "برنامج تحسين التحصيل",
+    description: "تقليل متوسط أيام التحصيل من 47 إلى 35 يوماً",
+    relatedRisk: "تأخر تحصيل الذمم",
+    status: "مخطط",
+    targetDate: "2026-10-31",
+    owner: "مدير الشؤون المالية",
+  },
+  {
+    id: "mit-004",
+    title: "مراقبة حدود الميزانية",
+    description: "تنبيهات تلقائية عند 90% من حد الميزانية التشغيلية",
+    relatedRisk: "تجاوز الميزانية",
+    status: "قيد التنفيذ",
+    targetDate: "2026-07-31",
+    owner: "مدير المشتريات",
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Business Simulation
+// ---------------------------------------------------------------------------
+
+export interface SimulationScenario {
+  id: string;
+  name: string;
+  description: string;
+  status: string;
+}
+
+export const simulationScenarios: SimulationScenario[] = [
+  {
+    id: "sim-001",
+    name: "تقليل الإنفاق 10%",
+    description: "محاكاة خفض الإنفاق التشغيلي 10% عبر جميع الأقسام",
+    status: "مكتمل",
+  },
+  {
+    id: "sim-002",
+    name: "دمج الموردين",
+    description: "محاكاة دمج 5 موردين إلى 3",
+    status: "مسودة",
+  },
+  {
+    id: "sim-003",
+    name: "توسع السوق الخليجي",
+    description: "محاكاة زيادة 15% في الإيرادات مع تكلفة توسع",
+    status: "مسودة",
+  },
+];
+
+export interface SimulationForecast {
+  scenarioId: string;
+  baselineLabel: string;
+  baselineValue: string;
+  projectedLabel: string;
+  projectedValue: string;
+  deltaLabel: string;
+  deltaValue: string;
+  confidence: string;
+}
+
+export const simulationForecasts: SimulationForecast[] = [
+  {
+    scenarioId: "sim-001",
+    baselineLabel: "الأساس",
+    baselineValue: "48.75M ر.س",
+    projectedLabel: "المتوقع",
+    projectedValue: "43.88M ر.س",
+    deltaLabel: "التغير",
+    deltaValue: "-10.0%",
+    confidence: "88%",
+  },
+  {
+    scenarioId: "sim-002",
+    baselineLabel: "الأساس",
+    baselineValue: "12.40M ر.س",
+    projectedLabel: "المتوقع",
+    projectedValue: "10.54M ر.س",
+    deltaLabel: "التغير",
+    deltaValue: "-15.0%",
+    confidence: "85%",
+  },
+  {
+    scenarioId: "sim-003",
+    baselineLabel: "الأساس",
+    baselineValue: "62.00M ر.س",
+    projectedLabel: "المتوقع",
+    projectedValue: "68.20M ر.س",
+    deltaLabel: "التغير",
+    deltaValue: "+10.0%",
+    confidence: "72%",
+  },
+];
+
+export interface SimulationChartPoint {
+  quarter: string;
+  baseline: number;
+  projected: number;
+}
+
+export const simulationChartSeries: Record<string, SimulationChartPoint[]> = {
+  "sim-001": [
+    { quarter: "Q3 2026", baseline: 16_250_000, projected: 14_625_000 },
+    { quarter: "Q4 2026", baseline: 16_250_000, projected: 14_625_000 },
+    { quarter: "Q1 2027", baseline: 16_250_000, projected: 14_625_000 },
+  ],
+  "sim-002": [
+    { quarter: "Q3 2026", baseline: 4_133_333, projected: 3_513_333 },
+    { quarter: "Q4 2026", baseline: 4_133_333, projected: 3_513_333 },
+    { quarter: "Q1 2027", baseline: 4_133_333, projected: 3_513_333 },
+  ],
+  "sim-003": [
+    { quarter: "Q3 2026", baseline: 20_666_667, projected: 22_733_333 },
+    { quarter: "Q4 2026", baseline: 20_666_667, projected: 22_733_333 },
+    { quarter: "Q1 2027", baseline: 20_666_667, projected: 22_733_333 },
+  ],
+};
+
+export interface SimulationComparisonMetric {
+  metric: string;
+  current: string;
+  simulated: string;
+  change: string;
+  direction: "up" | "down" | "neutral";
+}
+
+export const simulationComparisonMetrics: Record<string, SimulationComparisonMetric[]> = {
+  "sim-001": [
+    {
+      metric: "إجمالي الإنفاق",
+      current: "48.75M",
+      simulated: "43.88M",
+      change: "-10.0%",
+      direction: "down",
+    },
+    {
+      metric: "عدد الموردين",
+      current: "47",
+      simulated: "32",
+      change: "-31.9%",
+      direction: "down",
+    },
+    {
+      metric: "متوسط تكلفة العقد",
+      current: "265,000",
+      simulated: "228,000",
+      change: "-14.0%",
+      direction: "down",
+    },
+  ],
+  "sim-002": [
+    {
+      metric: "تكلفة الموردين",
+      current: "12.40M",
+      simulated: "10.54M",
+      change: "-15.0%",
+      direction: "down",
+    },
+    {
+      metric: "عدد الموردين النشطين",
+      current: "47",
+      simulated: "32",
+      change: "-31.9%",
+      direction: "down",
+    },
+    {
+      metric: "تكلفة إدارية للموردين",
+      current: "890K",
+      simulated: "620K",
+      change: "-30.3%",
+      direction: "down",
+    },
+  ],
+  "sim-003": [
+    {
+      metric: "إجمالي الإيرادات",
+      current: "62.00M",
+      simulated: "68.20M",
+      change: "+10.0%",
+      direction: "up",
+    },
+    {
+      metric: "تكلفة التوسع",
+      current: "0",
+      simulated: "12.00M",
+      change: "+12.00M",
+      direction: "up",
+    },
+    {
+      metric: "هامش الربح التشغيلي",
+      current: "18.2%",
+      simulated: "16.8%",
+      change: "-1.4%",
+      direction: "down",
+    },
+  ],
+};
+
+export interface SimulationAssumption {
+  label: string;
+  value: string;
+}
+
+export const simulationAssumptions: Record<string, SimulationAssumption[]> = {
+  "sim-001": [
+    { label: "نسبة خفض الإنفاق", value: "10%" },
+    { label: "نطاق التطبيق", value: "جميع الأقسام" },
+    { label: "تأثير على الإيرادات", value: "بدون تغيير" },
+    { label: "الأفق الزمني", value: "3 أرباع" },
+  ],
+  "sim-002": [
+    { label: "عدد الموردين قبل الدمج", value: "5" },
+    { label: "عدد الموردين بعد الدمج", value: "3" },
+    { label: "توفير إداري متوقع", value: "8%" },
+    { label: "مدة التنفيذ", value: "6 أشهر" },
+  ],
+  "sim-003": [
+    { label: "نمو الإيرادات المتوقع", value: "15%" },
+    { label: "تكلفة التوسع", value: "12M ر.س" },
+    { label: "الأسواق المستهدفة", value: "الخليج" },
+    { label: "فترة تحقيق العائد", value: "18 شهراً" },
+  ],
+};
+
+export interface SimulationImpactItem {
+  category: string;
+  baseline: string;
+  projected: string;
+  change: string;
+  direction: "up" | "down" | "neutral";
+}
+
+export const simulationImpactBreakdown: Record<string, SimulationImpactItem[]> = {
+  "sim-001": [
+    {
+      category: "المشتريات",
+      baseline: "18.2M",
+      projected: "16.4M",
+      change: "-9.9%",
+      direction: "down",
+    },
+    {
+      category: "العمليات",
+      baseline: "14.6M",
+      projected: "13.1M",
+      change: "-10.3%",
+      direction: "down",
+    },
+    {
+      category: "الشؤون المالية",
+      baseline: "9.8M",
+      projected: "8.8M",
+      change: "-10.2%",
+      direction: "down",
+    },
+    {
+      category: "تقنية المعلومات",
+      baseline: "6.15M",
+      projected: "5.58M",
+      change: "-9.3%",
+      direction: "down",
+    },
+  ],
+  "sim-002": [
+    {
+      category: "تكاليف العقود",
+      baseline: "8.4M",
+      projected: "7.1M",
+      change: "-15.5%",
+      direction: "down",
+    },
+    {
+      category: "التكاليف الإدارية",
+      baseline: "890K",
+      projected: "620K",
+      change: "-30.3%",
+      direction: "down",
+    },
+    {
+      category: "تكاليف الانتقال",
+      baseline: "0",
+      projected: "420K",
+      change: "+420K",
+      direction: "up",
+    },
+    {
+      category: "التوفير الصافي",
+      baseline: "12.4M",
+      projected: "10.54M",
+      change: "-15.0%",
+      direction: "down",
+    },
+  ],
+  "sim-003": [
+    {
+      category: "الإيرادات",
+      baseline: "62.0M",
+      projected: "68.2M",
+      change: "+10.0%",
+      direction: "up",
+    },
+    {
+      category: "تكلفة التوسع",
+      baseline: "0",
+      projected: "12.0M",
+      change: "+12.0M",
+      direction: "up",
+    },
+    {
+      category: "التكاليف التشغيلية",
+      baseline: "50.7M",
+      projected: "52.1M",
+      change: "+2.8%",
+      direction: "up",
+    },
+    {
+      category: "صافي الأثر",
+      baseline: "11.3M",
+      projected: "4.1M",
+      change: "-63.7%",
+      direction: "down",
+    },
+  ],
+};
+
+export interface SimulationRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  badge: string;
+  confidence: string;
+  department: string;
+}
+
+export const simulationRecommendations: SimulationRecommendation[] = [
+  {
+    id: "rec-s01",
+    title: "البدء بخفض الإنفاق في المشتريات",
+    description: "أعلى مساهمة في التوفير — 35% من إجمالي الأثر المتوقع",
+    badge: "عالية",
+    confidence: "88%",
+    department: "المشتريات",
+  },
+  {
+    id: "rec-s02",
+    title: "مراجعة عقود الموردين قبل الدمج",
+    description: "تحليل 5 عقود رئيسية لتحديد فرص التوفير الإضافية",
+    badge: "عالية",
+    confidence: "85%",
+    department: "المشتريات",
+  },
+  {
+    id: "rec-s03",
+    title: "تقييم جدوى التوسع على مرحلتين",
+    description: "تقليل مخاطر التوسع بتقسيم الاستثمار على 18 شهراً",
+    badge: "متوسطة",
+    confidence: "72%",
+    department: "الشؤون المالية",
+  },
+];
+
+export interface SimulationActionItem {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+}
+
+export const simulationActionItems: SimulationActionItem[] = [
+  {
+    id: "act-001",
+    title: "اعتماد السيناريو للمراجعة التنفيذية",
+    description: "إرسال نتائج المحاكاة إلى لجنة الشؤون المالية",
+    status: "مقترح",
+  },
+  {
+    id: "act-002",
+    title: "تحديد خطة تنفيذ تدريجية",
+    description: "تقسيم التغييرات على 3 أرباع لتقليل المخاطر التشغيلية",
+    status: "مقترح",
+  },
+  {
+    id: "act-003",
+    title: "متابعة مؤشرات الأداء الرئيسية",
+    description: "مراقبة الإنفاق والإيرادات شهرياً مقابل التوقعات",
+    status: "مقترح",
+  },
+];
+
+export interface SimulationResultSummary {
+  title: string;
+  description: string;
+}
+
+export const simulationResultSummaries: Record<string, SimulationResultSummary> = {
+  "sim-001": {
+    title: "توفير تشغيلي محتمل",
+    description:
+      "يشير السيناريو إلى توفير 4.87M ر.س خلال 3 أرباع مع ثقة 88%. يُنصح بالبدء بإدارة المشتريات.",
+  },
+  "sim-002": {
+    title: "تخفيض تكاليف الموردين",
+    description:
+      "دمج الموردين قد يحقق توفيراً 1.86M ر.س سنوياً. يتطلب 6 أشهر للتنفيذ الكامل.",
+  },
+  "sim-003": {
+    title: "نمو الإيرادات مع تكلفة توسع",
+    description:
+      "زيادة الإيرادات 10% مع استثمار توسع 12M ر.س. العائد المتوقع خلال 18 شهراً.",
+  },
+};
+

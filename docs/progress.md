@@ -10,7 +10,7 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 2 – Frontend Foundation                                 |
-| Current Sprint | 2.3                                                           |
+| Current Sprint | 2.5                                                           |
 | Overall Status | Phase 2 in progress                                           |
 | Last Updated   | 2026-07-11                                                    |
 
@@ -40,6 +40,8 @@ Official progress tracker for the Khazina project.
 | 2.1    | Frontend   | Design System Foundation             | Completed | Pending  | Pending             |
 | 2.2    | Frontend   | Dashboard Page                       | Completed | Pending | Pending             |
 | 2.3    | Frontend   | Financial Waste Detection            | Completed | Pending | Pending             |
+| 2.4    | Frontend   | Risk Management                      | Completed | Pending | Pending             |
+| 2.5    | Frontend   | Business Simulation                  | Completed | Pending | Pending             |
 
 ---
 
@@ -387,6 +389,106 @@ Official progress tracker for the Khazina project.
 | Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
 | Scope boundary | ✅ Pass | Waste page only; no backend/auth/AI |
 | Screenshot | ✅ Pass | `docs/screenshots/sprint-2.3-waste-detection-idle-refined.png` |
+
+---
+
+### Sprint 2.4 - Risk Management
+
+**Objective:** Implement the Risk Management page using the Dashboard executive visual language and official placeholder data only.
+
+**Delivered:**
+
+- Route at `/risk-management` with executive AppLayout shell matching Dashboard and Waste pages
+- PageHeader (**إدارة المخاطر**) with reporting period badge
+- Four risk summary StatCards (total, critical, medium, closed)
+- Two distribution charts: by department (bar) and by severity level (bar)
+- Risk priority matrix visualization (likelihood × impact grid with placeholder positions)
+- Active risks table via DataTable (risk, department, priority, status, owner, last updated)
+- AI recommendation cards (3 placeholder recommendations)
+- Mitigation plans timeline (4 placeholder plans with status, target date, owner)
+- Shared navigation config updated with `risk` → `/risk-management`
+- Extended `lib/placeholder-data.ts` with risk-specific placeholder data
+- Sprint 2.4 UI polish: emphasized KPI cards, chart breathing room, Dashboard-aligned recommendation cards, taller mitigation cards, tighter page header, consistent section rhythm
+
+**Deferred:**
+
+- Simulation, reports, data pages; backend API; real risk calculations; authentication; AI services
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | `npm run build` — `/risk-management` route generated |
+| TypeScript / lint | ✅ Pass | Build includes type check and ESLint |
+| Page hierarchy | ✅ Pass | PageHeader → KPIs → Charts → Matrix → Table → AI → Mitigation |
+| Arabic / RTL only | ✅ Pass | All user-facing text in Arabic |
+| Placeholder data only | ✅ Pass | Data from `lib/placeholder-data.ts`; no API calls |
+| Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
+| Scope boundary | ✅ Pass | Risk page only; no backend/auth/AI |
+| Screenshot | ✅ Pass | `docs/screenshots/sprint-2.4-risk-management.png` |
+
+---
+
+### Sprint 2.5 - Business Simulation
+
+**Objective:** Implement the Business Simulation page using the Dashboard executive visual language and official placeholder data only.
+
+**Delivered:**
+
+- Route at `/business-simulation` with executive AppLayout shell matching Dashboard, Waste, and Risk pages
+- PageHeader (**محاكاة الأعمال**) with disabled "سيناريو جديد" action and reporting period badge
+- Scenario selection cards (3 scenarios) with active gold border state and `aria-selected`
+- Assumptions panel (read-only placeholder parameters per scenario)
+- Fake "تشغيل المحاكاة" flow with local React state (idle → loading → ready)
+- Loading skeletons during simulated run
+- Results summary KPIs (baseline, projected, delta) with info alert
+- Comparison metric cards (3 per scenario)
+- Baseline vs projected grouped bar chart by quarter
+- Financial impact breakdown table via DataTable
+- AI recommendation cards (3 placeholder recommendations via DashboardRecommendationCard)
+- Action summary panel (3 proposed action cards)
+- Shared navigation config updated with `simulation` → `/business-simulation`
+- Extended `lib/placeholder-data.ts` with simulation-specific placeholder data
+- Seven simulation components under `components/simulation/`
+
+**Deferred:**
+
+- Reports, data pages; backend simulation API; editable scenario parameters; live simulation engine; authentication; AI services
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | `npm run build` — `/business-simulation` route generated |
+| TypeScript / lint | ✅ Pass | Build includes type check and ESLint |
+| Page hierarchy | ✅ Pass | Header → Scenarios → Assumptions → Run → Results → Comparison → Chart → Impact → AI → Actions |
+| Arabic / RTL only | ✅ Pass | All user-facing text in Arabic |
+| Placeholder data only | ✅ Pass | Data from `lib/placeholder-data.ts`; no API calls |
+| Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
+| Scope boundary | ✅ Pass | Simulation page only; no backend/auth/AI |
+| Screenshot | ✅ Pass | `docs/screenshots/sprint-2.5-business-simulation.png` |
 
 ---
 

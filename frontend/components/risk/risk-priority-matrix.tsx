@@ -1,0 +1,151 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import type { RiskMatrixItem } from "@/lib/placeholder-data";
+import { riskMatrixItems } from "@/lib/placeholder-data";
+
+const likelihoodLevels = ["منخفض", "متوسط", "مرتفع"] as const;
+const impactLevels = ["مرتفع", "متوسط", "منخفض"] as const;
+
+type Likelihood = (typeof likelihoodLevels)[number];
+type Impact = (typeof impactLevels)[number];
+
+function cellTone(likelihood: Likelihood, impact: Impact) {
+  const score =
+    likelihoodLevels.indexOf(likelihood) + impactLevels.indexOf(impact);
+  if (score >= 4) {
+    return "bg-destructive/10 border-destructive/25";
+  }
+  if (score >= 2) {
+    return "bg-warning/10 border-warning/25";
+  }
+  return "bg-success/10 border-success/25";
+}
+
+function priorityVariant(priority: string) {
+  if (priority === "عالية") {
+    return "border-destructive/30 bg-destructive/5 text-destructive";
+  }
+  if (priority === "متوسطة") {
+    return "border-warning/30 bg-warning/5 text-warning";
+  }
+  return "border-success/30 bg-success/5 text-success";
+}
+
+function getItemsInCell(likelihood: Likelihood, impact: Impact) {
+  return riskMatrixItems.filter(
+    (item) => item.likelihood === likelihood && item.impact === impact,
+  );
+}
+
+export interface RiskPriorityMatrixProps {
+  className?: string;
+}
+
+export function RiskPriorityMatrix({ className }: RiskPriorityMatrixProps) {
+  return (
+    <article
+      className={cn(
+        "rounded-2xl border border-border/60 bg-surface px-6 py-7 md:px-8 md:py-8",
+        className,
+      )}
+    >
+      <div className="mb-8 space-y-2">
+        <h3 className="text-xl font-semibold tracking-tight text-black-primary md:text-[1.35rem]">
+          مصفوفة أولوية المخاطر
+        </h3>
+        <p className="text-sm leading-relaxed text-muted md:text-[15px]">
+          تصنيف المخاطر حسب احتمالية الحدوث وتأثيرها — بيانات تجريبية
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="min-w-[640px]">
+          <div className="mb-3 grid grid-cols-[88px_repeat(3,minmax(0,1fr))] gap-2">
+            <div />
+            {likelihoodLevels.map((level) => (
+              <div
+                key={level}
+                className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+              >
+                {level}
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            {impactLevels.map((impact) => (
+              <div
+                key={impact}
+                className="grid grid-cols-[88px_repeat(3,minmax(0,1fr))] gap-2"
+              >
+                <div className="flex items-center justify-end pe-3 text-xs font-semibold text-muted">
+                  {impact}
+                </div>
+                {likelihoodLevels.map((likelihood) => {
+                  const items = getItemsInCell(likelihood, impact);
+                  return (
+                    <MatrixCell
+                      key={`${impact}-${likelihood}`}
+                      likelihood={likelihood}
+                      impact={impact}
+                      items={items}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-muted">
+            <span className="font-medium text-gray-medium">التأثير ←</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded border border-destructive/30 bg-destructive/10" />
+              حرج
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded border border-warning/30 bg-warning/10" />
+              متوسط
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded border border-success/30 bg-success/10" />
+              منخفض
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+interface MatrixCellProps {
+  likelihood: Likelihood;
+  impact: Impact;
+  items: RiskMatrixItem[];
+}
+
+function MatrixCell({ likelihood, impact, items }: MatrixCellProps) {
+  return (
+    <div
+      className={cn(
+        "min-h-[88px] rounded-xl border p-3 transition-colors",
+        cellTone(likelihood, impact),
+      )}
+    >
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <span
+            key={item.id}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-tight",
+              priorityVariant(item.priority),
+            )}
+            title={item.name}
+          >
+            {item.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}

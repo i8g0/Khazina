@@ -5,6 +5,9 @@ const recommendationDepartments: Record<string, string> = {
   "rec-w01": "المشتريات",
   "rec-w02": "العمليات",
   "rec-w03": "تقنية المعلومات",
+  "rec-s01": "المشتريات",
+  "rec-s02": "المشتريات",
+  "rec-s03": "الشؤون المالية",
 };
 
 export interface DashboardRecommendationCardProps {
