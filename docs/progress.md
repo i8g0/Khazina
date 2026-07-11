@@ -10,7 +10,7 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 2 – Frontend Foundation                                 |
-| Current Sprint | 2.5                                                           |
+| Current Sprint | 2.6                                                           |
 | Overall Status | Phase 2 in progress                                           |
 | Last Updated   | 2026-07-11                                                    |
 
@@ -42,6 +42,7 @@ Official progress tracker for the Khazina project.
 | 2.3    | Frontend   | Financial Waste Detection            | Completed | Pending | Pending             |
 | 2.4    | Frontend   | Risk Management                      | Completed | Pending | Pending             |
 | 2.5    | Frontend   | Business Simulation                  | Completed | Pending | Pending             |
+| 2.6    | Frontend   | Reports & Data Management            | Completed | Pending | Pending             |
 
 ---
 
@@ -489,6 +490,56 @@ Official progress tracker for the Khazina project.
 | Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
 | Scope boundary | ✅ Pass | Simulation page only; no backend/auth/AI |
 | Screenshot | ✅ Pass | `docs/screenshots/sprint-2.5-business-simulation.png` |
+
+---
+
+### Sprint 2.6 - Reports & Data Management
+
+**Objective:** Implement the final two frontend pages (Reports and Data Management) using the Dashboard executive visual language and official placeholder data only.
+
+**Delivered:**
+
+- Route at `/reports` with executive AppLayout shell
+- Reports PageHeader, 4 summary KPIs, filter bar (type/department/period)
+- 5 generated report preview cards with modal preview ("معاينة")
+- Reports history DataTable
+- Export panel (PDF / Excel / PowerPoint) — UI only, disabled with tooltip
+- Route at `/data-management` with executive AppLayout shell
+- Data Management PageHeader, UploadArea panel, uploaded files table, import history table
+- Dataset summary KPIs + validation summary cards
+- Empty / loading / ready states with local React state (simulated upload flow)
+- Shared navigation config updated with `reports` → `/reports`, `data` → `/data-management`
+- Extended `lib/placeholder-data.ts` with reports and data management placeholder data
+- Four reports components and five data components
+
+**Deferred:**
+
+- Backend report/file APIs; real export; authentication; AI; file deletion; data preview viewer
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | `npm run build` — `/reports` and `/data-management` routes generated |
+| TypeScript / lint | ✅ Pass | Build includes type check and ESLint |
+| Reports page hierarchy | ✅ Pass | Header → KPIs → Filters → Cards → History → Export |
+| Data page hierarchy | ✅ Pass | Header → Upload → KPIs → Files → Import → Validation |
+| Arabic / RTL only | ✅ Pass | All user-facing text in Arabic |
+| Placeholder data only | ✅ Pass | Data from `lib/placeholder-data.ts`; no API calls |
+| Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
+| Scope boundary | ✅ Pass | Reports + Data pages only; Phase 2 frontend complete |
+| Screenshots | ✅ Pass | `docs/screenshots/sprint-2.6-reports.png`, `docs/screenshots/sprint-2.6-data-management.png` |
 
 ---
 

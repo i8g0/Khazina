@@ -14,6 +14,8 @@ export const navRouteMap: Record<string, string> = {
   waste: "/financial-waste",
   risk: "/risk-management",
   simulation: "/business-simulation",
+  reports: "/reports",
+  data: "/data-management",
 };
 
 export const navIcons: Record<string, React.ReactNode> = {

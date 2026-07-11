@@ -1077,3 +1077,229 @@ export const simulationResultSummaries: Record<string, SimulationResultSummary> 
   },
 };
 
+// ---------------------------------------------------------------------------
+// Reports
+// ---------------------------------------------------------------------------
+
+export interface ReportSummaryKpi {
+  label: string;
+  value: string;
+  hint: string;
+}
+
+export const reportSummaryKpis: ReportSummaryKpi[] = [
+  {
+    label: "إجمالي التقارير",
+    value: "5",
+    hint: "جميع التقارير المُنشأة",
+  },
+  {
+    label: "تقارير جاهزة",
+    value: "4",
+    hint: "جاهزة للمعاينة والتصدير",
+  },
+  {
+    label: "مسودات",
+    value: "1",
+    hint: "قيد الإعداد",
+  },
+  {
+    label: "تقارير الربع الحالي",
+    value: "5",
+    hint: organization.reportingPeriod,
+  },
+];
+
+export interface ReportItem {
+  id: string;
+  title: string;
+  type: string;
+  department: string;
+  sourceFile: string;
+  date: string;
+  status: string;
+  previewText: string;
+}
+
+export const reportItems: ReportItem[] = [
+  {
+    id: "rep-001",
+    title: "تقرير الهدر المالي — Q2 2026",
+    type: "تحليل",
+    department: "الشؤون المالية",
+    sourceFile: "Procurement_Q2.xlsx",
+    date: "2026-06-30",
+    status: "جاهز",
+    previewText:
+      "ملخص تنفيذي: يُظهر التقرير هدراً مالياً بقيمة 2.34M ر.س في الربع الثاني، مع تركّز 62% من الهدر في فئة الموردين.",
+  },
+  {
+    id: "rep-002",
+    title: "تقييم المخاطر الربعي",
+    type: "مخاطر",
+    department: "العمليات",
+    sourceFile: "Operating_Costs.xlsx",
+    date: "2026-06-25",
+    status: "جاهز",
+    previewText:
+      "ملخص تنفيذي: 7 مخاطر نشطة — 3 حرجة. أعلى مخاطرة: تجاوز الميزانية التشغيلية في المشتريات.",
+  },
+  {
+    id: "rep-003",
+    title: "ملخص محاكاة تقليل الإنفاق",
+    type: "محاكاة",
+    department: "الشؤون المالية",
+    sourceFile: "Budget_Q2_2026.xlsx",
+    date: "2026-06-20",
+    status: "جاهز",
+    previewText:
+      "ملخص تنفيذي: سيناريو خفض الإنفاق 10% يحقق توفيراً 4.87M ر.س خلال 3 أرباع بثقة 88%.",
+  },
+  {
+    id: "rep-004",
+    title: "تحليل الموردين",
+    type: "مشتريات",
+    department: "المشتريات",
+    sourceFile: "Supplier_Contracts.xlsx",
+    date: "2026-06-15",
+    status: "مسودة",
+    previewText:
+      "مسودة: تحليل أولي لـ 47 مورداً — تركّز 62% من الإنفاق مع 3 موردين رئيسيين.",
+  },
+  {
+    id: "rep-005",
+    title: "تقرير الامتثال الشهري",
+    type: "امتثال",
+    department: "العمليات",
+    sourceFile: "Payroll_2026.xlsx",
+    date: "2026-06-01",
+    status: "جاهز",
+    previewText:
+      "ملخص تنفيذي: نسبة الامتثال 96% — 2 عملية بدون موافقة مطلوبة تحتاج متابعة.",
+  },
+];
+
+export const reportFilterOptions = {
+  type: ["الكل", "تحليل", "مخاطر", "محاكاة", "مشتريات", "امتثال"],
+  department: ["الكل", "الشؤون المالية", "المشتريات", "العمليات"],
+  period: ["آخر 30 يوماً", "الربع الحالي", "2026"],
+} as const;
+
+export const reportExportFormats = [
+  { id: "pdf", label: "تصدير PDF", icon: "pdf" },
+  { id: "xlsx", label: "تصدير Excel", icon: "excel" },
+  { id: "pptx", label: "تصدير PowerPoint", icon: "pptx" },
+] as const;
+
+// ---------------------------------------------------------------------------
+// Data Management
+// ---------------------------------------------------------------------------
+
+export interface UploadedFileItem {
+  id: string;
+  fileName: string;
+  department: string;
+  uploadDate: string;
+  size: string;
+  status: string;
+}
+
+export const uploadedFiles: UploadedFileItem[] = [
+  {
+    id: "file-001",
+    fileName: "Budget_Q2_2026.xlsx",
+    department: "الشؤون المالية",
+    uploadDate: "2026-06-18",
+    size: "890 KB",
+    status: "مكتمل",
+  },
+  {
+    id: "file-002",
+    fileName: "Supplier_Contracts.xlsx",
+    department: "المشتريات",
+    uploadDate: "2026-06-22",
+    size: "3.8 MB",
+    status: "قيد المعالجة",
+  },
+  {
+    id: "file-003",
+    fileName: "Procurement_Q2.xlsx",
+    department: "المشتريات",
+    uploadDate: "2026-06-28",
+    size: "2.4 MB",
+    status: "مكتمل",
+  },
+  {
+    id: "file-004",
+    fileName: "Payroll_2026.xlsx",
+    department: "الموارد البشرية",
+    uploadDate: "2026-06-15",
+    size: "1.6 MB",
+    status: "فشل",
+  },
+  {
+    id: "file-005",
+    fileName: "Operating_Costs.xlsx",
+    department: "الشؤون المالية",
+    uploadDate: "2026-06-25",
+    size: "1.1 MB",
+    status: "مكتمل",
+  },
+];
+
+export interface ImportHistoryItem {
+  date: string;
+  file: string;
+  records: string;
+  status: string;
+}
+
+export const importHistory: ImportHistoryItem[] = [
+  { date: "2026-06-28", file: "Procurement_Q2.xlsx", records: "4,820", status: "نجح" },
+  { date: "2026-06-25", file: "Operating_Costs.xlsx", records: "1,240", status: "نجح" },
+  { date: "2026-06-22", file: "Supplier_Contracts.xlsx", records: "—", status: "قيد المعالجة" },
+  { date: "2026-06-18", file: "Budget_Q2_2026.xlsx", records: "2,150", status: "نجح" },
+];
+
+export interface DataValidationItem {
+  check: string;
+  result: string;
+  details: string;
+}
+
+export const dataValidationSummary: DataValidationItem[] = [
+  { check: "اكتمال الحقول", result: "94%", details: "312 سجل بدون تصنيف" },
+  { check: "تطابق الميزانية", result: "98%", details: "2 تجاوزات" },
+  { check: "تنسيق التاريخ", result: "100%", details: "—" },
+  { check: "تكرار السجلات", result: "99.2%", details: "38 سجل مكرر" },
+];
+
+export interface DataSummaryKpi {
+  label: string;
+  value: string;
+  hint: string;
+}
+
+export const dataSummaryKpis: DataSummaryKpi[] = [
+  {
+    label: "الملفات المرفوعة",
+    value: "5",
+    hint: "3 مكتملة · 1 قيد المعالجة",
+  },
+  {
+    label: "إجمالي السجلات",
+    value: "8,210",
+    hint: "عبر جميع الملفات",
+  },
+  {
+    label: "نسبة نجاح الاستيراد",
+    value: "75%",
+    hint: "3 من 4 عمليات ناجحة",
+  },
+  {
+    label: "جودة البيانات",
+    value: "97.8%",
+    hint: "متوسط فحوصات التحقق",
+  },
+];
+
