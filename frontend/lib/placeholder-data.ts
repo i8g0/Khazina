@@ -200,3 +200,209 @@ export const dashboardNavItems = [
   { id: "reports", label: "التقارير" },
   { id: "data", label: "إدارة البيانات" },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Financial Waste Detection
+// ---------------------------------------------------------------------------
+
+export interface WasteUploadFile {
+  fileName: string;
+  department: string;
+  size: string;
+  status: string;
+}
+
+export const wasteUploadFiles: WasteUploadFile[] = [
+  {
+    fileName: "Procurement_Q2.xlsx",
+    department: "المشتريات",
+    size: "2.4 MB",
+    status: "جاهز للتحليل",
+  },
+  {
+    fileName: "Operating_Costs.xlsx",
+    department: "العمليات",
+    size: "1.1 MB",
+    status: "جاهز للتحليل",
+  },
+  {
+    fileName: "Supplier_Contracts.xlsx",
+    department: "المشتريات",
+    size: "3.8 MB",
+    status: "جاهز للتحليل",
+  },
+];
+
+export interface WasteAnalysisRow {
+  id: string;
+  category: string;
+  amount: number;
+  percentage: string;
+  department: string;
+}
+
+export const wasteAnalysisResults: WasteAnalysisRow[] = [
+  {
+    id: "wa-001",
+    category: "تكرار طلبات الشراء",
+    amount: 420_000,
+    percentage: "17.9%",
+    department: "المشتريات",
+  },
+  {
+    id: "wa-002",
+    category: "أسعار موردين مرتفعة",
+    amount: 680_000,
+    percentage: "29.1%",
+    department: "المشتريات",
+  },
+  {
+    id: "wa-003",
+    category: "سفر غير ضروري",
+    amount: 310_000,
+    percentage: "13.2%",
+    department: "الشؤون المالية",
+  },
+  {
+    id: "wa-004",
+    category: "اشتراكات غير مستخدمة",
+    amount: 185_000,
+    percentage: "7.9%",
+    department: "تقنية المعلومات",
+  },
+  {
+    id: "wa-005",
+    category: "عقود متداخلة",
+    amount: 745_000,
+    percentage: "31.9%",
+    department: "العمليات",
+  },
+];
+
+export const wasteByCategory = wasteAnalysisResults.map((row) => ({
+  category: row.category,
+  waste: row.amount,
+}));
+
+export interface WasteSummaryKpi {
+  label: string;
+  value: string;
+  hint: string;
+}
+
+export const wasteSummaryKpis: WasteSummaryKpi[] = [
+  {
+    label: "إجمالي الهدر المكتشف",
+    value: "2.34M ر.س",
+    hint: "-8.4% تحسّن · الربع الثاني 2026",
+  },
+  {
+    label: "نسبة الهدر",
+    value: "4.8%",
+    hint: "من إجمالي الإنفاق المحلل",
+  },
+  {
+    label: "أعلى فئة هدر",
+    value: "عقود متداخلة",
+    hint: "31.9% · العمليات",
+  },
+  {
+    label: "التوفير المحتمل",
+    value: "1.875M ر.س",
+    hint: "4 فرص توفير نشطة",
+  },
+];
+
+export interface WasteRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  badge: string;
+  confidence: string;
+  savings: string;
+  department: string;
+}
+
+export const wasteRecommendations: WasteRecommendation[] = [
+  {
+    id: "rec-w01",
+    title: "دمج عقود الموردين المتداخلة",
+    description:
+      "توحيد 3 عقود مع مؤسسة التقنية المتقدمة لتقليل التكلفة السنوية",
+    badge: "عالية",
+    confidence: "92%",
+    savings: "520,000",
+    department: "المشتريات",
+  },
+  {
+    id: "rec-w02",
+    title: "مراجعة سياسة السفر",
+    description: "تطبيق موافقة مسبقة للرحلات فوق 15,000 ر.س",
+    badge: "متوسطة",
+    confidence: "87%",
+    savings: "180,000",
+    department: "العمليات",
+  },
+  {
+    id: "rec-w03",
+    title: "إلغاء اشتراكات غير مستخدمة",
+    description: "12 اشتراك برمجي بدون استخدام خلال 90 يوماً",
+    badge: "عالية",
+    confidence: "95%",
+    savings: "95,000",
+    department: "تقنية المعلومات",
+  },
+  {
+    id: "rec-w04",
+    title: "إعادة التفاوض مع شركة الخليج",
+    description: "أسعار أعلى 18% من متوسط السوق",
+    badge: "عالية",
+    confidence: "89%",
+    savings: "340,000",
+    department: "المشتريات",
+  },
+];
+
+export interface WasteVendorDetail {
+  id: string;
+  vendor: string;
+  category: string;
+  amount: number;
+  deviation: string;
+  status: string;
+}
+
+export const wasteVendorDetails: WasteVendorDetail[] = [
+  {
+    id: "wv-001",
+    vendor: "شركة الخليج للتوريدات",
+    category: "الموردون",
+    amount: 680_000,
+    deviation: "+18%",
+    status: "يتطلب مراجعة",
+  },
+  {
+    id: "wv-002",
+    vendor: "مؤسسة التقنية المتقدمة",
+    category: "تقنية",
+    amount: 420_000,
+    deviation: "+12%",
+    status: "يتطلب مراجعة",
+  },
+  {
+    id: "wv-003",
+    vendor: "مجموعة السفر المؤسسي",
+    category: "السفر",
+    amount: 310_000,
+    deviation: "+25%",
+    status: "حرج",
+  },
+];
+
+export const wasteDepartmentFilterOptions = [
+  "الكل",
+  "المشتريات",
+  "العمليات",
+  "الشؤون المالية",
+  "تقنية المعلومات",
+] as const;

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Menu, PanelRightClose, PanelRightOpen, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -119,33 +120,53 @@ function SidebarPanel({
       <nav className={cn("flex-1 overflow-y-auto", isExecutive ? "space-y-1.5 px-4 py-5" : "space-y-1 p-3")}>
         {navItems.map((item) => {
           const isActive = item.id === activeItemId;
+          const itemClassName = cn(
+            "relative flex w-full items-center gap-3 rounded-xl font-medium transition-all",
+            isExecutive
+              ? cn(
+                  "px-4 py-3.5 text-[15px]",
+                  isActive
+                    ? "bg-gold-primary text-white shadow-none"
+                    : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+                )
+              : cn(
+                  "px-3.5 py-3 text-sm",
+                  isActive
+                    ? "bg-gold-primary/10 text-gold-dark"
+                    : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+                ),
+            collapsed && "justify-center px-2",
+          );
+          const itemContent = (
+            <>
+              {item.icon ? (
+                <span className="shrink-0 text-current">{item.icon}</span>
+              ) : null}
+              {!collapsed ? <span className="truncate">{item.label}</span> : null}
+            </>
+          );
+
+          if (item.href) {
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={itemClassName}
+                onClick={() => onNavItemClick?.(item)}
+              >
+                {itemContent}
+              </Link>
+            );
+          }
+
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => onNavItemClick?.(item)}
-              className={cn(
-                "relative flex w-full items-center gap-3 rounded-xl font-medium transition-all",
-                isExecutive
-                  ? cn(
-                      "px-4 py-3.5 text-[15px]",
-                      isActive
-                        ? "bg-gold-primary text-white shadow-none"
-                        : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
-                    )
-                  : cn(
-                      "px-3.5 py-3 text-sm",
-                      isActive
-                        ? "bg-gold-primary/10 text-gold-dark"
-                        : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
-                    ),
-                collapsed && "justify-center px-2",
-              )}
+              className={itemClassName}
             >
-              {item.icon ? (
-                <span className="shrink-0 text-current">{item.icon}</span>
-              ) : null}
-              {!collapsed ? <span className="truncate">{item.label}</span> : null}
+              {itemContent}
             </button>
           );
         })}

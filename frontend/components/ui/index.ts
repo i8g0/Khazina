@@ -22,6 +22,7 @@ export {
   ModalTitle,
   ModalTrigger,
 } from "@/components/ui/modal";
+export { PageHeader } from "@/components/ui/page-header";
 export { RecommendationCard } from "@/components/ui/recommendation-card";
 export { SearchInput } from "@/components/ui/search-input";
 export { SectionHeader } from "@/components/ui/section-header";

@@ -2,16 +2,9 @@
 
 import {
   AlertTriangle,
-  BarChart3,
   BrainCircuit,
   ClipboardCheck,
-  Database,
-  FileBarChart,
-  LayoutDashboard,
-  LineChart,
   PiggyBank,
-  ScanSearch,
-  ShieldAlert,
   TrendingDown,
 } from "lucide-react";
 import { AppLayout, PageContainer } from "@/components/layout";
@@ -23,9 +16,9 @@ import { DashboardRecommendationCard } from "@/components/dashboard/dashboard-re
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline";
+import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
 import {
   dashboardKpis,
-  dashboardNavItems,
   dashboardRecommendations,
   organization,
   recentAnalyses,
@@ -40,15 +33,6 @@ const kpiIcons = [
   ClipboardCheck,
 ];
 
-const navIcons: Record<string, React.ReactNode> = {
-  dashboard: <LayoutDashboard className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  waste: <ScanSearch className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  risk: <ShieldAlert className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  simulation: <LineChart className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  reports: <FileBarChart className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  data: <Database className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-};
-
 export function DashboardPage() {
   return (
     <AppLayout
@@ -57,13 +41,9 @@ export function DashboardPage() {
       subtitle={organization.reportingPeriod}
       activeItemId="dashboard"
       sidebarVariant="executive"
-      navItems={dashboardNavItems.map((item) => ({
-        id: item.id,
-        label: item.label,
-        icon: navIcons[item.id] ?? <BarChart3 className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-      }))}
+      navItems={getAppNavItems()}
     >
-      <PageContainer className="max-w-[1720px] px-5 py-12 md:px-8 md:py-14 lg:px-10">
+      <PageContainer className={executivePageContainerClassName}>
         <div className="space-y-16 md:space-y-20">
           <DashboardHero
             title="نظرة تنفيذية"

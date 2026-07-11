@@ -10,7 +10,7 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 2 – Frontend Foundation                                 |
-| Current Sprint | 2.2                                                           |
+| Current Sprint | 2.3                                                           |
 | Overall Status | Phase 2 in progress                                           |
 | Last Updated   | 2026-07-11                                                    |
 
@@ -39,6 +39,7 @@ Official progress tracker for the Khazina project.
 | 1.5    | Foundation | Foundation Freeze                    | Completed | Approved | Pending             |
 | 2.1    | Frontend   | Design System Foundation             | Completed | Pending  | Pending             |
 | 2.2    | Frontend   | Dashboard Page                       | Completed | Pending | Pending             |
+| 2.3    | Frontend   | Financial Waste Detection            | Completed | Pending | Pending             |
 
 ---
 
@@ -334,6 +335,58 @@ Official progress tracker for the Khazina project.
 | Backend / auth / AI | ✅ Pass | None implemented |
 | Scope boundary | ✅ Pass | Dashboard page only; no other pages modified |
 | Screenshot | ✅ Pass | `docs/screenshots/sprint-2.2-dashboard-calibrated.png` |
+
+---
+
+### Sprint 2.3 - Financial Waste Detection
+
+**Objective:** Implement the Financial Waste Detection page using the Dashboard executive visual language and official placeholder data only.
+
+**Delivered:**
+
+- Route at `/financial-waste` with executive AppLayout shell matching Dashboard
+- PageHeader (**كشف الهدر المالي**) with re-analyze action
+- UploadArea with simulated upload → loading → results flow (no backend)
+- Four waste summary StatCards (total waste, percentage, top category, potential savings)
+- Two charts: monthly waste trend (line) and waste by category (bar)
+- Department breakdown section with progress bars per department
+- Filters by department on breakdown tables
+- Waste breakdown table (analysis results) and vendor details table
+- AI findings cards (top high-priority recommendations)
+- Savings opportunity cards (4 recommendations with savings amounts)
+- Empty state (idle), loading skeletons/spinner, ready results state
+- Shared navigation config (`lib/app-nav.tsx`) with sidebar routing to Dashboard and Waste pages
+- Extended `lib/placeholder-data.ts` with waste-specific placeholder data
+- PageHeader UI component for non-dashboard pages
+- Sprint 2.3 UI refinement: compact PageHeader, prominent UploadArea, helper badges, workflow steps, executive idle empty state
+
+**Deferred:**
+
+- Risk, simulation, reports, data pages; backend upload API; real file parsing; authentication; AI services
+
+**Review Status:**
+
+- Cursor: ✅ Completed
+- Tech Lead: ⏸ Pending
+- Claude: ⏭ Not Required
+
+**Git Information:**
+
+- Branch: `main`
+- Commit: Pending
+
+**Validation Results:**
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| Frontend production build | ✅ Pass | `npm run build` — `/financial-waste` route generated |
+| TypeScript / lint | ✅ Pass | Build includes type check and ESLint |
+| Page hierarchy | ✅ Pass | PageHeader → Upload → Summary → Charts → Dept breakdown → Tables → AI → Savings |
+| Arabic / RTL only | ✅ Pass | All user-facing text in Arabic |
+| Placeholder data only | ✅ Pass | Data from `lib/placeholder-data.ts`; no API calls |
+| Visual consistency | ✅ Pass | Reuses Dashboard executive components and spacing |
+| Scope boundary | ✅ Pass | Waste page only; no backend/auth/AI |
+| Screenshot | ✅ Pass | `docs/screenshots/sprint-2.3-waste-detection-idle-refined.png` |
 
 ---
 
