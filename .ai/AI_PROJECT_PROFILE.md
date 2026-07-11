@@ -6,21 +6,32 @@ Documentation in `docs/` is the single source of truth. This file does not repla
 
 ---
 
+## Current Development Mode
+
+**Current Mode:** Hackathon MVP
+
+**Current Goal:** Deliver a stable MVP within four days while preserving production-quality architecture.
+
+Execution plan: [docs/HACKATHON_PLAN.md](../docs/HACKATHON_PLAN.md)
+
+---
+
 ## Quick Task Routing
 
 Use this table to load only the skills and documentation required for the task. Minimize token usage — do not read every document every time.
 
-| Task | Required Skills | Documentation |
-|------|-----------------|---------------|
-| Documentation | Skill 02 | Relevant target doc + [docs/progress.md](../docs/progress.md) |
-| Frontend | Skill 01 + Skill 04 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + [docs/progress.md](../docs/progress.md) |
-| Backend | Skill 01 + Skill 04 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + [docs/API_CONTRACTS.md](../docs/API_CONTRACTS.md) + relevant [docs/ADR/](../docs/ADR/) |
-| Database | Skill 03 | Relevant [docs/ADR/](../docs/ADR/) + [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) |
-| Infrastructure | Skill 03 | Relevant [docs/ADR/](../docs/ADR/) + [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) |
-| Bug Fix | Skill 04 | [docs/progress.md](../docs/progress.md) + relevant module docs |
-| Refactor | Skill 04 | Relevant docs for affected modules |
+| Task | Required Skills | Required Documentation |
+|------|-----------------|------------------------|
+| Documentation | Skill 02 | Relevant docs |
+| Frontend | Skill 01 + Skill 04 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + [docs/PROJECT_ROADMAP.md](../docs/PROJECT_ROADMAP.md) |
+| Backend | Skill 01 + Skill 04 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + relevant [docs/ADR/](../docs/ADR/) |
+| Database | Skill 03 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + relevant [docs/ADR/](../docs/ADR/) |
+| Infrastructure | Skill 03 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + relevant [docs/ADR/](../docs/ADR/) |
+| AI | Skill 01 + Skill 05 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + [docs/AI_GUIDELINES.md](../docs/AI_GUIDELINES.md) |
+| Bug Fix | Skill 04 | Relevant documentation |
+| Refactor | Skill 04 | Relevant documentation |
 | Architecture | Skill 03 | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) + relevant [docs/ADR/](../docs/ADR/) |
-| Testing | Skill 01 | [docs/progress.md](../docs/progress.md) + relevant documentation |
+| Testing | Skill 01 | Relevant documentation |
 
 Always load Skill 05 (token optimization) and Skill 06 (output format) when unsure which docs to read.
 

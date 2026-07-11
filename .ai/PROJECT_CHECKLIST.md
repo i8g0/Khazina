@@ -17,4 +17,15 @@ Execute this checklist mentally before every task.
 
 ---
 
+## Hackathon Verification
+
+- [ ] Is this a hackathon task?
+- [ ] Is MVP sufficient?
+- [ ] Can scope be reduced?
+- [ ] Is architecture preserved?
+- [ ] Is documentation still correct?
+- [ ] Is validation completed?
+
+---
+
 References: [skills/01-development-workflow.md](skills/01-development-workflow.md) · [skills/06-output-format.md](skills/06-output-format.md)

@@ -470,6 +470,33 @@ A sprint is **Done** only when all of the following are satisfied:
 
 ---
 
+## Hackathon Execution Strategy
+
+The project roadmap defines the **complete long-term product**. Hackathons change **implementation scope only** — they never change the roadmap.
+
+| Principle | Rule |
+|-----------|------|
+| Roadmap | Permanent. Phases, architecture, and quality standards remain unchanged. |
+| MVP scope | Adjusts based on available time during a hackathon. |
+| Architecture | Must never be sacrificed. Reduce feature scope instead. |
+| Post-hackathon | Remaining roadmap work continues normally. |
+
+For execution details, see [HACKATHON_PLAN.md](HACKATHON_PLAN.md).
+
+| Phase | Hackathon Scope | Post Hackathon |
+|-------|-----------------|----------------|
+| Phase 2 | Full | Improvements |
+| Phase 3 | Full | Improvements |
+| Phase 4 | Core Only | Complete Later |
+| Phase 5 | Core AI + Performance Validation | Optimization Later |
+| Phase 6 | MVP Features | Remaining Features |
+| Phase 7 | Basic Dashboard | Advanced Analytics |
+| Phase 8 | Smoke Tests | Full QA |
+| Phase 9 | Demo Deployment | Production |
+| Phase 10 | Future | Future |
+
+---
+
 ## Related Documents
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Official system architecture

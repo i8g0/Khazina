@@ -223,6 +223,21 @@ Before submitting a sprint for review:
 
 ---
 
+## Hackathon Workflow
+
+During hackathons, the standard workflow above still applies. Additional priorities:
+
+- Prefer MVP implementations — complete core scope before polish.
+- Keep code quality — no shortcuts that violate architecture or standards.
+- Keep documentation updated — progress and owning documents remain current.
+- Keep reviews mandatory — Tech Lead review is still required before merge.
+- Keep architecture unchanged — reduce feature scope, not structural quality.
+- Deliver a working demo first — polish and remaining features follow post-hackathon.
+
+See [HACKATHON_PLAN.md](HACKATHON_PLAN.md) for the four-day execution plan.
+
+---
+
 ## Related Documents
 
 - [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) — Phase plan and sprint rules

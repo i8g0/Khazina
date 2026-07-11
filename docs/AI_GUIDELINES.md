@@ -375,6 +375,21 @@ When AI tools modify existing files, they must follow these rules:
 
 ---
 
+## Time-Constrained Development
+
+When development occurs under strict deadlines (for example, hackathons), AI must:
+
+- Prioritize MVP — deliver the minimum working scope defined for the current phase.
+- Preserve architecture — never sacrifice structure, standards, or quality gates for speed.
+- Reduce implementation scope — defer non-essential features to post-hackathon work on the roadmap.
+- Never skip validation — run relevant checks before marking work complete.
+- Never skip documentation — update only the owning document when required.
+- Never rewrite unrelated code — apply [Minimal Changes Policy](#minimal-changes-policy) strictly.
+
+Execution details: [HACKATHON_PLAN.md](HACKATHON_PLAN.md)
+
+---
+
 ## Documentation Ownership
 
 Each document has a single responsibility. Never duplicate information across documents. Update only the document responsible for that information.
