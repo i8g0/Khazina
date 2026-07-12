@@ -125,9 +125,11 @@ backend/
 ├── app/
 │   ├── main.py                  Application factory and lifespan
 │   ├── api/
+│   │   ├── deps.py              FastAPI DI: Session → Repositories → Services
 │   │   └── v1/
 │   │       ├── router.py        Version 1 route aggregator
-│   │       └── health.py        Health check endpoint
+│   │       ├── health.py        Health check endpoint
+│   │       └── *.py             One router per business domain (Sprint 3.6)
 │   ├── core/
 │   │   ├── config/              Domain-specific settings
 │   │   │   ├── base.py          Shared settings config
@@ -145,12 +147,14 @@ backend/
 │   │   ├── base.py              Session holder and generic persistence helpers
 │   │   ├── exceptions.py        RepositoryError, EntityNotFoundError (HTTP-agnostic)
 │   │   └── *.py                 One module per business domain
-│   ├── services/                Business logic orchestration (Sprint 3.6)
+│   ├── services/                Business logic orchestration
 │   │   ├── base.py              BaseService: transaction boundary and validation helpers
 │   │   ├── exceptions.py        Business-level exceptions (HTTP-agnostic)
 │   │   └── *.py                 One service per business domain
 │   └── schemas/
-│       └── response.py          ApiResponse models and helpers
+│       ├── response.py          ApiResponse envelope and helpers
+│       ├── common.py            Shared schema utilities and pagination
+│       └── *.py                 Create / Update / Response schemas per domain (Sprint 3.6)
 ├── alembic/
 │   ├── env.py                   Migration environment
 │   └── versions/                Migration files (empty until Phase 3)
@@ -169,23 +173,33 @@ backend/
 | Schemas | `app/schemas/` | Pydantic models for API request and response shapes |
 | Database | `app/db/` | SQLAlchemy engine, session management, and ORM models |
 | Repositories | `app/repositories/` | All SQLAlchemy data access, organized by business domain (Sprint 3.5) |
-| Services | `app/services/` | Business logic, workflow validation, and transaction management (Sprint 3.6) |
+| Services | `app/services/` | Business logic, workflow validation, and transaction management |
 | Migrations | `alembic/` | Database schema versioning |
 
 Repository conventions (Sprint 3.5):
 
 - Repositories receive a `Session` via constructor injection (compatible with `get_db`); they never create sessions or use globals.
-- Repositories flush (never commit); transaction orchestration belongs to the Service Layer (Sprint 3.6).
+- Repositories flush (never commit); transaction orchestration belongs to the Service Layer.
 - Repositories contain no business logic — no KPI calculation, business validation, report generation, or AI triggers.
 - `EntityNotFoundError` (extends `RepositoryError`, a pure `Exception`) is raised by `require_*` lookups; it carries only domain data (entity name and id) with no HTTP semantics. Mapping to HTTP status codes is done by upper layers. Database errors propagate unswallowed.
 
-Service conventions (Sprint 3.6):
+Service conventions:
 
 - Services receive the `Session` and their repositories via constructor injection; dependencies are explicit and no globals are used.
 - Services own transaction boundaries: every mutating use case runs inside a unit-of-work that commits on success and rolls back on any error. Repositories continue to flush only.
 - All business rules live in services: workflow sequencing (file processing, analysis run, and report lifecycles), duplicate prevention, organization ownership checks, active-reporting-period rules, and state-transition validation.
-- Services raise business-level exceptions (`ServiceError` hierarchy in `app/services/exceptions.py`): validation, not-found, duplicate, ownership, invalid-state/transition, and integrity-rule violations. These carry no HTTP semantics; translation to status codes belongs to the API layer (Sprint 3.7).
+- Services raise business-level exceptions (`ServiceError` hierarchy in `app/services/exceptions.py`): validation, not-found, duplicate, ownership, invalid-state/transition, and integrity-rule violations. These carry no HTTP semantics; translation to status codes is performed by the API layer (Sprint 3.6).
 - Services contain no HTTP concepts (no routers, request/response objects, or FastAPI imports) and execute no raw SQL — all data access goes through repositories.
+
+API conventions (Sprint 3.6):
+
+- Routers live in `app/api/v1/`, one module per business domain; they are thin and delegate all business logic to services.
+- Dependency chain: `get_db` → repository factories → service factories (`app/api/deps.py`); routers receive services via `Depends()`.
+- Pydantic schemas in `app/schemas/` separate Create, Update, and Response shapes; ORM models are never returned directly.
+- All successful responses use the `ApiResponse[T]` envelope from `app/schemas/response.py`.
+- Business exceptions are mapped to HTTP status codes in `app/core/exception_handlers.py`: `ResourceNotFoundError` → 404, `BusinessValidationError` → 400, `DuplicateResourceError` → 409, `OwnershipViolationError` → 403, `InvalidStateError` / `BusinessRuleViolationError` → 409.
+- Organization-scoped resources are nested under `/api/v1/organizations/{organization_id}/…`.
+- List endpoints support `limit` / `offset` pagination and domain-specific query filters exposed by the service layer.
 
 ### Application Lifecycle
 
@@ -319,7 +333,7 @@ All API endpoints are versioned under `/api/v1/`.
 | Prefix | `/api/v1` |
 | Router | `app/api/v1/router.py` aggregates version-specific routes |
 | Breaking changes | Require a new version (e.g., `/api/v2/`) |
-| Current endpoints | `GET /api/v1/health` |
+| Current endpoints | Health check plus 87 domain CRUD/workflow operations across 10 business routers (organizations, departments, financial, analysis, waste, risk, simulation, reports, recommendations, timeline) |
 
 New endpoints must be added to the appropriate version router, never directly to the application root.
 

@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Database (Service Layer Complete)                   |
-| Current Sprint | 3.6 (Service Layer)                                           |
-| Overall Status | Service layer complete — awaiting TL approval for Sprint 3.7  |
+| Current Phase  | Phase 3 – Database (CRUD APIs Complete)                       |
+| Current Sprint | 3.6 (CRUD APIs)                                               |
+| Overall Status | CRUD API layer complete — awaiting TL approval for Sprint 3.7 |
 | Last Updated   | 2026-07-12                                                    |
 
 ---
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | 🔄 In Progress (service layer complete; Sprint 3.7 pending TL approval) |
+| Phase 3 – Database            | 🔄 In Progress (CRUD API layer complete; Backend Core Freeze pending TL approval) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -50,7 +50,8 @@ Official progress tracker for the Khazina project.
 | 3.3    | Database   | SQLAlchemy Models                    | Completed | Approved | 8a0e782             |
 | 3.4    | Database   | Alembic Initial Migration            | Completed | Approved | Pending             |
 | 3.5    | Database   | Repository Layer                     | Completed | Approved | Pending             |
-| 3.6    | Database   | Service Layer                        | Completed | Pending  | Pending             |
+| 3.6    | Database   | CRUD APIs                            | Completed | Pending  | Pending             |
+| 3.7    | Database   | Backend Core Freeze                  | Pending   | —        | —                   |
 
 ---
 
@@ -821,7 +822,7 @@ Official progress tracker for the Khazina project.
 
 **Date:** 2026-07-12
 
-**Status:** Completed — awaiting Technical Lead approval before Sprint 3.6 (Service Layer)
+**Status:** Completed — awaiting Technical Lead approval before Service Layer implementation
 
 **Deliverables:**
 
@@ -845,7 +846,7 @@ Official progress tracker for the Khazina project.
 | No services, APIs, auth, caching, or AI introduced | ✅ Pass |
 | No ORM model or Alembic changes | ✅ Pass |
 
-**Next step:** Await Technical Lead approval, then proceed to Sprint 3.6 (Service Layer).
+**Next step:** Await Technical Lead approval, then proceed to Service Layer implementation.
 
 ---
 
@@ -861,11 +862,11 @@ Official progress tracker for the Khazina project.
 
 ---
 
-### Phase 3 — Sprint 3.6: Service Layer
+### Phase 3 — Service Layer
 
 **Date:** 2026-07-12
 
-**Status:** Completed — awaiting Technical Lead approval before Sprint 3.7 (CRUD APIs)
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.6 (CRUD APIs)
 
 **Deliverables:**
 
@@ -888,7 +889,39 @@ Official progress tracker for the Khazina project.
 | No repository, ORM model, Alembic, or frontend changes | ✅ Pass |
 | Linter | ✅ Pass (no errors) |
 
-**Next step:** Await Technical Lead approval, then proceed to Sprint 3.7 (CRUD APIs).
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.6 (CRUD APIs).
+
+---
+
+### Phase 3 — Sprint 3.6: CRUD APIs
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.7 (Backend Core Freeze)
+
+**Deliverables:**
+
+- `backend/app/api/deps.py` — FastAPI dependency injection chain: Session → Repositories → Services, plus shared `PaginationParams`
+- `backend/app/api/v1/` — ten domain routers (Organization, Department, Financial, Analysis, Waste, Risk, Simulation, Report, Recommendation, Timeline) wired through `router.py`
+- `backend/app/schemas/` — Pydantic Create / Update / Response schemas per domain; ORM models never exposed directly
+- `app/core/exception_handlers.py` — HTTP translation for `ServiceError` hierarchy (404/400/409/403 mappings)
+- 87 REST operations across 61 paths, organization-scoped under `/api/v1/organizations/{organization_id}/…`
+- Routers remain thin: validate/bind request shapes, call service methods, map ORM results to response schemas
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| All routers import successfully | ✅ Pass |
+| OpenAPI schema generates | ✅ Pass (61 paths, 87 operations) |
+| Dependency injection (Session → Repos → Services) | ✅ Pass |
+| Service exception HTTP mapping registered | ✅ Pass |
+| No business logic in routers (delegate to services only) | ✅ Pass |
+| No authentication / JWT introduced | ✅ Pass |
+| No service, repository, ORM model, Alembic, or frontend changes | ✅ Pass |
+| Linter | ✅ Pass (no errors) |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.7 (Backend Core Freeze).
 
 ---
 
