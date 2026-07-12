@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Database (Initial Migration Complete)               |
-| Current Sprint | 3.4 (Alembic Initial Migration)                               |
-| Overall Status | Initial migration complete — awaiting TL approval for Sprint 3.5 |
+| Current Phase  | Phase 3 – Database (Repository Layer Complete)                |
+| Current Sprint | 3.5 (Repository Layer)                                        |
+| Overall Status | Repository layer complete — awaiting TL approval for Sprint 3.6 |
 | Last Updated   | 2026-07-12                                                    |
 
 ---
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | 🔄 In Progress (initial migration complete; Sprint 3.5 pending TL approval) |
+| Phase 3 – Database            | 🔄 In Progress (repository layer complete; Sprint 3.6 pending TL approval) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -48,7 +48,8 @@ Official progress tracker for the Khazina project.
 | 3.0    | Database   | Business Domain Discovery            | Completed | Approved | Pending             |
 | 3.2    | Database   | Database Schema Design               | Completed | Approved | Pending             |
 | 3.3    | Database   | SQLAlchemy Models                    | Completed | Approved | 8a0e782             |
-| 3.4    | Database   | Alembic Initial Migration            | Completed | Pending  | Pending             |
+| 3.4    | Database   | Alembic Initial Migration            | Completed | Approved | Pending             |
+| 3.5    | Database   | Repository Layer                     | Completed | Pending  | Pending             |
 
 ---
 
@@ -812,6 +813,50 @@ Official progress tracker for the Khazina project.
 - Validation used a throwaway local PostgreSQL 16.2 instance; no Docker configuration was touched.
 
 **Next step:** Await Technical Lead approval, then proceed to Sprint 3.5 (Repository Layer).
+
+---
+
+### Phase 3 — Sprint 3.5: Repository Layer
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.6 (Service Layer)
+
+**Deliverables:**
+
+- `backend/app/repositories/` — ten domain repositories per the TL directive structure: Organization, Department, Financial, Analysis, Waste, Risk, Simulation, Report, Recommendation, Timeline
+- `base.py` — shared `BaseRepository` holding the injected `Session` with generic persistence helpers (get/require/add/add_all/update/delete/list/count/paginate) so query logic is not duplicated
+- `exceptions.py` — `EntityNotFoundError` extending core `AppError` (404), raised by `require_*` lookups
+- All queries in SQLAlchemy 2.x `select()` style; list methods support limit/offset pagination and MVP-justified filters (design §9 query patterns)
+- Session injected via constructor (DI-compatible with `get_db`); repositories flush but never commit — transactions belong to the Service Layer
+- No business logic: no KPI calculation, business validation, report generation, or AI triggers
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| All repositories import successfully | ✅ Pass (12 exports) |
+| Smoke suite against migrated PostgreSQL 16.2 | ✅ Pass (47/47 checks) |
+| Session injection (one session shared across all repos) | ✅ Pass |
+| CRUD, filters, pagination, ordering, unique-key lookups | ✅ Pass |
+| `EntityNotFoundError` raised on missing entity | ✅ Pass |
+| Database errors propagate (RESTRICT `IntegrityError` not swallowed) | ✅ Pass |
+| No services, APIs, auth, caching, or AI introduced | ✅ Pass |
+| No ORM model or Alembic changes | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.6 (Service Layer).
+
+---
+
+### Phase 3 — Sprint 3.5 Clarification: HTTP-Agnostic Repository Exceptions
+
+**Date:** 2026-07-12
+
+**TL review finding:** `EntityNotFoundError` extended `AppError` and carried `status_code=404` — an HTTP concept inside the repository layer.
+
+**Resolution:** Refactored `app/repositories/exceptions.py` into pure exceptions: new `RepositoryError(Exception)` base and `EntityNotFoundError(RepositoryError)` carrying only `entity_name` and `entity_id`. The module no longer imports `app.core.exceptions`; HTTP mapping is deferred to upper layers. No other repository files changed.
+
+**Validation:** Not a subclass of `AppError`; no `status_code` attribute; no `app.core` import in the module; all 12 repository exports still import cleanly.
 
 ---
 

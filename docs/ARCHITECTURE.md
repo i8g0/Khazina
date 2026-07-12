@@ -141,6 +141,10 @@ backend/
 │   │   ├── base.py              Shared Base, UUID and timestamp mixins
 │   │   ├── session.py           Engine, session factory, connection check
 │   │   └── models/              SQLAlchemy ORM models by domain (Sprint 3.3)
+│   ├── repositories/            Domain repositories over ORM models (Sprint 3.5)
+│   │   ├── base.py              Session holder and generic persistence helpers
+│   │   ├── exceptions.py        RepositoryError, EntityNotFoundError (HTTP-agnostic)
+│   │   └── *.py                 One module per business domain
 │   └── schemas/
 │       └── response.py          ApiResponse models and helpers
 ├── alembic/
@@ -160,9 +164,17 @@ backend/
 | Core | `app/core/` | Configuration, logging, exception handling |
 | Schemas | `app/schemas/` | Pydantic models for API request and response shapes |
 | Database | `app/db/` | SQLAlchemy engine, session management, and ORM models |
+| Repositories | `app/repositories/` | All SQLAlchemy data access, organized by business domain (Sprint 3.5) |
 | Migrations | `alembic/` | Database schema versioning |
 
-Business logic modules (services, repositories, domain models) will be introduced in later phases following the same layered pattern.
+Repository conventions (Sprint 3.5):
+
+- Repositories receive a `Session` via constructor injection (compatible with `get_db`); they never create sessions or use globals.
+- Repositories flush (never commit); transaction orchestration belongs to the Service Layer (Sprint 3.6).
+- Repositories contain no business logic — no KPI calculation, business validation, report generation, or AI triggers.
+- `EntityNotFoundError` (extends `RepositoryError`, a pure `Exception`) is raised by `require_*` lookups; it carries only domain data (entity name and id) with no HTTP semantics. Mapping to HTTP status codes is done by upper layers. Database errors propagate unswallowed.
+
+The Service Layer (business logic, transactions) will be introduced in Sprint 3.6 following the same layered pattern.
 
 ### Application Lifecycle
 
@@ -371,6 +383,7 @@ All new endpoints must return `ApiResponse` unless Tech Lead approves an excepti
 
 ```
 api/  →  schemas/, core/, db/ (via dependencies)
+repositories/  →  db/ (no core/, no HTTP concerns)
 schemas/  →  (no upward dependencies)
 core/  →  (no upward dependencies)
 db/  →  core/config/
