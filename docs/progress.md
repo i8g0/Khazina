@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Database (Schema Design Complete)                   |
-| Current Sprint | 3.2 (Database Schema Design)                                  |
-| Overall Status | Schema design approved with revisions — awaiting TL sign-off for Sprint 3.3 |
+| Current Phase  | Phase 3 – Database (SQLAlchemy Models Complete)               |
+| Current Sprint | 3.3 (SQLAlchemy Models)                                       |
+| Overall Status | ORM models complete — awaiting TL approval for Sprint 3.4   |
 | Last Updated   | 2026-07-12                                                    |
 
 ---
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | 🔄 In Progress (Schema design complete; Sprint 3.3 pending TL approval) |
+| Phase 3 – Database            | 🔄 In Progress (ORM models complete; Sprint 3.4 pending TL approval) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -46,7 +46,8 @@ Official progress tracker for the Khazina project.
 | 2.7    | Frontend   | Final UI Polish & Phase 2 Freeze     | Completed | Pending | Pending             |
 | 2.8    | Frontend   | Final Density Pass                   | Completed | Pending | Pending             |
 | 3.0    | Database   | Business Domain Discovery            | Completed | Approved | Pending             |
-| 3.2    | Database   | Database Schema Design               | Completed | Pending  | Pending             |
+| 3.2    | Database   | Database Schema Design               | Completed | Approved | Pending             |
+| 3.3    | Database   | SQLAlchemy Models                    | Completed | Pending  | Pending             |
 
 ---
 
@@ -743,6 +744,36 @@ Official progress tracker for the Khazina project.
 | Schema entities/relationships unchanged | ✅ Pass |
 | No implementation work performed | ✅ Pass |
 | Documentation internally consistent | ✅ Pass |
+
+---
+
+### Phase 3 — Sprint 3.3: SQLAlchemy Models
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.4 (Alembic Migrations)
+
+**Deliverables:**
+
+- SQLAlchemy 2.x ORM models in `backend/app/db/models/` organized by business domain
+- Shared `Base`, UUID primary key mixin, and timestamp mixins in `backend/app/db/base.py`
+- Approved enums in `backend/app/db/models/enums.py`
+- 25 tables mapped (all entities from DATABASE_SCHEMA_DESIGN.md §4)
+- Relationships with `back_populates`, FK `ondelete` behavior, and cascade rules per approved design
+- ORM-level constraints: unique constraints, check constraints, partial unique index on active reporting period
+- Model registry exported via `app/db/models/__init__.py` for future Alembic autogeneration
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| All approved entities have models | ✅ Pass (25 tables) |
+| Models import without circular import errors | ✅ Pass |
+| No schema redesign | ✅ Pass |
+| No Alembic migrations created | ✅ Pass |
+| No repositories, services, or APIs | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.4 (Alembic Migrations).
 
 ---
 

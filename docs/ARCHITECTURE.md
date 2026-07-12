@@ -138,7 +138,9 @@ backend/
 │   │   ├── exceptions.py        AppError exception class
 │   │   └── exception_handlers.py Global exception handlers
 │   ├── db/
-│   │   └── session.py           Engine, session factory, connection check
+│   │   ├── base.py              Shared Base, UUID and timestamp mixins
+│   │   ├── session.py           Engine, session factory, connection check
+│   │   └── models/              SQLAlchemy ORM models by domain (Sprint 3.3)
 │   └── schemas/
 │       └── response.py          ApiResponse models and helpers
 ├── alembic/
@@ -157,7 +159,7 @@ backend/
 | API | `app/api/v1/` | HTTP route definitions, request/response binding |
 | Core | `app/core/` | Configuration, logging, exception handling |
 | Schemas | `app/schemas/` | Pydantic models for API request and response shapes |
-| Database | `app/db/` | SQLAlchemy engine and session management |
+| Database | `app/db/` | SQLAlchemy engine, session management, and ORM models |
 | Migrations | `alembic/` | Database schema versioning |
 
 Business logic modules (services, repositories, domain models) will be introduced in later phases following the same layered pattern.
@@ -178,7 +180,8 @@ Business logic modules (services, repositories, domain models) will be introduce
 - PostgreSQL 16 is the designated database engine.
 - SQLAlchemy engine and session factory are configured in `app/db/session.py`.
 - Alembic is initialized with `env.py` reading `settings.database_url`.
-- No SQLAlchemy models or migration files exist yet.
+- SQLAlchemy ORM models are implemented in `app/db/models/` per [DATABASE_SCHEMA_DESIGN.md](DATABASE_SCHEMA_DESIGN.md) (Sprint 3.3).
+- Alembic migration files and `target_metadata` wiring are pending (Sprint 3.4).
 
 ### Connection Management
 
@@ -196,10 +199,10 @@ Connection pool settings are defined in `DatabaseSettings`:
 ### Future State (Phase 3)
 
 - Business domain boundaries and ownership are documented in [BUSINESS_DOMAIN_DISCOVERY.md](BUSINESS_DOMAIN_DISCOVERY.md).
-- MVP relational schema design is documented in [DATABASE_SCHEMA_DESIGN.md](DATABASE_SCHEMA_DESIGN.md) (Sprint 3.2 — approved with minor revisions, pending TL sign-off).
-- SQLAlchemy models will define the schema (Sprint 3.3).
-- Alembic migrations will version all schema changes.
-- `target_metadata` in `alembic/env.py` will reference the model registry.
+- MVP relational schema design is documented in [DATABASE_SCHEMA_DESIGN.md](DATABASE_SCHEMA_DESIGN.md).
+- SQLAlchemy models in `app/db/models/` implement the approved schema (Sprint 3.3 — pending TL approval).
+- Alembic migrations will version all schema changes (Sprint 3.4).
+- `target_metadata` in `alembic/env.py` will reference the model registry (Sprint 3.4).
 
 ---
 
