@@ -50,28 +50,29 @@ Services currently persist and return caller-supplied values; they do not yet co
 
 ## Sprint Summary
 
-| Sprint | Phase      | Title                                | Status    | Review   | Commit              |
-| ------ | ---------- | ------------------------------------ | --------- | -------- | ------------------- |
-| 1.1    | Foundation | Repository & Project Bootstrap       | Completed | Approved | 3998ece             |
-| 1.2    | Foundation | Development Environment Validation   | Completed | Approved | Included in 3998ece |
-| 1.3    | Foundation | Core Backend Infrastructure          | Completed | Approved | 1cac03a             |
-| 1.4    | Foundation | Docker & Local Development Stability | Completed | Approved | 0dc4184             |
-| 1.5    | Foundation | Foundation Freeze                    | Completed | Approved | Pending             |
-| 2.1    | Frontend   | Design System Foundation             | Completed | Pending  | Pending             |
-| 2.2    | Frontend   | Dashboard Page                       | Completed | Pending | Pending             |
-| 2.3    | Frontend   | Financial Waste Detection            | Completed | Pending | Pending             |
-| 2.4    | Frontend   | Risk Management                      | Completed | Pending | Pending             |
-| 2.5    | Frontend   | Business Simulation                  | Completed | Pending | Pending             |
-| 2.6    | Frontend   | Reports & Data Management            | Completed | Pending | Pending             |
-| 2.7    | Frontend   | Final UI Polish & Phase 2 Freeze     | Completed | Pending | Pending             |
-| 2.8    | Frontend   | Final Density Pass                   | Completed | Pending | Pending             |
-| 3.0    | Database   | Business Domain Discovery            | Completed | Approved | Pending             |
-| 3.2    | Database   | Database Schema Design               | Completed | Approved | Pending             |
-| 3.3    | Database   | SQLAlchemy Models                    | Completed | Approved | 8a0e782             |
-| 3.4    | Database   | Alembic Initial Migration            | Completed | Approved | Pending             |
-| 3.5    | Database   | Repository Layer                     | Completed | Approved | Pending             |
-| 3.6    | Database   | CRUD APIs                            | Completed | Approved | Pending             |
-| 3.7    | Database   | Backend Core Freeze                  | Completed | Pending  | Pending             |
+| Sprint | Phase      | Description                          | Status   | Reviewed by | Approval date |
+| ------ | ---------- | ------------------------------------ | -------- | ----------- | ------------- |
+| 1.1    | Foundation | Repository & Project Bootstrap       | Approved |             |               |
+| 1.2    | Foundation | Development Environment Validation   | Approved |             |               |
+| 1.3    | Foundation | Core Backend Infrastructure          | Approved |             |               |
+| 1.4    | Foundation | Docker & Local Development Stability | Approved |             |               |
+| 1.5    | Foundation | Foundation Freeze                    | Approved |             |               |
+| 2.1    | Frontend   | Design System Foundation             |          |             |               |
+| 2.2    | Frontend   | Dashboard Page                       |          |             |               |
+| 2.3    | Frontend   | Financial Waste Detection            |          |             |               |
+| 2.4    | Frontend   | Risk Management                      |          |             |               |
+| 2.5    | Frontend   | Business Simulation                  |          |             |               |
+| 2.6    | Frontend   | Reports & Data Management            |          |             |               |
+| 2.7    | Frontend   | Final UI Polish & Phase 2 Freeze     |          |             |               |
+| 2.8    | Frontend   | Final Density Pass                   |          |             |               |
+| 3.0    | Database   | Business Domain Discovery            | Approved |             |               |
+| 3.1    | Database   | Alembic Migrations                   |          |             |               |
+| 3.2    | Database   | Database Schema Design               | Approved |             |               |
+| 3.3    | Database   | SQLAlchemy Models                    | Approved |             |               |
+| 3.4    | Database   | Alembic Initial Migration            | Approved |             |               |
+| 3.5    | Database   | Repository Layer                     | Approved |             |               |
+| 3.6    | Database   | CRUD APIs                            | Approved |             |               |
+| 3.7    | Database   | Backend Core Freeze                  |          |             |               |
 
 ---
 
@@ -1019,28 +1020,6 @@ The Tech Lead must decide the single correct max width. After that decision, bot
 - [ ] Environment: ___
 - [ ] Date: ___
 - [ ] Operator: ___
-
----
-
-### Phase 2 & Phase 3 — Review Sign-off (to be filled by a human)
-
-| Sprint | Commit hash | Reviewed by | Approval date | Status |
-| ------ | ----------- | ----------- | ------------- | ------ |
-| 2.1    |             |             |               |        |
-| 2.2    |             |             |               |        |
-| 2.3    |             |             |               |        |
-| 2.4    |             |             |               |        |
-| 2.5    |             |             |               |        |
-| 2.6    |             |             |               |        |
-| 2.7    |             |             |               |        |
-| 2.8    |             |             |               |        |
-| 3.1    |             |             |               |        |
-| 3.2    |             |             |               |        |
-| 3.3    |             |             |               |        |
-| 3.4    |             |             |               |        |
-| 3.5    |             |             |               |        |
-| 3.6    |             |             |               |        |
-| 3.7    |             |             |               |        |
 
 ---
 
