@@ -195,6 +195,7 @@ Connection pool settings are defined in `DatabaseSettings`:
 
 ### Future State (Phase 3)
 
+- Business domain boundaries and ownership are documented in [BUSINESS_DOMAIN_DISCOVERY.md](BUSINESS_DOMAIN_DISCOVERY.md) (approved pending Technical Lead sign-off on review revisions).
 - SQLAlchemy models will define the schema.
 - Alembic migrations will version all schema changes.
 - `target_metadata` in `alembic/env.py` will reference the model registry.

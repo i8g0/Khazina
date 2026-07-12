@@ -1,4 +1,4 @@
-# Khazina - Development Tracker
+﻿# Khazina - Development Tracker
 
 Official progress tracker for the Khazina project.
 
@@ -9,10 +9,10 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 2 – Frontend Foundation (Frozen)                        |
-| Current Sprint | 2.8                                                           |
-| Overall Status | Phase 2 complete — awaiting review                            |
-| Last Updated   | 2026-07-11                                                    |
+| Current Phase  | Phase 3 – Database (Discovery Complete)                       |
+| Current Sprint | 3.0 (Business Domain Discovery)                               |
+| Overall Status | Discovery review revisions complete — awaiting TL approval    |
+| Last Updated   | 2026-07-12                                                    |
 
 ---
 
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | ⏸ Pending          |
+| Phase 3 – Database            | 🔄 In Progress (Discovery complete; Sprint 3.1 pending TL approval) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -45,6 +45,7 @@ Official progress tracker for the Khazina project.
 | 2.6    | Frontend   | Reports & Data Management            | Completed | Pending | Pending             |
 | 2.7    | Frontend   | Final UI Polish & Phase 2 Freeze     | Completed | Pending | Pending             |
 | 2.8    | Frontend   | Final Density Pass                   | Completed | Pending | Pending             |
+| 3.0    | Database   | Business Domain Discovery            | Completed | Pending | Pending             |
 
 ---
 
@@ -645,6 +646,43 @@ Official progress tracker for the Khazina project.
 - **Package manager standardization completed** — all project commands and documentation (README, CONTRIBUTING, ADR-004, AI prompts) now reference pnpm
 - **npm lockfile removed** — `frontend/package-lock.json` deleted after verifying `pnpm-lock.yaml` (lockfileVersion 9.0) is present and healthy
 - Verified: `pnpm install` completes with lockfile up to date; frontend starts and serves all routes via `pnpm dev`
+
+---
+
+### Phase 3 — Sprint 3.0: Business Domain Discovery
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.1
+
+**Deliverables:**
+
+- [BUSINESS_DOMAIN_DISCOVERY.md](BUSINESS_DOMAIN_DISCOVERY.md) — official business domain reference derived from frozen Phase 2 frontend
+- Six primary domains identified and analyzed (Dashboard, Data Repository, Waste Detection, Risk Management, Simulation, Reporting)
+- Cross-cutting concepts documented (AI Recommendations, Departmental Context, Executive Timeline)
+- Domain Boundaries section added (business ownership separation)
+- Organization Context vs Organization Management clarified
+- MVP single-user assumption clarified (not a long-term backend constraint)
+- Open questions reframed as architectural decisions pending Technical Lead approval
+
+**Review Revisions Applied (2026-07-12):**
+
+1. Organization Context distinguished from Organization Management
+2. Single-user wording revised to reflect MVP scope
+3. Open Questions rewritten as TL approval decisions
+4. Domain Boundaries section added (Section 9)
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| All TL review revisions applied | ✅ Pass |
+| No database/schema design produced | ✅ Pass |
+| No source code modified | ✅ Pass |
+| Historical sprint records preserved | ✅ Pass |
+| Sprint 3.1 boundary intact | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.1 (Database Schema Design).
 
 ---
 
