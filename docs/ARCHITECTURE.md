@@ -145,6 +145,10 @@ backend/
 │   │   ├── base.py              Session holder and generic persistence helpers
 │   │   ├── exceptions.py        RepositoryError, EntityNotFoundError (HTTP-agnostic)
 │   │   └── *.py                 One module per business domain
+│   ├── services/                Business logic orchestration (Sprint 3.6)
+│   │   ├── base.py              BaseService: transaction boundary and validation helpers
+│   │   ├── exceptions.py        Business-level exceptions (HTTP-agnostic)
+│   │   └── *.py                 One service per business domain
 │   └── schemas/
 │       └── response.py          ApiResponse models and helpers
 ├── alembic/
@@ -165,6 +169,7 @@ backend/
 | Schemas | `app/schemas/` | Pydantic models for API request and response shapes |
 | Database | `app/db/` | SQLAlchemy engine, session management, and ORM models |
 | Repositories | `app/repositories/` | All SQLAlchemy data access, organized by business domain (Sprint 3.5) |
+| Services | `app/services/` | Business logic, workflow validation, and transaction management (Sprint 3.6) |
 | Migrations | `alembic/` | Database schema versioning |
 
 Repository conventions (Sprint 3.5):
@@ -174,7 +179,13 @@ Repository conventions (Sprint 3.5):
 - Repositories contain no business logic — no KPI calculation, business validation, report generation, or AI triggers.
 - `EntityNotFoundError` (extends `RepositoryError`, a pure `Exception`) is raised by `require_*` lookups; it carries only domain data (entity name and id) with no HTTP semantics. Mapping to HTTP status codes is done by upper layers. Database errors propagate unswallowed.
 
-The Service Layer (business logic, transactions) will be introduced in Sprint 3.6 following the same layered pattern.
+Service conventions (Sprint 3.6):
+
+- Services receive the `Session` and their repositories via constructor injection; dependencies are explicit and no globals are used.
+- Services own transaction boundaries: every mutating use case runs inside a unit-of-work that commits on success and rolls back on any error. Repositories continue to flush only.
+- All business rules live in services: workflow sequencing (file processing, analysis run, and report lifecycles), duplicate prevention, organization ownership checks, active-reporting-period rules, and state-transition validation.
+- Services raise business-level exceptions (`ServiceError` hierarchy in `app/services/exceptions.py`): validation, not-found, duplicate, ownership, invalid-state/transition, and integrity-rule violations. These carry no HTTP semantics; translation to status codes belongs to the API layer (Sprint 3.7).
+- Services contain no HTTP concepts (no routers, request/response objects, or FastAPI imports) and execute no raw SQL — all data access goes through repositories.
 
 ### Application Lifecycle
 

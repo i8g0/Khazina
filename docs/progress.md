@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Database (Repository Layer Complete)                |
-| Current Sprint | 3.5 (Repository Layer)                                        |
-| Overall Status | Repository layer complete — awaiting TL approval for Sprint 3.6 |
+| Current Phase  | Phase 3 – Database (Service Layer Complete)                   |
+| Current Sprint | 3.6 (Service Layer)                                           |
+| Overall Status | Service layer complete — awaiting TL approval for Sprint 3.7  |
 | Last Updated   | 2026-07-12                                                    |
 
 ---
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | 🔄 In Progress (repository layer complete; Sprint 3.6 pending TL approval) |
+| Phase 3 – Database            | 🔄 In Progress (service layer complete; Sprint 3.7 pending TL approval) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -49,7 +49,8 @@ Official progress tracker for the Khazina project.
 | 3.2    | Database   | Database Schema Design               | Completed | Approved | Pending             |
 | 3.3    | Database   | SQLAlchemy Models                    | Completed | Approved | 8a0e782             |
 | 3.4    | Database   | Alembic Initial Migration            | Completed | Approved | Pending             |
-| 3.5    | Database   | Repository Layer                     | Completed | Pending  | Pending             |
+| 3.5    | Database   | Repository Layer                     | Completed | Approved | Pending             |
+| 3.6    | Database   | Service Layer                        | Completed | Pending  | Pending             |
 
 ---
 
@@ -857,6 +858,37 @@ Official progress tracker for the Khazina project.
 **Resolution:** Refactored `app/repositories/exceptions.py` into pure exceptions: new `RepositoryError(Exception)` base and `EntityNotFoundError(RepositoryError)` carrying only `entity_name` and `entity_id`. The module no longer imports `app.core.exceptions`; HTTP mapping is deferred to upper layers. No other repository files changed.
 
 **Validation:** Not a subclass of `AppError`; no `status_code` attribute; no `app.core` import in the module; all 12 repository exports still import cleanly.
+
+---
+
+### Phase 3 — Sprint 3.6: Service Layer
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.7 (CRUD APIs)
+
+**Deliverables:**
+
+- `backend/app/services/` — ten domain services per the TL directive structure: Organization, Department, Financial, Analysis, Waste, Risk, Simulation, Report, Recommendation, Timeline
+- `base.py` — shared `BaseService` owning transaction boundaries: unit-of-work helper that commits on success, rolls back on any error, and translates commit-time `IntegrityError` into `BusinessRuleViolationError`; plus shared not-found and organization-ownership validation helpers
+- `exceptions.py` — HTTP-agnostic business exception hierarchy (`ServiceError`: validation, not-found, duplicate, ownership, invalid-state, invalid-state-transition, integrity-rule violation)
+- Business workflows implemented: single-active-organization rule; one-active-reporting-period switching; financial upload lifecycle (pending → processing → completed/failed → ready_for_analysis) with mandatory failure messages and success/failure import records; analysis run lifecycle (pending → processing → completed/failed) with timeline event on completion; waste result recording (1:1 per run, percentage/amount validation, trend point upsert); risk lifecycle (active → in_progress → closed) with mitigation plan rules; simulation workflow (draft scenario → run creates shared AnalysisRun + 1:1 SimulationRun → results finalize run and scenario); report publication (draft → ready with published_at stamp and timeline event); recommendation registration enforcing the exclusive-source rule and dashboard featuring; timeline polymorphic-reference validation at the application layer
+- Dependencies (Session + repositories) injected via constructor; services execute no raw SQL and contain no HTTP concepts
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| All services import successfully | ✅ Pass (10 services + base + exceptions) |
+| Constructor dependency injection instantiates every service | ✅ Pass (10/10) |
+| Transaction helper commits on success, rolls back on error | ✅ Pass (smoke test) |
+| `IntegrityError` at commit translated to business exception with rollback | ✅ Pass (smoke test) |
+| No HTTP concepts in services (no FastAPI/status codes/routers) | ✅ Pass (grep audit) |
+| No raw SQL in services (all access via repositories) | ✅ Pass |
+| No repository, ORM model, Alembic, or frontend changes | ✅ Pass |
+| Linter | ✅ Pass (no errors) |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.7 (CRUD APIs).
 
 ---
 
