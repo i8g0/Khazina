@@ -28,6 +28,26 @@ Official progress tracker for the Khazina project.
 
 ---
 
+### Phase 3 — Definition of Done (Scope Boundary)
+
+**Delivered in Phase 3:**
+
+- PostgreSQL schema, SQLAlchemy ORM models, Alembic migrations
+- Repository layer
+- Service layer (business-rule, state-transition, and transaction logic only)
+- CRUD REST APIs, Pydantic schemas, exception handling, dependency injection
+
+**Deliberately not in Phase 3 (scheduled elsewhere):**
+
+- No financial calculation engines → Phase 5, sprint 5.3 (Financial Analysis Engine)
+- No Excel/CSV upload or parsing; no pandas/openpyxl → Phase 6, sprint 6.2 (Financial Statements upload/parsing)
+- No AI/Ollama integration → Phase 5, sprint 5.1
+- No authentication → Phase 4
+
+Services currently persist and return caller-supplied values; they do not yet compute financial indicators from raw data. This is expected and correct for Phase 3.
+
+---
+
 ## Sprint Summary
 
 | Sprint | Phase      | Title                                | Status    | Review   | Commit              |
@@ -655,6 +675,16 @@ Official progress tracker for the Khazina project.
 
 ---
 
+### Maintenance — Frontend Dockerfile Migration (pnpm)
+
+**Date:** 2026-07-12
+
+- **`frontend/Dockerfile` migrated to pnpm** — `PNPM_HOME` env set; `corepack enable pnpm` in deps and builder stages; copies `pnpm-lock.yaml` and `pnpm-workspace.yaml`; `pnpm install --frozen-lockfile`; `pnpm build`
+- **Reason:** Dockerfile still referenced the deleted `package-lock.json` and `npm ci`, which would have broken the Docker frontend build after package-manager standardization
+- **Pending verification:** A real `docker compose build` has not yet been executed to validate this change
+
+---
+
 ### Phase 3 — Sprint 3.0: Business Domain Discovery
 
 **Date:** 2026-07-12
@@ -964,6 +994,53 @@ Official progress tracker for the Khazina project.
 - No automated integration test suite yet; validation performed via import checks, OpenAPI generation, and smoke tests.
 
 **Next step:** Await Technical Lead approval, then proceed to Phase 4 — Sprint 4.1 (User System).
+
+---
+
+## Open Items
+
+### Open Decision — Frontend Content Max Width
+
+Three-way inconsistency on content max width:
+
+- `docs/FRONTEND_SPECIFICATION.md` line 53: max **1440px**
+- `frontend/components/layout/page-container.tsx`: `max-w-[1440px]` (matches spec)
+- `frontend/lib/app-nav.tsx` (line ~42): `max-w-[1760px]` (contradicts spec and `page-container.tsx`)
+
+The Tech Lead must decide the single correct max width. After that decision, both components and spec line 53 will be reconciled in a follow-up.
+
+---
+
+### Phase 3 — Migration Validation (to be filled by a human)
+
+- [ ] `alembic upgrade head` succeeds and creates 25 tables
+- [ ] `alembic downgrade base` succeeds
+- [ ] `alembic upgrade head` re-runs cleanly
+- [ ] Environment: ___
+- [ ] Date: ___
+- [ ] Operator: ___
+
+---
+
+### Phase 2 & Phase 3 — Review Sign-off (to be filled by a human)
+
+| Sprint | Commit hash | Reviewed by | Approval date | Status |
+| ------ | ----------- | ----------- | ------------- | ------ |
+| 2.1    |             |             |               |        |
+| 2.2    |             |             |               |        |
+| 2.3    |             |             |               |        |
+| 2.4    |             |             |               |        |
+| 2.5    |             |             |               |        |
+| 2.6    |             |             |               |        |
+| 2.7    |             |             |               |        |
+| 2.8    |             |             |               |        |
+| 3.1    |             |             |               |        |
+| 3.2    |             |             |               |        |
+| 3.3    |             |             |               |        |
+| 3.4    |             |             |               |        |
+| 3.5    |             |             |               |        |
+| 3.6    |             |             |               |        |
+| 3.7    |             |             |               |        |
 
 ---
 
