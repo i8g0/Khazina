@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Database (Discovery Complete)                       |
-| Current Sprint | 3.0 (Business Domain Discovery)                               |
-| Overall Status | Discovery review revisions complete — awaiting TL approval    |
+| Current Phase  | Phase 3 – Database (Schema Design Complete)                   |
+| Current Sprint | 3.2 (Database Schema Design)                                  |
+| Overall Status | Schema design approved with revisions — awaiting TL sign-off for Sprint 3.3 |
 | Last Updated   | 2026-07-12                                                    |
 
 ---
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | 🔄 In Progress (Discovery complete; Sprint 3.1 pending TL approval) |
+| Phase 3 – Database            | 🔄 In Progress (Schema design complete; Sprint 3.3 pending TL approval) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -45,7 +45,8 @@ Official progress tracker for the Khazina project.
 | 2.6    | Frontend   | Reports & Data Management            | Completed | Pending | Pending             |
 | 2.7    | Frontend   | Final UI Polish & Phase 2 Freeze     | Completed | Pending | Pending             |
 | 2.8    | Frontend   | Final Density Pass                   | Completed | Pending | Pending             |
-| 3.0    | Database   | Business Domain Discovery            | Completed | Pending | Pending             |
+| 3.0    | Database   | Business Domain Discovery            | Completed | Approved | Pending             |
+| 3.2    | Database   | Database Schema Design               | Completed | Pending  | Pending             |
 
 ---
 
@@ -683,6 +684,65 @@ Official progress tracker for the Khazina project.
 | Sprint 3.1 boundary intact | ✅ Pass |
 
 **Next step:** Await Technical Lead approval, then proceed to Sprint 3.1 (Database Schema Design).
+
+---
+
+### Phase 3 — Sprint 3.2: Database Schema Design
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead approval before Sprint 3.3 (SQLAlchemy Models)
+
+**Deliverables:**
+
+- [DATABASE_SCHEMA_DESIGN.md](DATABASE_SCHEMA_DESIGN.md) — complete MVP relational schema design for PostgreSQL 16
+- 22 entities across all six primary domains and cross-cutting concepts
+- 35+ documented relationships with cardinality and delete/update behavior
+- Primary key strategy (UUID surrogate keys)
+- Constraint, index, normalization, and JSONB usage documentation
+- Logical ER diagram (Mermaid)
+- 10 discovery architectural decisions resolved with rationale
+- 5 remaining ambiguities documented for TL confirmation
+
+**Scope compliance:**
+
+| Check | Result |
+| ----- | ------ |
+| All business domains represented | ✅ Pass |
+| No SQL generated | ✅ Pass |
+| No SQLAlchemy models or migrations | ✅ Pass |
+| No backend/frontend source code modified | ✅ Pass |
+| Design derived from approved discovery | ✅ Pass |
+| Historical progress records preserved | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 3.3 (SQLAlchemy Models).
+
+---
+
+### Phase 3 — Sprint 3.2 Revision: Technical Lead Review Revisions
+
+**Date:** 2026-07-12
+
+**Status:** Completed — awaiting Technical Lead sign-off before Sprint 3.3
+
+**Review outcome:** Approved with minor revisions
+
+**Revisions applied:**
+
+1. User Management wording — replaced Phase 4 references with "deferred until User Management is introduced"
+2. Timeline polymorphic association — expanded documentation (§4.25.1, DD-11)
+3. Future recommendation sources — Reports documented as future extension (§14.3); no schema changes
+4. Report field renamed — `preview_text` → `summary` with naming rationale (§4.23.1)
+5. Simulation display values — classified as presentation-only; business numerics in chart points (§4.18.1)
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| All TL review items addressed | ✅ Pass |
+| Schema entities/relationships unchanged | ✅ Pass |
+| No implementation work performed | ✅ Pass |
+| Documentation internally consistent | ✅ Pass |
 
 ---
 
