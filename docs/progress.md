@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Database (CRUD APIs Complete)                       |
-| Current Sprint | 3.6 (CRUD APIs)                                               |
-| Overall Status | CRUD API layer complete — awaiting TL approval for Sprint 3.7 |
+| Current Phase  | Phase 3 – Backend Core (Frozen)                               |
+| Current Sprint | 3.7 (Backend Core Freeze)                                     |
+| Overall Status | Backend Core frozen — awaiting TL approval for Phase 4          |
 | Last Updated   | 2026-07-12                                                    |
 
 ---
@@ -22,7 +22,7 @@ Official progress tracker for the Khazina project.
 | ----------------------------- | ------------------ |
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
-| Phase 3 – Database            | 🔄 In Progress (CRUD API layer complete; Backend Core Freeze pending TL approval) |
+| Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ⏸ Pending          |
 | Phase 5 – AI Integration      | ⏸ Pending          |
 
@@ -50,8 +50,8 @@ Official progress tracker for the Khazina project.
 | 3.3    | Database   | SQLAlchemy Models                    | Completed | Approved | 8a0e782             |
 | 3.4    | Database   | Alembic Initial Migration            | Completed | Approved | Pending             |
 | 3.5    | Database   | Repository Layer                     | Completed | Approved | Pending             |
-| 3.6    | Database   | CRUD APIs                            | Completed | Pending  | Pending             |
-| 3.7    | Database   | Backend Core Freeze                  | Pending   | —        | —                   |
+| 3.6    | Database   | CRUD APIs                            | Completed | Approved | Pending             |
+| 3.7    | Database   | Backend Core Freeze                  | Completed | Pending  | Pending             |
 
 ---
 
@@ -922,6 +922,48 @@ Official progress tracker for the Khazina project.
 | Linter | ✅ Pass (no errors) |
 
 **Next step:** Await Technical Lead approval, then proceed to Sprint 3.7 (Backend Core Freeze).
+
+---
+
+### Phase 3 — Sprint 3.7: Backend Core Freeze
+
+**Date:** 2026-07-12
+
+**Status:** Completed — Backend Core officially frozen; awaiting Technical Lead approval before Phase 4
+
+**Review scope:** Database schema, SQLAlchemy models, Alembic migrations, Repository Layer, Service Layer, CRUD APIs, dependency injection, exception handling, OpenAPI, documentation, code quality.
+
+**Architecture validation:**
+
+| Layer boundary | Result |
+| -------------- | ------ |
+| API → Service → Repository → ORM → Database | ✅ Pass — no bypasses detected |
+| Routers do not access repositories directly | ✅ Pass — only `app/api/deps.py` wires repositories into services |
+| Services free of HTTP concepts | ✅ Pass — no FastAPI imports in services |
+| Repositories free of business logic | ✅ Pass — persistence and query helpers only |
+| Repositories flush only (no commit/rollback) | ✅ Pass |
+| Services own commit/rollback | ✅ Pass — `BaseService._transaction()` only |
+| Routers never manage transactions | ✅ Pass |
+
+**Dependency review:** No circular imports across `app.main`, `app.api.deps`, `app.api.v1.router`, `app.services`, `app.repositories`, `app.db.models`. No repository→service dependencies. No service→service circular dependencies.
+
+**Exception review:** Repository exceptions (`RepositoryError`, `EntityNotFoundError`) are infrastructure-only with no HTTP semantics. Service exceptions (`ServiceError` hierarchy) are business-only. HTTP translation registered in `app/core/exception_handlers.py` for `ServiceError`, `AppError`, `RequestValidationError`, and generic `Exception`. Services translate missing entities via `_found()` → `ResourceNotFoundError` rather than propagating repository exceptions.
+
+**API validation:** OpenAPI generates successfully (61 paths, 88 operations, 104 schemas). All endpoints have summaries and response models. Health, OpenAPI, and Pydantic validation (422) smoke tests pass. Service exception mapping verified (404 for `ResourceNotFoundError`).
+
+**Database validation:** ORM registers 25 tables; initial Alembic migration creates 25 tables — names match with no drift detected. Runtime `alembic upgrade` not re-executed in this review (PostgreSQL unavailable in review environment); prior Sprint 3.4 validation remains authoritative.
+
+**Code quality review:** No `TODO`, `FIXME`, `NotImplemented`, bare `pass`, or temporary markers found under `backend/app/`. No duplicate service implementations detected.
+
+**Files modified:** None — no defects requiring code changes were discovered.
+
+**Technical debt noted (non-blocking):**
+
+- Some read-by-ID service methods (e.g. `get_department`, `get_report`) do not verify `organization_id` ownership; mutating operations enforce ownership. Acceptable for MVP single-tenant context; address when User Management is introduced.
+- Database connectivity failures surface as HTTP 500 via the generic unhandled handler; production mode (`debug=False`) returns a generic message without SQLAlchemy details.
+- No automated integration test suite yet; validation performed via import checks, OpenAPI generation, and smoke tests.
+
+**Next step:** Await Technical Lead approval, then proceed to Phase 4 — Sprint 4.1 (User System).
 
 ---
 

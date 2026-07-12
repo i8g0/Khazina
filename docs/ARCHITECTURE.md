@@ -240,13 +240,19 @@ Connection pool settings are defined in `DatabaseSettings`:
 - `database_max_overflow` (default: 10)
 - `database_pool_pre_ping` (default: true)
 
-### Future State (Phase 3)
+### Backend Core (Phase 3 — Frozen, Sprint 3.7)
 
-- Business domain boundaries and ownership are documented in [BUSINESS_DOMAIN_DISCOVERY.md](BUSINESS_DOMAIN_DISCOVERY.md).
-- MVP relational schema design is documented in [DATABASE_SCHEMA_DESIGN.md](DATABASE_SCHEMA_DESIGN.md).
-- SQLAlchemy models in `app/db/models/` implement the approved schema (Sprint 3.3 — approved).
-- Alembic migrations version all schema changes; the initial migration is in place (Sprint 3.4).
-- Repository layer (Sprint 3.5) will build on the ORM models and migrated schema.
+The backend core is feature-complete and frozen. All layers are implemented and validated:
+
+- Business domain boundaries documented in [BUSINESS_DOMAIN_DISCOVERY.md](BUSINESS_DOMAIN_DISCOVERY.md)
+- MVP relational schema in [DATABASE_SCHEMA_DESIGN.md](DATABASE_SCHEMA_DESIGN.md)
+- SQLAlchemy ORM models in `app/db/models/` (Sprint 3.3)
+- Alembic initial migration `f58d9c1c4a02_initial_schema.py` — 25 tables (Sprint 3.4)
+- Repository layer in `app/repositories/` — flush-only data access (Sprint 3.5)
+- Service layer in `app/services/` — business logic and transaction ownership
+- CRUD API layer in `app/api/v1/` with Pydantic schemas (Sprint 3.6)
+
+No further backend core changes unless a defect is discovered. Phase 4 (Authentication) builds on this foundation.
 
 ---
 
@@ -407,16 +413,18 @@ All new endpoints must return `ApiResponse` unless Tech Lead approves an excepti
 ### Backend Dependency Rules
 
 ```
-api/  →  schemas/, core/, db/ (via dependencies)
-repositories/  →  db/ (no core/, no HTTP concerns)
+api/  →  services/ (via deps), schemas/, core/
+services/  →  repositories/, db/ (session holder only)
+repositories/  →  db/ (no services/, no HTTP concerns)
 schemas/  →  (no upward dependencies)
 core/  →  (no upward dependencies)
 db/  →  core/config/
 ```
 
-- API routes must not contain business logic.
+- API routes must not contain business logic; they delegate to services.
+- Services must not contain HTTP concepts or execute raw SQL.
+- Repositories must not contain business logic or manage transactions.
 - Schemas define data shapes only.
-- Database access goes through session/dependency injection patterns.
 - Cross-layer imports must follow the dependency direction above.
 
 ### Frontend Dependency Rules
