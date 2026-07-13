@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, ReportServiceDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.report import ReportCreate, ReportResponse, ReportUpdate
 from app.schemas.response import ApiResponse, success_response
 
 router = APIRouter(
     prefix="/organizations/{organization_id}/reports",
     tags=["reports"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -26,6 +29,7 @@ def create_report_draft(
     organization_id: UUID,
     body: ReportCreate,
     service: ReportServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportResponse]:
     report = service.create_draft(
         organization_id,
@@ -99,6 +103,7 @@ def update_report_draft(
     report_id: UUID,
     body: ReportUpdate,
     service: ReportServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportResponse]:
     report = service.update_draft(
         organization_id,
@@ -121,6 +126,7 @@ def publish_report(
     organization_id: UUID,
     report_id: UUID,
     service: ReportServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportResponse]:
     report = service.publish_report(organization_id, report_id)
     return success_response(
@@ -138,6 +144,7 @@ def delete_report(
     organization_id: UUID,
     report_id: UUID,
     service: ReportServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_report(organization_id, report_id)
     return success_response(data=None, message="Report deleted")

@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, UserServiceDep
+from app.api.permissions import require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.response import ApiResponse, success_response
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter(
     prefix="/organizations/{organization_id}/users",
     tags=["users"],
+    dependencies=[Depends(require_org_role(UserRole.ADMIN))],
 )
 
 

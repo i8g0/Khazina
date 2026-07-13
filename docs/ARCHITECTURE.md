@@ -126,6 +126,7 @@ backend/
 │   ├── main.py                  Application factory and lifespan
 │   ├── api/
 │   │   ├── deps.py              FastAPI DI: Session → Repositories → Services
+│   │   ├── permissions.py       Role and organization authorization (Sprint 4.3)
 │   │   └── v1/
 │   │       ├── router.py        Version 1 route aggregator
 │   │       ├── health.py        Health check endpoint
@@ -273,18 +274,30 @@ The User domain extends the frozen backend core without modifying existing busin
 
 ### JWT Authentication (Phase 4 — Sprint 4.2)
 
-Authentication is implemented on top of the User domain. Authorization is not.
+Authentication is implemented on top of the User domain.
 
 | Layer | Location | Notes |
 |-------|----------|-------|
-| Configuration | `app/core/config/auth.py` | `JWT_SECRET_KEY`, `JWT_ALGORITHM`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` |
+| Configuration | `app/core/config/auth.py` | `JWT_SECRET_KEY` (required from environment), `JWT_ALGORITHM`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` |
 | JWT utilities | `app/core/jwt.py` | `create_access_token()`, `decode_access_token()` via PyJWT |
 | Service | `app/services/auth.py` | Login, password verification, token issuance |
 | Schemas | `app/schemas/auth.py` | `LoginRequest`, `TokenResponse` |
 | Router | `app/api/v1/auth.py` | `POST /auth/login` |
 | Dependency | `app/api/deps.py` | `get_current_user()` — Bearer token → validated JWT → active `User` |
 
-No refresh tokens, OAuth, roles, permissions, or endpoint protection beyond the reusable `CurrentUserDep` dependency.
+No refresh tokens or OAuth.
+
+### Roles & Permissions (Phase 4 — Sprint 4.3)
+
+Authorization uses the existing `UserRole` enum (`admin`, `executive`, `analyst`) with hierarchical role checks and organization scoping at the API layer.
+
+| Layer | Location | Notes |
+|-------|----------|-------|
+| Dependencies | `app/api/permissions.py` | `RequireAdmin`, `RequireExecutive`, `RequireAnalyst`, plus org-scoped variants |
+| Enforcement | `app/api/v1/*.py` | Routers compose auth dependencies; services unchanged |
+| Status codes | — | `401` unauthenticated; `403` authenticated but forbidden or cross-org |
+
+Role hierarchy: `admin` ≥ `executive` ≥ `analyst`. Organization-scoped routes require membership (`user.organization_id == path organization_id`). User management routes require org admin. Mutations generally require executive; deletes require admin.
 
 ---
 
@@ -584,8 +597,8 @@ Files should remain small and focused. If a file exceeds approximately 200 lines
 - Frontend runs as a non-root user in Docker.
 - Debug mode exposes exception details; production must run with `debug=false`.
 - JWT access-token authentication is available via `POST /api/v1/auth/login` and the `get_current_user()` dependency (Sprint 4.2).
+- Role-based authorization is enforced via `app/api/permissions.py` dependencies on protected endpoints (Sprint 4.3).
 - User passwords are hashed with `bcrypt` before persistence (`app/core/security.py`); plain passwords are never stored or returned in API responses.
-- Authorization, roles, and permissions are deferred to later Phase 4 sprints.
 - All user input is validated through Pydantic models.
 - SQL queries use SQLAlchemy ORM; raw SQL only with Tech Lead approval.
 - CORS, rate limiting, and security headers will be configured in appropriate phases.

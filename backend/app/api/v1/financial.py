@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import FinancialServiceDep, PaginationDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.financial import (
     CompleteProcessingRequest,
     DataQualityCheckResponse,
@@ -22,6 +24,7 @@ from app.schemas.response import ApiResponse, success_response
 router = APIRouter(
     prefix="/organizations/{organization_id}",
     tags=["financial"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -35,6 +38,7 @@ def register_financial_file(
     organization_id: UUID,
     body: FinancialFileCreate,
     service: FinancialServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[FinancialFileResponse]:
     file = service.register_uploaded_file(
         organization_id,
@@ -107,6 +111,7 @@ def start_processing(
     organization_id: UUID,
     file_id: UUID,
     service: FinancialServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[FinancialFileResponse]:
     file = service.start_processing(organization_id, file_id)
     return success_response(
@@ -125,6 +130,7 @@ def complete_processing(
     file_id: UUID,
     body: CompleteProcessingRequest,
     service: FinancialServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[FinancialFileResponse]:
     file = service.complete_processing(
         organization_id, file_id, record_count=body.record_count
@@ -145,6 +151,7 @@ def fail_processing(
     file_id: UUID,
     body: FailProcessingRequest,
     service: FinancialServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[FinancialFileResponse]:
     file = service.fail_processing(
         organization_id, file_id, error_message=body.error_message
@@ -164,6 +171,7 @@ def mark_ready_for_analysis(
     organization_id: UUID,
     file_id: UUID,
     service: FinancialServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[FinancialFileResponse]:
     file = service.mark_ready_for_analysis(organization_id, file_id)
     return success_response(
@@ -181,6 +189,7 @@ def delete_financial_file(
     organization_id: UUID,
     file_id: UUID,
     service: FinancialServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_file(organization_id, file_id)
     return success_response(data=None, message="Financial file deleted")
@@ -219,6 +228,7 @@ def record_quality_snapshot(
     organization_id: UUID,
     body: DataQualitySnapshotCreate,
     service: FinancialServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[DataQualitySnapshotResponse]:
     checks = [c.model_dump() for c in body.checks] if body.checks else None
     snapshot = service.record_quality_snapshot(

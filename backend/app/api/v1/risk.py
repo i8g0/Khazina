@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, RiskServiceDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.response import ApiResponse, success_response
 from app.schemas.risk import (
     MitigationPlanCreate,
@@ -21,6 +23,7 @@ from app.schemas.risk import (
 router = APIRouter(
     prefix="/organizations/{organization_id}",
     tags=["risk"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -34,6 +37,7 @@ def register_risk(
     organization_id: UUID,
     body: RiskCreate,
     service: RiskServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[RiskResponse]:
     risk = service.register_risk(
         organization_id,
@@ -108,6 +112,7 @@ def update_risk(
     risk_id: UUID,
     body: RiskUpdate,
     service: RiskServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[RiskResponse]:
     risk = service.update_risk(
         organization_id,
@@ -137,6 +142,7 @@ def transition_risk(
     risk_id: UUID,
     body: RiskTransitionRequest,
     service: RiskServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[RiskResponse]:
     risk = service.transition_risk(organization_id, risk_id, body.status)
     return success_response(
@@ -154,6 +160,7 @@ def delete_risk(
     organization_id: UUID,
     risk_id: UUID,
     service: RiskServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_risk(organization_id, risk_id)
     return success_response(data=None, message="Risk deleted")
@@ -173,6 +180,7 @@ def add_mitigation_plan(
     risk_id: UUID,
     body: MitigationPlanCreate,
     service: RiskServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[MitigationPlanResponse]:
     plan = service.add_mitigation_plan(
         organization_id,
@@ -235,6 +243,7 @@ def update_mitigation_plan(
     plan_id: UUID,
     body: MitigationPlanUpdate,
     service: RiskServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[MitigationPlanResponse]:
     plan = service.update_mitigation_plan(
         organization_id,
@@ -260,6 +269,7 @@ def delete_mitigation_plan(
     organization_id: UUID,
     plan_id: UUID,
     service: RiskServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_mitigation_plan(organization_id, plan_id)
     return success_response(data=None, message="Mitigation plan deleted")

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, WasteServiceDep
+from app.api.permissions import RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.response import ApiResponse, success_response
 from app.schemas.waste import (
     WasteAnalysisResultResponse,
@@ -20,6 +22,7 @@ from app.schemas.waste import (
 router = APIRouter(
     prefix="/organizations/{organization_id}",
     tags=["waste"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -34,6 +37,7 @@ def record_waste_result(
     run_id: UUID,
     body: WasteResultCreate,
     service: WasteServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[WasteAnalysisResultResponse]:
     breakdowns = (
         [b.model_dump() for b in body.category_breakdowns]
@@ -132,6 +136,7 @@ def upsert_trend_point(
     organization_id: UUID,
     body: WasteTrendPointUpsert,
     service: WasteServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[WasteTrendPointResponse]:
     point = service.upsert_trend_point(
         organization_id,

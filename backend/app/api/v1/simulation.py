@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, SimulationServiceDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.response import ApiResponse, success_response
 from app.schemas.simulation import (
     SimulationActionItemResponse,
@@ -26,6 +28,7 @@ from app.schemas.simulation import (
 router = APIRouter(
     prefix="/organizations/{organization_id}/simulation",
     tags=["simulation"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -39,6 +42,7 @@ def create_scenario(
     organization_id: UUID,
     body: SimulationScenarioCreate,
     service: SimulationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[SimulationScenarioResponse]:
     assumptions = (
         [a.model_dump() for a in body.assumptions] if body.assumptions else None
@@ -105,6 +109,7 @@ def update_scenario(
     scenario_id: UUID,
     body: SimulationScenarioUpdate,
     service: SimulationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[SimulationScenarioResponse]:
     scenario = service.update_scenario(
         organization_id, scenario_id, name=body.name, description=body.description
@@ -124,6 +129,7 @@ def delete_scenario(
     organization_id: UUID,
     scenario_id: UUID,
     service: SimulationServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_scenario(organization_id, scenario_id)
     return success_response(data=None, message="Scenario deleted")
@@ -157,6 +163,7 @@ def run_scenario(
     scenario_id: UUID,
     body: SimulationRunRequest,
     service: SimulationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[SimulationRunResponse]:
     run = service.run_scenario(
         organization_id,
@@ -219,6 +226,7 @@ def record_run_results(
     run_id: UUID,
     body: SimulationRunResultsCreate,
     service: SimulationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[SimulationRunResponse]:
     run = service.record_run_results(
         organization_id,

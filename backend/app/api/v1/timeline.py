@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, TimelineServiceDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.response import ApiResponse, success_response
 from app.schemas.timeline import TimelineEventCreate, TimelineEventResponse
 
 router = APIRouter(
     prefix="/organizations/{organization_id}/timeline/events",
     tags=["timeline"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -26,6 +29,7 @@ def record_timeline_event(
     organization_id: UUID,
     body: TimelineEventCreate,
     service: TimelineServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[TimelineEventResponse]:
     event = service.record_event(
         organization_id,
@@ -91,6 +95,7 @@ def delete_timeline_event(
     organization_id: UUID,
     event_id: UUID,
     service: TimelineServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_event(organization_id, event_id)
     return success_response(data=None, message="Timeline event deleted")

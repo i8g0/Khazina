@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import AnalysisServiceDep, PaginationDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.analysis import (
     AnalysisRunCreate,
     AnalysisRunResponse,
@@ -17,6 +19,7 @@ from app.schemas.response import ApiResponse, success_response
 router = APIRouter(
     prefix="/organizations/{organization_id}/analysis-runs",
     tags=["analysis"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -30,6 +33,7 @@ def create_analysis_run(
     organization_id: UUID,
     body: AnalysisRunCreate,
     service: AnalysisServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[AnalysisRunResponse]:
     run = service.create_run(
         organization_id,
@@ -113,6 +117,7 @@ def start_analysis_run(
     organization_id: UUID,
     run_id: UUID,
     service: AnalysisServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[AnalysisRunResponse]:
     run = service.start_run(organization_id, run_id)
     return success_response(
@@ -130,6 +135,7 @@ def complete_analysis_run(
     organization_id: UUID,
     run_id: UUID,
     service: AnalysisServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[AnalysisRunResponse]:
     run = service.complete_run(organization_id, run_id)
     return success_response(
@@ -148,6 +154,7 @@ def fail_analysis_run(
     run_id: UUID,
     body: FailAnalysisRunRequest,
     service: AnalysisServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[AnalysisRunResponse]:
     run = service.fail_run(
         organization_id, run_id, failure_details=body.failure_details
@@ -167,6 +174,7 @@ def delete_analysis_run(
     organization_id: UUID,
     run_id: UUID,
     service: AnalysisServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_run(organization_id, run_id)
     return success_response(data=None, message="Analysis run deleted")

@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import PaginationDep, RecommendationServiceDep
+from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.recommendation import RecommendationCreate, RecommendationResponse
 from app.schemas.response import ApiResponse, success_response
 
 router = APIRouter(
     prefix="/organizations/{organization_id}/recommendations",
     tags=["recommendations"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -26,6 +29,7 @@ def register_recommendation(
     organization_id: UUID,
     body: RecommendationCreate,
     service: RecommendationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[RecommendationResponse]:
     recommendation = service.register_recommendation(
         organization_id,
@@ -119,6 +123,7 @@ def feature_on_dashboard(
     organization_id: UUID,
     recommendation_id: UUID,
     service: RecommendationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[RecommendationResponse]:
     recommendation = service.feature_on_dashboard(
         organization_id, recommendation_id
@@ -138,6 +143,7 @@ def unfeature_from_dashboard(
     organization_id: UUID,
     recommendation_id: UUID,
     service: RecommendationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[RecommendationResponse]:
     recommendation = service.unfeature_from_dashboard(
         organization_id, recommendation_id
@@ -157,6 +163,7 @@ def delete_recommendation(
     organization_id: UUID,
     recommendation_id: UUID,
     service: RecommendationServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_recommendation(organization_id, recommendation_id)
     return success_response(data=None, message="Recommendation deleted")

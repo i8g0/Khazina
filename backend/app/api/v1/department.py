@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import DepartmentServiceDep, PaginationDep
+from app.api.permissions import RequireOrgExecutive, require_org_role
+from app.db.models.enums import UserRole
 from app.schemas.department import (
     DepartmentCreate,
     DepartmentResponse,
@@ -17,6 +19,7 @@ from app.schemas.response import ApiResponse, success_response
 router = APIRouter(
     prefix="/organizations/{organization_id}/departments",
     tags=["departments"],
+    dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
 
 
@@ -30,6 +33,7 @@ def create_department(
     organization_id: UUID,
     body: DepartmentCreate,
     service: DepartmentServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[DepartmentResponse]:
     dept = service.create_department(
         organization_id,
@@ -93,6 +97,7 @@ def update_department(
     department_id: UUID,
     body: DepartmentUpdate,
     service: DepartmentServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[DepartmentResponse]:
     dept = service.update_department(
         organization_id,
@@ -116,6 +121,7 @@ def deactivate_department(
     organization_id: UUID,
     department_id: UUID,
     service: DepartmentServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[DepartmentResponse]:
     dept = service.deactivate_department(organization_id, department_id)
     return success_response(
@@ -133,6 +139,7 @@ def reactivate_department(
     organization_id: UUID,
     department_id: UUID,
     service: DepartmentServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[DepartmentResponse]:
     dept = service.reactivate_department(organization_id, department_id)
     return success_response(

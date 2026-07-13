@@ -7,6 +7,13 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from app.api.deps import OrganizationServiceDep, PaginationDep
+from app.api.permissions import (
+    RequireAdmin,
+    RequireAnalyst,
+    RequireOrgAdmin,
+    RequireOrgAnalyst,
+    RequireOrgExecutive,
+)
 from app.schemas.organization import (
     OrganizationCreate,
     OrganizationResponse,
@@ -29,6 +36,7 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
 def create_organization(
     body: OrganizationCreate,
     service: OrganizationServiceDep,
+    _current_user: RequireAdmin,
 ) -> ApiResponse[OrganizationResponse]:
     org = service.create_organization(
         name=body.name,
@@ -48,6 +56,7 @@ def create_organization(
 )
 def get_active_organization(
     service: OrganizationServiceDep,
+    _current_user: RequireAnalyst,
 ) -> ApiResponse[OrganizationResponse]:
     org = service.get_active_organization()
     return success_response(
@@ -64,6 +73,7 @@ def get_active_organization(
 def get_organization(
     organization_id: UUID,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgAnalyst,
 ) -> ApiResponse[OrganizationResponse]:
     org = service.get_organization(organization_id)
     return success_response(
@@ -81,6 +91,7 @@ def update_organization(
     organization_id: UUID,
     body: OrganizationUpdate,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[OrganizationResponse]:
     org = service.update_organization(
         organization_id,
@@ -102,6 +113,7 @@ def update_organization(
 def deactivate_organization(
     organization_id: UUID,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[OrganizationResponse]:
     org = service.deactivate_organization(organization_id)
     return success_response(
@@ -123,6 +135,7 @@ def create_reporting_period(
     organization_id: UUID,
     body: ReportingPeriodCreate,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportingPeriodResponse]:
     period = service.create_reporting_period(
         organization_id,
@@ -146,6 +159,7 @@ def list_reporting_periods(
     organization_id: UUID,
     service: OrganizationServiceDep,
     pagination: PaginationDep,
+    _current_user: RequireOrgAnalyst,
 ) -> ApiResponse[list[ReportingPeriodResponse]]:
     periods = service.list_reporting_periods(
         organization_id, limit=pagination.limit, offset=pagination.offset
@@ -165,6 +179,7 @@ def get_reporting_period(
     organization_id: UUID,
     period_id: UUID,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgAnalyst,
 ) -> ApiResponse[ReportingPeriodResponse]:
     period = service.get_reporting_period(period_id)
     return success_response(
@@ -183,6 +198,7 @@ def update_reporting_period(
     period_id: UUID,
     body: ReportingPeriodUpdate,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportingPeriodResponse]:
     period = service.update_reporting_period(
         organization_id,
@@ -206,6 +222,7 @@ def activate_reporting_period(
     organization_id: UUID,
     period_id: UUID,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportingPeriodResponse]:
     period = service.activate_reporting_period(organization_id, period_id)
     return success_response(
@@ -222,6 +239,7 @@ def activate_reporting_period(
 def close_active_reporting_period(
     organization_id: UUID,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportingPeriodResponse]:
     period = service.close_active_reporting_period(organization_id)
     return success_response(
@@ -239,6 +257,7 @@ def delete_reporting_period(
     organization_id: UUID,
     period_id: UUID,
     service: OrganizationServiceDep,
+    _current_user: RequireOrgAdmin,
 ) -> ApiResponse[None]:
     service.delete_reporting_period(organization_id, period_id)
     return success_response(data=None, message="Reporting period deleted")

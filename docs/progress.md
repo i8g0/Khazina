@@ -1088,6 +1088,39 @@ Services currently persist and return caller-supplied values; they do not yet co
 
 ---
 
+### Phase 4 — Sprint 4.3: Roles & Permissions
+
+**Date:** 2026-07-13
+
+**Status:** Completed — awaiting Technical Lead approval
+
+**Deliverables:**
+
+- `backend/app/api/permissions.py` — `RequireAdmin`, `RequireExecutive`, `RequireAnalyst`, and organization-scoped variants built on `CurrentUserDep`
+- Hierarchical role validation using existing `UserRole` enum (no new role tables)
+- Organization ownership enforcement at API layer (`401` unauthenticated, `403` forbidden / cross-org)
+- All organization-scoped domain routers protected; user management requires org admin; mutations require executive; deletes require admin
+- `POST /api/v1/auth/login` and health remain public
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Admin can access admin endpoints (user create) | ✅ Pass |
+| Non-admin receives 403 on admin endpoints | ✅ Pass |
+| Cross-organization access denied (403) | ✅ Pass |
+| Unauthenticated requests return 401 | ✅ Pass |
+| JWT login still works | ✅ Pass |
+| OpenAPI schema generates | ✅ Pass (65 paths) |
+| App starts / no circular dependencies | ✅ Pass |
+| Linter | ✅ Pass |
+| No OAuth / ACL / dynamic permissions / policy engine | ✅ Pass |
+| Repositories and services not modified | ✅ Pass |
+
+**Next step:** Await Technical Lead approval.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width
