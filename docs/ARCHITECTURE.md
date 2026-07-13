@@ -358,7 +358,8 @@ The AI layer is isolated from repositories, business services, and domain logic.
 | Exceptions | `app/ai/exceptions.py` | `AIConnectionError`, `AITimeoutError`, `AIConfigurationError` |
 | Health | `app/ai/health.py` | Connectivity check only — no generation |
 | API endpoint | `app/api/v1/ai.py` | `GET /api/v1/ai/health` — public infrastructure probe |
-| Placeholders | `app/ai/prompts/`, `context/`, `parsers/`, `services/` | Reserved for future sprints |
+| Placeholders | `app/ai/context/`, `parsers/`, `services/` | Reserved for future sprints |
+| Prompt Engine | `app/ai/prompts/` | System prompt, task templates, user prompt builder, composer (Sprint 5.2); metadata + language policies (architecture standard) |
 
 **Dependency rules (enforced):**
 
@@ -414,7 +415,7 @@ Configuration uses `pydantic-settings` with domain-specific settings classes:
 | `AppSettings` | `app/core/config/app.py` | `app_name`, `app_version`, `debug` |
 | `AuthSettings` | `app/core/config/auth.py` | `jwt_secret_key`, `jwt_algorithm`, `jwt_access_token_expire_minutes` |
 | `DatabaseSettings` | `app/core/config/database.py` | `database_url`, pool settings |
-| `AiSettings` | `app/core/config/ai.py` | `ollama_url`, `ollama_model`, `ai_timeout` — **`ollama_model` (`OLLAMA_MODEL`) is operator-supplied; the application defines no default or recommended model** |
+| `AiSettings` | `app/core/config/ai.py` | `ollama_url`, `ollama_model`, `ai_timeout`, `default_prompt_language` — **`ollama_model` (`OLLAMA_MODEL`) is operator-supplied; `DEFAULT_PROMPT_LANGUAGE` defaults to `ar`** |
 | `LoggingSettings` | `app/core/config/logging_config.py` | `log_level` |
 
 A facade `Settings` class in `app/core/config/__init__.py` composes all domain settings and exposes backward-compatible property accessors.

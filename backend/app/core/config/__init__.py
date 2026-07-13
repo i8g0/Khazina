@@ -69,5 +69,9 @@ class Settings:
     def ai_timeout(self) -> float:
         return self.ai.ai_timeout
 
+    @property
+    def default_prompt_language(self) -> str:
+        return self.ai.default_prompt_language
+
 
 settings = Settings()

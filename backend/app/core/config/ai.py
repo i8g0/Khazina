@@ -23,6 +23,22 @@ class AiSettings(BaseSettings):
         le=300,
         description="HTTP timeout in seconds for Ollama requests (AI_TIMEOUT)",
     )
+    default_prompt_language: str = Field(
+        default="ar",
+        min_length=2,
+        max_length=16,
+        description=(
+            "Default prompt language code for Prompt Engine output (DEFAULT_PROMPT_LANGUAGE)"
+        ),
+    )
+
+    @field_validator("default_prompt_language")
+    @classmethod
+    def default_prompt_language_normalized(cls, value: str) -> str:
+        language = value.strip().lower()
+        if not language:
+            raise ValueError("DEFAULT_PROMPT_LANGUAGE must not be empty")
+        return language
 
     @field_validator("ollama_model")
     @classmethod

@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 5 – AI Integration                                      |
-| Current Sprint | 5.2 (AI Architecture Freeze — Pre-Implementation)              |
-| Overall Status | Phase 5 in progress — AI architecture frozen (documentation)  |
+| Current Sprint | 5.2 (Prompt Engine)                                           |
+| Overall Status | Phase 5 in progress — Prompt Engine implemented               |
 | Last Updated   | 2026-07-13                                                    |
 
 ---
@@ -81,6 +81,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | —      | Maintenance | Documentation Alignment (pre–Phase 5) | Completed |             | 2026-07-13    |
 | 5.1    | AI         | AI Foundation                        | Completed |             | 2026-07-13    |
 | 5.2    | AI         | AI Architecture Freeze (Pre-Implementation) | Completed |             | 2026-07-13    |
+| 5.2    | AI         | Prompt Engine (Implementation)       | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1386,6 +1387,89 @@ Services currently persist and return caller-supplied values; they do not yet co
 **Validation:** Terminology consistent — "Current Development Baseline", "Multi-Agent deferred", Number Guard never corrects output.
 
 **Next step:** Await Technical Lead approval; proceed to Sprint 5.3+ implementation.
+
+---
+
+### Phase 5 — Sprint 5.2: Prompt Engine (Implementation)
+
+**Date:** 2026-07-13
+
+**Status:** Completed — awaiting Technical Lead approval
+
+**Objective:** Implement the Prompt Engine — prompt construction only; no business logic, parsing, or LLM invocation.
+
+**Deliverables:**
+
+- `backend/app/ai/prompts/facts.py` — `PromptFact` input type (prompt-layer only)
+- `backend/app/ai/prompts/system.py` — permanent system prompt builder
+- `backend/app/ai/prompts/templates.py` — `PromptTask` templates (Executive Summary, Risk Analysis, Recommendations, Scenario Analysis)
+- `backend/app/ai/prompts/builder.py` — user prompt builder from prepared facts
+- `backend/app/ai/prompts/composer.py` — `PromptComposer`, `ComposedPrompt`, `compose_prompt()`
+- `backend/app/ai/prompts/__init__.py` — public exports
+- `docs/ARCHITECTURE.md` — Prompt Engine row in AI infrastructure table
+
+**Public interface:** `compose_prompt(task, facts) -> ComposedPrompt`
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Executive Summary prompt generation | ✅ Pass |
+| Risk Analysis prompt generation | ✅ Pass |
+| Recommendations prompt generation | ✅ Pass |
+| Scenario Analysis prompt generation | ✅ Pass |
+| Arabic instructions included | ✅ Pass |
+| Output format instructions included | ✅ Pass |
+| Prompt generation deterministic | ✅ Pass |
+| No business logic / calculations | ✅ Pass |
+| No imports from services/repositories/db/API | ✅ Pass |
+| Existing AI infrastructure unchanged | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Context Builder or LLM integration sprint.
+
+---
+
+### Phase 5 — Sprint 5.2 Maintenance: Prompt Engine Refinement
+
+**Date:** 2026-07-13
+
+**Status:** Completed
+
+**Objective:** Naming consistency, versioning, extensibility, and metadata — no behaviour changes.
+
+**Changes:**
+
+- Renamed `BusinessFact` → `PromptFact` (prompt-layer type; distinct from future Facts Contract)
+- Added `PROMPT_VERSION = "1.0"` and `PROMPT_LANGUAGE` in `app/ai/prompts/version.py`
+- `ComposedPrompt` extended with `prompt_version`, `language`, `created_at` metadata
+- `PromptTask` template registry with `register_task_template()` / `supported_tasks()` for future tasks
+- Public exports: `PROMPT_VERSION`, `PROMPT_LANGUAGE`, `supported_tasks`, `iter_supported_tasks`
+
+**Validation:** Prompt text (`system_prompt`, `user_prompt`, `final_prompt`) unchanged for all four tasks; metadata populated; public API works.
+
+---
+
+### Architecture Standard — Prompt Metadata & Language Policy Adoption
+
+**Date:** 2026-07-13
+
+**Status:** Completed — permanent AI architecture standards adopted
+
+**Policies adopted:**
+
+1. **Prompt Metadata Policy** — mandatory `PromptMetadata` on every composed prompt; centralized in `build_prompt_metadata()` / `PromptComposer`
+2. **Prompt Language Policy** — `DEFAULT_PROMPT_LANGUAGE` configuration; language packs in `app/ai/prompts/languages/`; one language per prompt
+
+**Implementation:**
+
+- `app/ai/prompts/metadata.py` — `PromptMetadata`, `build_prompt_metadata()`
+- `app/ai/prompts/language_config.py` — `get_default_prompt_language()`
+- `app/ai/prompts/languages/` — `LanguagePack` registry; `ar` pack with all prompt strings
+- `app/core/config/ai.py` — `default_prompt_language` / `DEFAULT_PROMPT_LANGUAGE`
+- `docs/AI_ARCHITECTURE.md` — Prompt Metadata Policy + Prompt Language Policy sections
+- `docs/ADR/008-ai-architecture.md` — policies recorded as architectural standards
+
+**Validation:** Prompt text unchanged with `DEFAULT_PROMPT_LANGUAGE=ar`; metadata fields present; language configurable via env.
 
 ---
 

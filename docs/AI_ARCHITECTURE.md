@@ -269,6 +269,41 @@ The Prompt Engine assembles the complete prompt package sent to the LLM.
 
 Prompt templates live in `app/ai/prompts/` when implemented. Template content is versioned and reviewed; changes follow sprint scope and this architecture.
 
+### Prompt Metadata Policy
+
+Every prompt composed by the Prompt Engine **must** include internal **Prompt Metadata**. Metadata is system observability data — it is **not** part of prompt instructions sent as task content.
+
+**Purpose:** observability, debugging, traceability, prompt evolution tracking, and production diagnostics.
+
+**Required fields (mandatory):**
+
+| Field | Description |
+|-------|-------------|
+| `prompt_version` | Prompt Engine template/version identifier |
+| `prompt_language` | Single language code for the composed prompt |
+| `task` | `PromptTask` identifier |
+| `created_at` | UTC timestamp at composition time |
+
+**Architectural requirement:** `PromptComposer` is the **sole** creator of Prompt Metadata. No duplicated metadata generation elsewhere.
+
+**Extensibility:** Optional future fields (e.g. `template_name`, `template_version`, `engine_version`, `facts_count`, `correlation_id`) may be added via metadata extensions without breaking compatibility.
+
+Implementation: `app/ai/prompts/metadata.py` — `PromptMetadata`, `build_prompt_metadata()`.
+
+### Prompt Language Policy
+
+The Prompt Engine supports **configurable prompt languages** via `DEFAULT_PROMPT_LANGUAGE` (environment / `AiSettings.default_prompt_language`).
+
+| Rule | Detail |
+|------|--------|
+| Configuration | Language selected from centralized config — not hardcoded in template modules |
+| Current default | `ar` (Modern Standard Arabic) — deployment default only, not an architectural limit |
+| One language per prompt | Mixed-language prompts are prohibited |
+| Future languages | Additional language packs (e.g. `en`, `fr`, `ja`) require configuration + pack registration — no Prompt Engine redesign |
+| Content location | Localized strings live in `app/ai/prompts/languages/` packs |
+
+Changing the default language requires **configuration only** (`DEFAULT_PROMPT_LANGUAGE`), not source code changes, once the target language pack exists.
+
 ---
 
 ## 12. LLM Boundaries

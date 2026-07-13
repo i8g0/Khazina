@@ -17,6 +17,8 @@ Key architectural commitments:
 5. **Graceful degradation** — core dashboards, KPIs, and charts operate without the LLM; narrative generation is optional enhancement.
 6. **Multi-Agent deferred** in Phase 5 — single bounded pipeline per task; architecture designed to support future agent-based extensions via ADR if justified by business requirements.
 7. **Model-agnostic configuration** — `OLLAMA_MODEL` is operator-supplied; Current Development Baseline is `Qwen3:8B` (temporary, replaceable via configuration only; no architectural impact).
+8. **Prompt Metadata Policy** — every composed prompt includes mandatory metadata (`prompt_version`, `prompt_language`, `task`, `created_at`); centralized in `PromptComposer` via `build_prompt_metadata()`.
+9. **Prompt Language Policy** — configurable via `DEFAULT_PROMPT_LANGUAGE`; one language per prompt; localized content in language packs under `app/ai/prompts/languages/`; current default `ar`.
 
 ## Context
 
