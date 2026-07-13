@@ -228,7 +228,7 @@ Business Engines never send reports, paragraphs, or executive summaries to the L
 
 The Facts Contract is immutable input to the Context Builder. The LLM may reference fact values; it may not alter them.
 
-Implementation details (serialization format, storage, API shape) are defined in subsequent sprints and must remain compatible with this contract.
+Implementation details (serialization format, storage, API shape) are defined in subsequent sprints and must remain compatible with this contract. The Business Engine layer design is specified in [BUSINESS_ENGINE_ARCHITECTURE.md](BUSINESS_ENGINE_ARCHITECTURE.md) (Sprint 5.3A).
 
 ---
 

@@ -370,6 +370,8 @@ The AI layer is isolated from repositories, business services, and domain logic.
 
 See [ADR 006: Ollama for Local AI Inference](ADR/006-ollama.md).
 
+**Business Engine architecture (frozen Sprint 5.3A):** Deterministic analysis engines live in `app/business/` and produce the Facts Contract. Each engine exposes a mandatory static `EngineManifest`; the immutable registry (`register_engine` → `freeze_registry` → read-only) consumes manifest as the single source of engine identity. Layer pipeline uses **Fact Assembler** (not Fact Builder). Full specification: [BUSINESS_ENGINE_ARCHITECTURE.md](BUSINESS_ENGINE_ARCHITECTURE.md). Adoption recorded in [ADR 009: Business Engine Architecture](ADR/009-business-engine-architecture.md). No engine implementations until Sprint 5.3B.
+
 **AI logical architecture (frozen Sprint 5.2):** The end-to-end AI pipeline — Parser → Validation → Business Engines → Facts Contract → Context Builder → Prompt Engine → LLM → Number Guard → Response Validation — is defined in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md). Business Engines communicate with the AI layer exclusively through the Facts Contract; the LLM never receives raw business data. Number Guard verifies, accepts, rejects, or requests regeneration — it never corrects output. Multi-Agent is deferred in Phase 5. Adoption recorded in [ADR 008: AI Architecture](ADR/008-ai-architecture.md). Implementation sprints must conform to that specification; architectural changes require an ADR.
 
 ---
@@ -416,6 +418,7 @@ Configuration uses `pydantic-settings` with domain-specific settings classes:
 | `AuthSettings` | `app/core/config/auth.py` | `jwt_secret_key`, `jwt_algorithm`, `jwt_access_token_expire_minutes` |
 | `DatabaseSettings` | `app/core/config/database.py` | `database_url`, pool settings |
 | `AiSettings` | `app/core/config/ai.py` | `ollama_url`, `ollama_model`, `ai_timeout`, `default_prompt_language` — **`ollama_model` (`OLLAMA_MODEL`) is operator-supplied; `DEFAULT_PROMPT_LANGUAGE` defaults to `ar`** |
+| Business Engines | `app/business/` | Deterministic analysis layer (Sprint 5.3A architecture freeze; implementations Sprint 5.3B+) |
 | `LoggingSettings` | `app/core/config/logging_config.py` | `log_level` |
 
 A facade `Settings` class in `app/core/config/__init__.py` composes all domain settings and exposes backward-compatible property accessors.

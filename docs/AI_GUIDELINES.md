@@ -31,8 +31,9 @@ Always read the latest versions of these files before making any changes:
 1. [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md)
 2. [ARCHITECTURE.md](ARCHITECTURE.md)
 3. [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) — **required for any AI feature or pipeline work**
-4. [AI_GUIDELINES.md](AI_GUIDELINES.md)
-5. [progress.md](progress.md)
+4. [BUSINESS_ENGINE_ARCHITECTURE.md](BUSINESS_ENGINE_ARCHITECTURE.md) — **required for any Business Engine work**
+5. [AI_GUIDELINES.md](AI_GUIDELINES.md)
+6. [progress.md](progress.md)
 
 Additionally:
 

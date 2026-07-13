@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 5 – AI Integration                                      |
-| Current Sprint | 5.2 (Prompt Engine)                                           |
-| Overall Status | Phase 5 in progress — Prompt Engine implemented               |
+| Current Sprint | 5.3A (Business Engine Architecture)                           |
+| Overall Status | Phase 5 in progress — Business Engine architecture frozen     |
 | Last Updated   | 2026-07-13                                                    |
 
 ---
@@ -82,6 +82,8 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.1    | AI         | AI Foundation                        | Completed |             | 2026-07-13    |
 | 5.2    | AI         | AI Architecture Freeze (Pre-Implementation) | Completed |             | 2026-07-13    |
 | 5.2    | AI         | Prompt Engine (Implementation)       | Completed |             | 2026-07-13    |
+| 5.3A   | AI         | Business Engine Architecture       | Completed |             | 2026-07-13    |
+| 5.3A-R | AI         | Business Engine Architecture Refinement | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1470,6 +1472,81 @@ Services currently persist and return caller-supplied values; they do not yet co
 - `docs/ADR/008-ai-architecture.md` — policies recorded as architectural standards
 
 **Validation:** Prompt text unchanged with `DEFAULT_PROMPT_LANGUAGE=ar`; metadata fields present; language configurable via env.
+
+---
+
+### Phase 5 — Sprint 5.3A: Business Engine Architecture
+
+**Date:** 2026-07-13
+
+**Status:** Completed — **Business Engine architecture officially frozen**; awaiting Technical Lead approval before Sprint 5.3B
+
+**Objective:** Freeze the deterministic Business Engine architecture for all future analysis engines. No calculations, no engine implementations, no APIs, no AI.
+
+**Deliverables:**
+
+- `docs/BUSINESS_ENGINE_ARCHITECTURE.md` — normative specification (layers, lifecycle, Facts Contract design, extensibility, error handling)
+- `docs/ADR/009-business-engine-architecture.md` — ADR recording adoption
+- `backend/app/business/` — package scaffold (interface, exceptions, registry, placeholder subpackages)
+- `backend/app/business/base.py` — abstract `BusinessEngine` interface (`run`, `analyze`, `assemble_facts`, `manifest`)
+- `backend/app/business/manifest.py` — `EngineManifest` (Sprint 5.3A-R)
+- `backend/app/business/registry.py` — immutable engine registry with freeze lifecycle (Sprint 5.3A-R)
+- `docs/ARCHITECTURE.md`, `docs/AI_ARCHITECTURE.md`, `docs/README.md` — cross-references
+
+**Scope compliance:**
+
+| Constraint | Result |
+| ---------- | ------ |
+| No business calculations | ✅ Pass |
+| No concrete engine implementation | ✅ Pass |
+| Facts Contract designed, not implemented | ✅ Pass |
+| AI layer unchanged and isolated | ✅ Pass |
+| No API / database / frontend changes | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then begin Sprint 5.3B (Facts Contract implementation + first engine).
+
+---
+
+### Phase 5 — Sprint 5.3A-R: Business Engine Architecture Refinement
+
+**Date:** 2026-07-13
+
+**Status:** Completed — **Business Engine architecture standards adopted**; frozen for Sprint 5.3B implementation
+
+**Objective:** Refine Business Engine architecture before any engine implementation. Adopt Manifest, Immutable Registry, and Fact Assembler naming. No calculations, no APIs, no AI changes, no behaviour changes.
+
+**Architectural standards adopted:**
+
+| Standard | Description |
+| -------- | ----------- |
+| Business Engine Manifest | Mandatory static `EngineManifest` on every engine; Registry consumes manifest as SSOT |
+| Immutable Engine Registry | Lifecycle: Initialization → Registration → Freeze → Read Only; `RegistryFrozenError` after freeze |
+| Fact Assembler | Renamed from Fact Builder project-wide (`assemblers/`, `assemble_facts()`) |
+
+**Deliverables:**
+
+- `backend/app/business/manifest.py` — frozen `EngineManifest` dataclass
+- `backend/app/business/registry.py` — immutable registry with `freeze_registry()`, `get_engine_manifest()`, `registered_manifests()`
+- `backend/app/business/base.py` — `manifest` property; `assemble_facts()` replaces `build_facts()`
+- `backend/app/business/exceptions.py` — `RegistryFrozenError`
+- `backend/app/business/assemblers/` — renamed from `builders/`
+- `docs/BUSINESS_ENGINE_ARCHITECTURE.md` — Manifest, Registry Lifecycle, Immutable Registry Policy, Fact Assembler sections
+- `docs/ADR/009-business-engine-architecture.md` — refinement recorded (no new ADR)
+- `docs/ARCHITECTURE.md` — cross-reference updated
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Manifest mandatory on interface | ✅ Pass |
+| Registry consumes manifest | ✅ Pass |
+| Registry immutable after freeze | ✅ Pass |
+| Fact Builder fully renamed | ✅ Pass |
+| No concrete Business Engine | ✅ Pass |
+| No `app.ai` imports in `app/business/` | ✅ Pass |
+| No calculations / APIs / AI changes | ✅ Pass |
+
+**Next step:** Sprint 5.3B — Facts Contract implementation and first Business Engine.
 
 ---
 

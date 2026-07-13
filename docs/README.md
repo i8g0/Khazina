@@ -11,6 +11,7 @@ Official project documentation for the Khazina Enterprise Financial Decision Int
 | [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) | Phase plan, sprint methodology, quality gates |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Platform architecture, layers, infrastructure |
 | [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) | **Official AI subsystem specification (frozen Sprint 5.2)** |
+| [BUSINESS_ENGINE_ARCHITECTURE.md](BUSINESS_ENGINE_ARCHITECTURE.md) | **Business Engine layer specification (frozen Sprint 5.3A)** |
 | [progress.md](progress.md) | Sprint status and deliverables |
 | [AI_GUIDELINES.md](AI_GUIDELINES.md) | Rules for AI-assisted development tools |
 
@@ -31,6 +32,7 @@ Official project documentation for the Khazina Enterprise Financial Decision Int
 | [ADR 006](ADR/006-ollama.md) | Ollama local inference |
 | [ADR 007](ADR/007-authentication-authorization.md) | Authentication & authorization |
 | [ADR 008](ADR/008-ai-architecture.md) | AI architecture adoption |
+| [ADR 009](ADR/009-business-engine-architecture.md) | Business Engine architecture adoption |
 
 Full ADR index: [docs/ADR/](ADR/)
 
