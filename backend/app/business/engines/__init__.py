@@ -1,1 +1,5 @@
-"""Domain Business Engine implementations — one subfolder per engine (Sprint 5.3B+)."""
+"""Domain Business Engine implementations."""
+
+from app.business.engines.waste import WasteEngine
+
+__all__ = ["WasteEngine"]

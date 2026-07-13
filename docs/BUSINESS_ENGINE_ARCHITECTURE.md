@@ -1,4 +1,4 @@
-# Khazina Business Engine Architecture
+git push origin main# Khazina Business Engine Architecture
 
 Official specification for the **deterministic Business Engine layer**. All future analysis engines (Waste, Revenue, Budget, Cost, Supplier, Risk, Liquidity, Scenario, and others) must conform to this document.
 
@@ -344,7 +344,7 @@ Errors carry **domain context** (engine id from manifest, field names, codes) â€
 | Shared calculators/detectors | Optional reuse via `calculators/`, `detectors/` |
 | AI isolation | Engines never import AI; AI never imports engine internals |
 
-**Planned engines (not implemented):** Waste, Revenue, Budget, Cost, Supplier, Risk, Liquidity, Scenario, and others.
+**Planned engines (not implemented):** Revenue, Budget, Cost, Supplier, Risk, Liquidity, Scenario, and others. **Waste Engine** implemented in Sprint 5.3B.
 
 ---
 

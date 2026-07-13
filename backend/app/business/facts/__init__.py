@@ -1,4 +1,5 @@
-"""Facts Contract types — designed in Sprint 5.3A, implemented in Sprint 5.3B.
+"""Facts Contract types (Sprint 5.3B)."""
 
-See docs/BUSINESS_ENGINE_ARCHITECTURE.md §7 for the contract specification.
-"""
+from app.business.facts.contract import CONTRACT_VERSION, Fact, FactsContract
+
+__all__ = ["CONTRACT_VERSION", "Fact", "FactsContract"]

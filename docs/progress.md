@@ -84,6 +84,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.2    | AI         | Prompt Engine (Implementation)       | Completed |             | 2026-07-13    |
 | 5.3A   | AI         | Business Engine Architecture       | Completed |             | 2026-07-13    |
 | 5.3A-R | AI         | Business Engine Architecture Refinement | Completed |             | 2026-07-13    |
+| 5.3B   | AI         | Facts Contract & Waste Engine        | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1547,6 +1548,44 @@ Services currently persist and return caller-supplied values; they do not yet co
 | No calculations / APIs / AI changes | ✅ Pass |
 
 **Next step:** Sprint 5.3B — Facts Contract implementation and first Business Engine.
+
+---
+
+### Phase 5 — Sprint 5.3B: Facts Contract & Waste Engine
+
+**Date:** 2026-07-13
+
+**Status:** Completed — **Facts Contract implemented**; **Waste Engine** is the first concrete Business Engine
+
+**Objective:** Implement Facts Contract and first Business Engine (Waste) following frozen Sprint 5.3A architecture. No AI, no APIs, no Prompt Engine changes.
+
+**Deliverables:**
+
+- `backend/app/business/facts/contract.py` — immutable `Fact`, `FactsContract`, serialization
+- `backend/app/business/engines/waste/` — Waste Engine, Calculator, Detector, Manifest, Input
+- `backend/app/business/assemblers/waste.py` — Waste Fact Assembler
+- `backend/app/business/bootstrap.py` — registry initialization at startup
+- `backend/app/main.py` — calls `initialize_business_engines()` in lifespan
+- `backend/tests/business/` — deterministic unit tests
+- `docs/BUSINESS_ENGINE_ARCHITECTURE.md` — Waste engine status note
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Facts Contract immutable, versioned, serializable | ✅ Pass |
+| Waste Engine lifecycle complete | ✅ Pass |
+| Calculator deterministic | ✅ Pass |
+| Detector deterministic | ✅ Pass |
+| Fact Assembler mapping only | ✅ Pass |
+| Registry registers and freezes at startup | ✅ Pass |
+| Engine Manifest complete | ✅ Pass |
+| Unit tests passing | ✅ Pass |
+| No AI / Prompt Engine dependencies in business layer | ✅ Pass |
+| No business text generation | ✅ Pass |
+| ADR-009 unchanged | ✅ Pass |
+
+**Next step:** Wire Facts Contract to orchestration / Context Builder (future sprint).
 
 ---
 

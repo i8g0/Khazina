@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.v1.router import api_v1_router
+from app.business.bootstrap import initialize_business_engines
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import get_logger, setup_logging
@@ -14,6 +15,7 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    initialize_business_engines()
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
     yield
     logger.info("Shutting down %s", settings.app_name)

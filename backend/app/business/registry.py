@@ -58,3 +58,10 @@ def registered_engine_ids() -> tuple[str, ...]:
 def registered_manifests() -> tuple[EngineManifest, ...]:
     """Return all registered engine manifests."""
     return tuple(_REGISTRY[eid].manifest for eid in registered_engine_ids())
+
+
+def reset_registry_for_testing() -> None:
+    """Clear registry state — for unit tests only."""
+    global _FROZEN
+    _REGISTRY.clear()
+    _FROZEN = False
