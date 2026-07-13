@@ -686,6 +686,17 @@ Services currently persist and return caller-supplied values; they do not yet co
 
 ---
 
+### Maintenance — Alembic URL escaping for ConfigParser (`%` in passwords)
+
+**Date:** 2026-07-13
+
+- **Issue:** `alembic upgrade head` failed on fresh PostgreSQL installs when `DATABASE_URL` contained `%` (or other values that ConfigParser treats as interpolation), raising `ValueError: invalid interpolation syntax` before any DB connection was attempted.
+- **Cause:** `config.set_main_option("sqlalchemy.url", settings.database_url)` passes the URL through Python's `configparser`, which interprets `%` as interpolation syntax.
+- **Fix:** Escape percent signs before registering the URL: `settings.database_url.replace("%", "%%")` in `backend/alembic/env.py`. ConfigParser stores `%%` as a literal `%`; SQLAlchemy still receives the correct connection string via `create_engine(settings.database_url)` in online mode.
+- **Scope:** Infrastructure compatibility fix only — no change to ORM models, migrations, services, or runtime application behavior.
+
+---
+
 ### Phase 3 — Sprint 3.0: Business Domain Discovery
 
 **Date:** 2026-07-12
