@@ -46,3 +46,44 @@ class OllamaClient:
         except httpx.HTTPError as exc:
             logger.debug("Ollama connectivity check failed: %s", exc)
             raise AIConnectionError("Ollama endpoint is unreachable") from exc
+
+    def chat(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        model: str | None = None,
+        format_json: bool = False,
+    ) -> str:
+        """Send a chat completion request to Ollama and return assistant content."""
+        if not messages:
+            raise AIConfigurationError("At least one chat message is required")
+
+        payload: dict[str, object] = {
+            "model": model or self.configured_model,
+            "messages": messages,
+            "stream": False,
+        }
+        if format_json:
+            payload["format"] = "json"
+
+        url = f"{self._base_url}/api/chat"
+        try:
+            with httpx.Client(timeout=self._settings.ai_timeout) as client:
+                response = client.post(url, json=payload)
+                response.raise_for_status()
+                body = response.json()
+        except httpx.TimeoutException as exc:
+            raise AITimeoutError(
+                f"Ollama request timed out after {self._settings.ai_timeout}s"
+            ) from exc
+        except httpx.HTTPError as exc:
+            logger.debug("Ollama chat request failed: %s", exc)
+            raise AIConnectionError("Ollama chat request failed") from exc
+
+        message = body.get("message")
+        if not isinstance(message, dict):
+            raise AIConnectionError("Ollama chat response missing message payload")
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise AIConnectionError("Ollama chat response missing assistant content")
+        return content

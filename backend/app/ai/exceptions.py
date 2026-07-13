@@ -17,3 +17,15 @@ class AIConnectionError(AIError):
 
 class AITimeoutError(AIError):
     """Raised when an Ollama request exceeds the configured timeout."""
+
+
+class ResponseParseError(AIError):
+    """Raised when an LLM response cannot be parsed deterministically."""
+
+
+class ConversationNotFoundError(AIError):
+    """Raised when a conversation identifier does not exist."""
+
+
+class OrchestrationError(AIError):
+    """Raised when AI pipeline orchestration fails."""

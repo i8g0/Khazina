@@ -85,6 +85,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.3A   | AI         | Business Engine Architecture       | Completed |             | 2026-07-13    |
 | 5.3A-R | AI         | Business Engine Architecture Refinement | Completed |             | 2026-07-13    |
 | 5.3B   | AI         | Facts Contract & Waste Engine        | Completed |             | 2026-07-13    |
+| 5.4    | AI         | Conversation & Context Management    | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1586,6 +1587,43 @@ Services currently persist and return caller-supplied values; they do not yet co
 | ADR-009 unchanged | ✅ Pass |
 
 **Next step:** Wire Facts Contract to orchestration / Context Builder (future sprint).
+
+---
+
+### Phase 5 — Sprint 5.4: Conversation & Context Management
+
+**Date:** 2026-07-13
+
+**Status:** Completed — **deterministic AI execution pipeline** orchestration layer implemented
+
+**Objective:** Connect Business Engines, Facts Contract, Prompt Engine, and Ollama through Context Builder, Conversation Service, AI Orchestrator, and Response Parser. No architecture redesign.
+
+**Deliverables:**
+
+- `backend/app/ai/context/` — Context Builder, Fact→PromptFact adapter, `PromptContext`
+- `backend/app/ai/services/conversation.py` — in-memory Conversation Service
+- `backend/app/ai/services/orchestrator.py` — AI Orchestrator pipeline
+- `backend/app/ai/parsers/response_parser.py` — deterministic Response Parser
+- `backend/app/ai/client.py` — `OllamaClient.chat()` for orchestrated LLM calls
+- `backend/tests/ai/` — unit and end-to-end tests (mocked Ollama)
+
+**Pipeline:** Business Engine → Facts Contract → Context Builder → Prompt Engine → Ollama → Response Parser → structured result
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Context Builder consumes Facts Contract only | ✅ Pass |
+| Conversation Service in-memory multi-turn | ✅ Pass |
+| AI Orchestrator coordinates without business/prompt logic | ✅ Pass |
+| Response Parser deterministic | ✅ Pass |
+| End-to-end pipeline (mocked Ollama) | ✅ Pass |
+| Business Engine unchanged | ✅ Pass |
+| Prompt Engine unchanged | ✅ Pass |
+| ADR-008 / ADR-009 unchanged | ✅ Pass |
+| Unit tests passing (33 total) | ✅ Pass |
+
+**Next step:** Number Guard and Response Validation (future sprint).
 
 ---
 
