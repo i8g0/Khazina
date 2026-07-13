@@ -15,6 +15,7 @@ from app.repositories.report import ReportRepository
 from app.repositories.risk import RiskRepository
 from app.repositories.simulation import SimulationRepository
 from app.repositories.timeline import TimelineRepository
+from app.repositories.user import UserRepository
 from app.repositories.waste import WasteRepository
 
 __all__ = [
@@ -29,5 +30,6 @@ __all__ = [
     "RiskRepository",
     "SimulationRepository",
     "TimelineRepository",
+    "UserRepository",
     "WasteRepository",
 ]

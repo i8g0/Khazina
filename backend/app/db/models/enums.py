@@ -105,3 +105,9 @@ class RelatedEntityType(StrEnum):
     ANALYSIS_RUN = "analysis_run"
     REPORT = "report"
     RISK = "risk"
+
+
+class UserRole(StrEnum):
+    ADMIN = "admin"
+    EXECUTIVE = "executive"
+    ANALYST = "analyst"

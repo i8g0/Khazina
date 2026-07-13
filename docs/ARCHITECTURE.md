@@ -138,7 +138,8 @@ backend/
 │   │   │   └── logging_config.py LoggingSettings
 │   │   ├── logging.py           Logging setup
 │   │   ├── exceptions.py        AppError exception class
-│   │   └── exception_handlers.py Global exception handlers
+│   │   ├── exception_handlers.py Global exception handlers
+│   │   └── security.py          Password hashing utilities (Sprint 4.1)
 │   ├── db/
 │   │   ├── base.py              Shared Base, UUID and timestamp mixins
 │   │   ├── session.py           Engine, session factory, connection check
@@ -254,6 +255,22 @@ The backend core is feature-complete and frozen. All layers are implemented and 
 
 No further backend core changes unless a defect is discovered. Phase 4 (Authentication) builds on this foundation.
 
+### User System (Phase 4 — Sprint 4.1)
+
+The User domain extends the frozen backend core without modifying existing business workflows:
+
+| Layer | Location | Notes |
+|-------|----------|-------|
+| ORM | `app/db/models/user.py` | `users` table; FK to `organizations`; globally unique `email` |
+| Migration | `alembic/versions/b7e4a2f91c03_add_users_table.py` | Append-only; does not modify prior migrations |
+| Repository | `app/repositories/user.py` | Flush-only; `create`, `get_by_id`, `get_by_email`, `list`, `update`, `deactivate` |
+| Service | `app/services/user.py` | Duplicate-email prevention, organization ownership, active/inactive rules |
+| Schemas | `app/schemas/user.py` | `UserCreate`, `UserUpdate`, `UserResponse` — plain passwords accepted on input only |
+| Router | `app/api/v1/user.py` | Organization-scoped under `/organizations/{organization_id}/users` |
+| Password storage | `app/core/security.py` | `bcrypt` via `hash_password()` — storage only; no login/JWT/session |
+
+Authentication, authorization, and session management are deferred to later Phase 4 sprints.
+
 ---
 
 ## Docker Architecture
@@ -339,7 +356,7 @@ All API endpoints are versioned under `/api/v1/`.
 | Prefix | `/api/v1` |
 | Router | `app/api/v1/router.py` aggregates version-specific routes |
 | Breaking changes | Require a new version (e.g., `/api/v2/`) |
-| Current endpoints | Health check plus 87 domain CRUD/workflow operations across 10 business routers (organizations, departments, financial, analysis, waste, risk, simulation, reports, recommendations, timeline) |
+| Current endpoints | Health check plus 92 domain CRUD/workflow operations across 11 business routers (organizations, departments, financial, analysis, waste, risk, simulation, reports, recommendations, timeline, users) |
 
 New endpoints must be added to the appropriate version router, never directly to the application root.
 
@@ -551,7 +568,8 @@ Files should remain small and focused. If a file exceeds approximately 200 lines
 - Backend runs as a non-root user in Docker.
 - Frontend runs as a non-root user in Docker.
 - Debug mode exposes exception details; production must run with `debug=false`.
-- Authentication and authorization will be enforced in Phase 4.
+- Authentication and authorization will be enforced in later Phase 4 sprints.
+- User passwords are hashed with `bcrypt` before persistence (`app/core/security.py`); plain passwords are never stored or returned in API responses.
 - All user input is validated through Pydantic models.
 - SQL queries use SQLAlchemy ORM; raw SQL only with Tech Lead approval.
 - CORS, rate limiting, and security headers will be configured in appropriate phases.

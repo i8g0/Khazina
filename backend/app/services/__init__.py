@@ -26,6 +26,7 @@ from app.services.report import ReportService
 from app.services.risk import RiskService
 from app.services.simulation import SimulationService
 from app.services.timeline import TimelineService
+from app.services.user import UserService
 from app.services.waste import WasteService
 
 __all__ = [
@@ -47,5 +48,6 @@ __all__ = [
     "ServiceError",
     "SimulationService",
     "TimelineService",
+    "UserService",
     "WasteService",
 ]

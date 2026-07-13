@@ -10,6 +10,7 @@ from app.api.v1.report import router as report_router
 from app.api.v1.risk import router as risk_router
 from app.api.v1.simulation import router as simulation_router
 from app.api.v1.timeline import router as timeline_router
+from app.api.v1.user import router as user_router
 from app.api.v1.waste import router as waste_router
 
 api_v1_router = APIRouter()
@@ -24,3 +25,4 @@ api_v1_router.include_router(simulation_router)
 api_v1_router.include_router(report_router)
 api_v1_router.include_router(recommendation_router)
 api_v1_router.include_router(timeline_router)
+api_v1_router.include_router(user_router)

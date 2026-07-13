@@ -24,6 +24,7 @@ from app.db.models.simulation import (
     SimulationScenario,
 )
 from app.db.models.timeline import TimelineEvent
+from app.db.models.user import User
 from app.db.models.waste import (
     WasteAnalysisResult,
     WasteCategoryBreakdown,
@@ -54,6 +55,7 @@ __all__ = [
     "SimulationRun",
     "SimulationScenario",
     "TimelineEvent",
+    "User",
     "WasteAnalysisResult",
     "WasteCategoryBreakdown",
     "WasteTrendPoint",

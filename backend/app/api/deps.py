@@ -18,6 +18,7 @@ from app.repositories import (
     RiskRepository,
     SimulationRepository,
     TimelineRepository,
+    UserRepository,
     WasteRepository,
 )
 from app.services import (
@@ -30,6 +31,7 @@ from app.services import (
     RiskService,
     SimulationService,
     TimelineService,
+    UserService,
     WasteService,
 )
 
@@ -104,6 +106,12 @@ def get_timeline_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> TimelineRepository:
     return TimelineRepository(db)
+
+
+def get_user_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> UserRepository:
+    return UserRepository(db)
 
 
 def get_organization_service(
@@ -240,6 +248,16 @@ def get_timeline_service(
     return TimelineService(db, timeline_repo, organization_repo)
 
 
+def get_user_service(
+    db: Annotated[Session, Depends(get_db)],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+) -> UserService:
+    return UserService(db, user_repo, organization_repo)
+
+
 OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization_service)]
 DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]
@@ -252,4 +270,5 @@ RecommendationServiceDep = Annotated[
     RecommendationService, Depends(get_recommendation_service)
 ]
 TimelineServiceDep = Annotated[TimelineService, Depends(get_timeline_service)]
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 PaginationDep = Annotated[PaginationParams, Depends()]

@@ -1009,6 +1009,46 @@ Services currently persist and return caller-supplied values; they do not yet co
 
 ---
 
+### Phase 4 — Sprint 4.1: User System
+
+**Date:** 2026-07-13
+
+**Status:** Completed — awaiting Technical Lead approval before Phase 4 authentication sprints
+
+**Deliverables:**
+
+- `backend/requirements.txt` — approved `bcrypt` dependency for secure password storage
+- `backend/app/core/security.py` — `hash_password()` utility (storage only; no authentication)
+- `backend/app/db/models/user.py` — `User` ORM model with `Organization` 1→* relationship
+- `backend/app/db/models/enums.py` — `UserRole` enum (`admin`, `executive`, `analyst`)
+- `backend/alembic/versions/b7e4a2f91c03_add_users_table.py` — new `users` table migration
+- `backend/app/repositories/user.py` — `UserRepository` (create, get_by_id, get_by_email, list, update, deactivate; flush only)
+- `backend/app/services/user.py` — `UserService` with duplicate-email prevention, organization ownership validation, active/inactive rules
+- `backend/app/schemas/user.py` — `UserCreate`, `UserUpdate`, `UserResponse` (password never returned)
+- `backend/app/api/v1/user.py` — organization-scoped user REST endpoints
+- `backend/app/api/deps.py` — Session → `UserRepository` → `UserService` DI wiring
+- Five REST operations under `/api/v1/organizations/{organization_id}/users`
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Alembic migration at head (`b7e4a2f91c03`) | ✅ Pass |
+| App starts / all imports succeed | ✅ Pass |
+| OpenAPI schema generates | ✅ Pass (64 paths, 93 operations) |
+| User endpoints appear in Swagger | ✅ Pass (3 user paths, 5 operations) |
+| Password hashed via bcrypt before persistence | ✅ Pass |
+| `password_hash` never exposed in API responses | ✅ Pass |
+| Repository flush-only (no commit) | ✅ Pass |
+| Service owns transactions | ✅ Pass |
+| No authentication / JWT / login / authorization introduced | ✅ Pass |
+| No existing business domains modified (except Organization↔User relationship) | ✅ Pass |
+| Linter | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Phase 4 authentication sprints.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width
