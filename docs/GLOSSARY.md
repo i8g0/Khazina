@@ -66,7 +66,7 @@ Local AI inference server included as a Docker Compose service. Provides on-devi
 
 ## OLLAMA_MODEL
 
-Environment variable naming the Ollama model identifier for a deployment. **Required operator input** — not hardcoded, defaulted, or recommended by the Khazina backend. Set in `backend/.env` or `docker/.env`. Changing this value switches the configured model without code changes.
+Environment variable naming the Ollama model identifier for a deployment. **Required operator input** — not hardcoded in application code. Set in `backend/.env` or `docker/.env`. Changing this value switches the configured model without code changes or architectural impact. Current Development Baseline: `Qwen3:8B` (see [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) §16).
 
 ## REST API
 

@@ -2,7 +2,7 @@
 
 This document describes the official architecture of the Khazina Enterprise Financial Decision Intelligence Platform. All developers and AI tools must comply with the structures, conventions, and constraints defined here.
 
-For development process and phase planning, see [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
+For development process and phase planning, see [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md). For AI subsystem design, see [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md).
 
 ---
 
@@ -368,6 +368,8 @@ The AI layer is isolated from repositories, business services, and domain logic.
 - Model or endpoint changes require configuration updates only (`OLLAMA_URL`, `OLLAMA_MODEL`)
 
 See [ADR 006: Ollama for Local AI Inference](ADR/006-ollama.md).
+
+**AI logical architecture (frozen Sprint 5.2):** The end-to-end AI pipeline — Parser → Validation → Business Engines → Facts Contract → Context Builder → Prompt Engine → LLM → Number Guard → Response Validation — is defined in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md). Business Engines communicate with the AI layer exclusively through the Facts Contract; the LLM never receives raw business data. Number Guard verifies, accepts, rejects, or requests regeneration — it never corrects output. Multi-Agent is deferred in Phase 5. Adoption recorded in [ADR 008: AI Architecture](ADR/008-ai-architecture.md). Implementation sprints must conform to that specification; architectural changes require an ADR.
 
 ---
 

@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 5 – AI Integration                                      |
-| Current Sprint | 5.1 (AI Foundation)                                           |
-| Overall Status | Phase 5 in progress — AI infrastructure established           |
+| Current Sprint | 5.2 (AI Architecture Freeze — Pre-Implementation)              |
+| Overall Status | Phase 5 in progress — AI architecture frozen (documentation)  |
 | Last Updated   | 2026-07-13                                                    |
 
 ---
@@ -24,7 +24,7 @@ Official progress tracker for the Khazina project.
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
-| Phase 5 – AI Integration      | 🔄 In progress (Sprint 5.1)      |
+| Phase 5 – AI Integration      | 🔄 In progress (Sprint 5.2 — architecture frozen) |
 
 ---
 
@@ -80,6 +80,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 4.5    | Auth       | Authentication Freeze                | Approved |             | 2026-07-13    |
 | —      | Maintenance | Documentation Alignment (pre–Phase 5) | Completed |             | 2026-07-13    |
 | 5.1    | AI         | AI Foundation                        | Completed |             | 2026-07-13    |
+| 5.2    | AI         | AI Architecture Freeze (Pre-Implementation) | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1333,6 +1334,58 @@ Services currently persist and return caller-supplied values; they do not yet co
 **Files updated:** `docs/ARCHITECTURE.md`, `docs/ADR/006-ollama.md`, `docs/GLOSSARY.md`, `docs/PROJECT_ROADMAP.md`, `docs/AI_GUIDELINES.md`
 
 **Validation:** Searched all of `docs/` for `llama3`, `llama3.1`, `llama3.2`, `qwen`, `qwen3`, `default model`, and `recommended model` — no active policy violations; only historical maintenance notes reference removed defaults.
+
+---
+
+### Phase 5 — Sprint 5.2: AI Architecture Freeze (Pre-Implementation)
+
+**Date:** 2026-07-13
+
+**Status:** Completed — **AI architecture officially frozen (documentation only)**; awaiting Technical Lead approval before implementation sprints
+
+**Objective:** Create the official AI Architecture specification as the single source of truth for Phase 5+ AI implementation. No code, APIs, or logic changes.
+
+**Deliverables:**
+
+- `docs/AI_ARCHITECTURE.md` — normative specification (20 sections: pipeline, facts contract, LLM boundaries, number guard, privacy, multi-agent policy, etc.)
+- `docs/ADR/008-ai-architecture.md` — ADR recording adoption of the Facts-First AI Pipeline
+- `docs/ARCHITECTURE.md` — cross-reference to AI_ARCHITECTURE.md and ADR 008
+- `docs/PROJECT_ROADMAP.md` — Phase 5 deliverables/exit criteria updated
+- `docs/AI_GUIDELINES.md` — AI_ARCHITECTURE.md added to mandatory pre-implementation reading
+- `docs/README.md` — documentation index updated
+
+**Scope compliance:**
+
+| Constraint | Result |
+| ---------- | ------ |
+| No backend code changes | ✅ Pass |
+| No frontend changes | ✅ Pass |
+| No new APIs | ✅ Pass |
+| Documentation only | ✅ Pass |
+
+**Current Development Baseline documented:** `Qwen3:8B` (temporary; configuration-only replacement; no architectural impact)
+
+---
+
+### Phase 5 — Sprint 5.2 Refinement: AI Architecture Documentation Review
+
+**Date:** 2026-07-13
+
+**Status:** Completed
+
+**Objective:** Apply Technical Lead review comments to frozen AI documentation. No code or architecture redesign.
+
+**Sections updated:**
+
+| Document | Sections |
+| -------- | -------- |
+| `docs/AI_ARCHITECTURE.md` | §9 Facts Contract (expanded); §13 Number Guard (verify/accept/reject/regenerate only); §16 Current Development Baseline; §19 Multi-Agent (Deferred) |
+| `docs/ADR/008-ai-architecture.md` | Decision items 4, 6, 7; alternatives table; consequences |
+| `docs/progress.md` | This entry |
+
+**Validation:** Terminology consistent — "Current Development Baseline", "Multi-Agent deferred", Number Guard never corrects output.
+
+**Next step:** Await Technical Lead approval; proceed to Sprint 5.3+ implementation.
 
 ---
 

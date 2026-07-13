@@ -48,5 +48,6 @@ The backend AI layer is **model-agnostic**:
 **Related Documents**
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md)
+- [AI_ARCHITECTURE.md](../AI_ARCHITECTURE.md) — normative AI pipeline specification (Sprint 5.2)
 - [AI_GUIDELINES.md](../AI_GUIDELINES.md)
 - [PROJECT_ROADMAP.md](../PROJECT_ROADMAP.md) — Phase 5

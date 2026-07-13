@@ -203,12 +203,14 @@ Establish the AI service layer and integration patterns between the backend, Oll
 - Ollama integration validated in Docker environment
 - Model-agnostic configuration documented (`OLLAMA_MODEL` operator-supplied; no default model in code)
 - AI guidelines enforced in development workflow
+- **AI architecture specification frozen** — [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) (Sprint 5.2)
 - No unapproved model or dependency additions
 
 **Exit Criteria**
 
 - AI infrastructure operational in development environment
 - Integration patterns documented and approved
+- [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) adopted as normative AI specification (ADR 008)
 - No production financial analysis logic without separate sprint approval
 
 ---

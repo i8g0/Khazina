@@ -2,7 +2,7 @@
 
 This document defines how AI-assisted development tools are used within the Khazina project. These guidelines apply to all AI tools regardless of vendor or product name.
 
-For architecture constraints, see [ARCHITECTURE.md](ARCHITECTURE.md). For sprint process, see [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md). For developer workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
+For architecture constraints, see [ARCHITECTURE.md](ARCHITECTURE.md). For the official AI subsystem specification, see [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md). For sprint process, see [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md). For developer workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
@@ -30,8 +30,9 @@ Always read the latest versions of these files before making any changes:
 
 1. [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md)
 2. [ARCHITECTURE.md](ARCHITECTURE.md)
-3. [AI_GUIDELINES.md](AI_GUIDELINES.md)
-4. [progress.md](progress.md)
+3. [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) — **required for any AI feature or pipeline work**
+4. [AI_GUIDELINES.md](AI_GUIDELINES.md)
+5. [progress.md](progress.md)
 
 Additionally:
 
@@ -53,6 +54,7 @@ The backend AI infrastructure is **model-agnostic**. When working on AI-related 
 - **`OLLAMA_MODEL`** is set by the deployment operator; the application does not recommend or prefer a model.
 - Switching models must require **configuration changes only** (`OLLAMA_MODEL`), not source code changes.
 - See [ARCHITECTURE.md](ARCHITECTURE.md) (AI Infrastructure) and [ADR 006: Ollama](ADR/006-ollama.md) (Model Selection Policy).
+- See [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) for pipeline boundaries — LLM must not calculate; Business Engines produce facts.
 
 ### Step 2 — Determine Current Project Status
 
