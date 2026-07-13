@@ -258,7 +258,20 @@ The backend core is feature-complete and frozen. All layers are implemented and 
 - Service layer in `app/services/` — business logic and transaction ownership
 - CRUD API layer in `app/api/v1/` with Pydantic schemas (Sprint 3.6)
 
-No further backend core changes unless a defect is discovered. Phase 4 (Authentication) builds on this foundation.
+No further backend core changes unless a defect is discovered. Phase 4 (Authentication & Security) builds on this foundation and is frozen as of Sprint 4.5.
+
+### Authentication & Security (Phase 4 — Frozen, Sprint 4.5)
+
+Phase 4 is feature-complete and frozen. Sprints 4.1–4.4 delivered and were validated end-to-end in Sprint 4.5:
+
+| Sprint | Scope | Status |
+|--------|-------|--------|
+| 4.1 | User System (`users` table, bcrypt storage, user CRUD) | ✅ Frozen |
+| 4.2 | JWT Authentication (`POST /auth/login`, `get_current_user`) | ✅ Frozen |
+| 4.3 | Roles & Permissions (`app/api/permissions.py`, protected endpoints) | ✅ Frozen |
+| 4.4 | Security Hardening (secrets, headers, log redaction, error sanitization) | ✅ Frozen |
+
+No further authentication or authorization changes unless a defect is discovered. Phase 5 builds on this foundation.
 
 ### User System (Phase 4 — Sprint 4.1)
 
@@ -312,6 +325,19 @@ Defensive improvements over the approved auth stack without changing business be
 | Security headers | `app/core/middleware/security_headers.py` | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`, `X-Permitted-Cross-Domain-Policies` |
 | Error sanitization | `app/core/exception_handlers.py` | Production hides internal/DB/auth details; dedicated SQLAlchemy handler |
 | Log redaction | `app/core/logging_filters.py` | Filters passwords, tokens, Authorization headers, database URLs |
+
+---
+
+## Phase 4 Freeze Confirmation (Sprint 4.5)
+
+The Authentication & Security layer is **officially frozen**. Layer boundaries verified:
+
+- **Repositories** — persistence only; no auth logic
+- **Services** — business rules and transactions; no HTTP/JWT concepts
+- **API** — thin routers; auth via `get_current_user()` and `app/api/permissions.py`
+- **Core** — JWT, bcrypt, security headers, sanitized errors, log redaction
+
+Required runtime configuration: `DATABASE_URL`, `JWT_SECRET_KEY` (≥32 characters), optional `JWT_ALGORITHM=HS256`.
 
 ---
 
@@ -614,6 +640,7 @@ Files should remain small and focused. If a file exceeds approximately 200 lines
 - Role-based authorization is enforced via `app/api/permissions.py` dependencies on protected endpoints (Sprint 4.3).
 - Required secrets (`JWT_SECRET_KEY`, `DATABASE_URL`) must be supplied via environment variables; startup fails fast if missing (Sprint 4.4).
 - Production error responses and logs are sanitized; security headers are applied via middleware (Sprint 4.4).
+- **Phase 4 (Authentication & Security) is frozen** as of Sprint 4.5 — no further auth changes unless a defect is discovered.
 - User passwords are hashed with `bcrypt` before persistence (`app/core/security.py`); plain passwords are never stored or returned in API responses.
 - All user input is validated through Pydantic models.
 - SQL queries use SQLAlchemy ORM; raw SQL only with Tech Lead approval.
