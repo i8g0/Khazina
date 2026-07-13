@@ -57,3 +57,7 @@ class InvalidStateTransitionError(InvalidStateError):
 
 class BusinessRuleViolationError(ServiceError):
     """A database integrity rule rejected the operation (unique/check/FK constraint)."""
+
+
+class AuthenticationError(ServiceError):
+    """Authentication failed (invalid credentials or inactive account)."""

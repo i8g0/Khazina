@@ -1,4 +1,5 @@
 from app.core.config.app import AppSettings
+from app.core.config.auth import AuthSettings
 from app.core.config.database import DatabaseSettings
 from app.core.config.logging_config import LoggingSettings
 
@@ -6,6 +7,7 @@ from app.core.config.logging_config import LoggingSettings
 class Settings:
     def __init__(self) -> None:
         self.app = AppSettings()
+        self.auth = AuthSettings()
         self.database = DatabaseSettings()
         self.logging = LoggingSettings()
 
@@ -40,6 +42,18 @@ class Settings:
     @property
     def database_pool_pre_ping(self) -> bool:
         return self.database.database_pool_pre_ping
+
+    @property
+    def jwt_secret_key(self) -> str:
+        return self.auth.jwt_secret_key
+
+    @property
+    def jwt_algorithm(self) -> str:
+        return self.auth.jwt_algorithm
+
+    @property
+    def jwt_access_token_expire_minutes(self) -> int:
+        return self.auth.jwt_access_token_expire_minutes
 
 
 settings = Settings()

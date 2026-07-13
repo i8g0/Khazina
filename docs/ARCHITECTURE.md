@@ -135,10 +135,12 @@ backend/
 │   │   │   ├── base.py          Shared settings config
 │   │   │   ├── app.py           AppSettings
 │   │   │   ├── database.py      DatabaseSettings
+│   │   │   ├── auth.py          AuthSettings (JWT)
 │   │   │   └── logging_config.py LoggingSettings
 │   │   ├── logging.py           Logging setup
 │   │   ├── exceptions.py        AppError exception class
 │   │   ├── exception_handlers.py Global exception handlers
+│   │   ├── jwt.py               JWT access-token utilities (Sprint 4.2)
 │   │   └── security.py          Password hashing utilities (Sprint 4.1)
 │   ├── db/
 │   │   ├── base.py              Shared Base, UUID and timestamp mixins
@@ -267,9 +269,22 @@ The User domain extends the frozen backend core without modifying existing busin
 | Service | `app/services/user.py` | Duplicate-email prevention, organization ownership, active/inactive rules |
 | Schemas | `app/schemas/user.py` | `UserCreate`, `UserUpdate`, `UserResponse` — plain passwords accepted on input only |
 | Router | `app/api/v1/user.py` | Organization-scoped under `/organizations/{organization_id}/users` |
-| Password storage | `app/core/security.py` | `bcrypt` via `hash_password()` — storage only; no login/JWT/session |
+| Password storage | `app/core/security.py` | `bcrypt` via `hash_password()` and `verify_password()` |
 
-Authentication, authorization, and session management are deferred to later Phase 4 sprints.
+### JWT Authentication (Phase 4 — Sprint 4.2)
+
+Authentication is implemented on top of the User domain. Authorization is not.
+
+| Layer | Location | Notes |
+|-------|----------|-------|
+| Configuration | `app/core/config/auth.py` | `JWT_SECRET_KEY`, `JWT_ALGORITHM`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` |
+| JWT utilities | `app/core/jwt.py` | `create_access_token()`, `decode_access_token()` via PyJWT |
+| Service | `app/services/auth.py` | Login, password verification, token issuance |
+| Schemas | `app/schemas/auth.py` | `LoginRequest`, `TokenResponse` |
+| Router | `app/api/v1/auth.py` | `POST /auth/login` |
+| Dependency | `app/api/deps.py` | `get_current_user()` — Bearer token → validated JWT → active `User` |
+
+No refresh tokens, OAuth, roles, permissions, or endpoint protection beyond the reusable `CurrentUserDep` dependency.
 
 ---
 
@@ -356,7 +371,7 @@ All API endpoints are versioned under `/api/v1/`.
 | Prefix | `/api/v1` |
 | Router | `app/api/v1/router.py` aggregates version-specific routes |
 | Breaking changes | Require a new version (e.g., `/api/v2/`) |
-| Current endpoints | Health check plus 92 domain CRUD/workflow operations across 11 business routers (organizations, departments, financial, analysis, waste, risk, simulation, reports, recommendations, timeline, users) |
+| Current endpoints | Health check plus 93 domain CRUD/workflow/auth operations across 12 routers (organizations, departments, financial, analysis, waste, risk, simulation, reports, recommendations, timeline, users, auth) |
 
 New endpoints must be added to the appropriate version router, never directly to the application root.
 
@@ -568,8 +583,9 @@ Files should remain small and focused. If a file exceeds approximately 200 lines
 - Backend runs as a non-root user in Docker.
 - Frontend runs as a non-root user in Docker.
 - Debug mode exposes exception details; production must run with `debug=false`.
-- Authentication and authorization will be enforced in later Phase 4 sprints.
+- JWT access-token authentication is available via `POST /api/v1/auth/login` and the `get_current_user()` dependency (Sprint 4.2).
 - User passwords are hashed with `bcrypt` before persistence (`app/core/security.py`); plain passwords are never stored or returned in API responses.
+- Authorization, roles, and permissions are deferred to later Phase 4 sprints.
 - All user input is validated through Pydantic models.
 - SQL queries use SQLAlchemy ORM; raw SQL only with Tech Lead approval.
 - CORS, rate limiting, and security headers will be configured in appropriate phases.

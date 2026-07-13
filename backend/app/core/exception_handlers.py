@@ -7,6 +7,7 @@ from app.core.exceptions import AppError
 from app.core.logging import get_logger
 from app.schemas.response import error_response
 from app.services.exceptions import (
+    AuthenticationError,
     BusinessRuleViolationError,
     BusinessValidationError,
     DuplicateResourceError,
@@ -25,6 +26,7 @@ _SERVICE_EXCEPTION_STATUS: dict[type[ServiceError], int] = {
     OwnershipViolationError: 403,
     InvalidStateError: 409,
     BusinessRuleViolationError: 409,
+    AuthenticationError: 401,
 }
 
 

@@ -7,9 +7,11 @@ no HTTP concepts; translation to API responses belongs to upper layers.
 """
 
 from app.services.analysis import AnalysisService
+from app.services.auth import AuthService
 from app.services.base import BaseService
 from app.services.department import DepartmentService
 from app.services.exceptions import (
+    AuthenticationError,
     BusinessRuleViolationError,
     BusinessValidationError,
     DuplicateResourceError,
@@ -31,6 +33,8 @@ from app.services.waste import WasteService
 
 __all__ = [
     "AnalysisService",
+    "AuthService",
+    "AuthenticationError",
     "BaseService",
     "BusinessRuleViolationError",
     "BusinessValidationError",

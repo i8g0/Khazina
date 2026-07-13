@@ -1049,6 +1049,45 @@ Services currently persist and return caller-supplied values; they do not yet co
 
 ---
 
+### Phase 4 — Sprint 4.2: JWT Authentication
+
+**Date:** 2026-07-13
+
+**Status:** Completed — awaiting Technical Lead approval before Phase 4 authorization sprints
+
+**Deliverables:**
+
+- `backend/requirements.txt` — approved `PyJWT` dependency
+- `backend/app/core/config/auth.py` — JWT settings (`JWT_SECRET_KEY`, `JWT_ALGORITHM`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES`)
+- `backend/app/core/jwt.py` — `create_access_token()`, `decode_access_token()`
+- `backend/app/core/security.py` — added `verify_password()` (reuses Sprint 4.1 bcrypt)
+- `backend/app/services/auth.py` — `AuthService.login()` with credential verification and token issuance
+- `backend/app/services/exceptions.py` — `AuthenticationError` (HTTP 401 mapping)
+- `backend/app/schemas/auth.py` — `LoginRequest`, `TokenResponse`
+- `backend/app/api/v1/auth.py` — `POST /api/v1/auth/login`
+- `backend/app/api/deps.py` — `get_current_user()` Bearer JWT dependency, `CurrentUserDep`
+- `backend/.env.example` — JWT configuration variables documented
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Login succeeds with correct credentials | ✅ Pass |
+| Login fails with wrong password (401) | ✅ Pass |
+| Invalid JWT returns unauthorized (401) | ✅ Pass |
+| Expired JWT returns unauthorized (401) | ✅ Pass |
+| Valid JWT loads active user via `get_current_user()` | ✅ Pass |
+| OpenAPI schema generates | ✅ Pass (65 paths) |
+| App starts / imports succeed | ✅ Pass |
+| No circular dependencies | ✅ Pass |
+| Linter | ✅ Pass |
+| No authorization / RBAC / permissions / refresh tokens / OAuth | ✅ Pass |
+| Existing business domains not modified | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Phase 4 authorization sprints.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width

@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated
 
-from fastapi import Depends, Query
+import jwt
+from fastapi import Depends, HTTPException, Query, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.jwt import decode_access_token
+from app.db.models import User
 from app.db.session import get_db
 from app.repositories import (
     AnalysisRepository,
@@ -23,6 +29,7 @@ from app.repositories import (
 )
 from app.services import (
     AnalysisService,
+    AuthService,
     DepartmentService,
     FinancialService,
     OrganizationService,
@@ -258,6 +265,63 @@ def get_user_service(
     return UserService(db, user_repo, organization_repo)
 
 
+def get_auth_service(
+    db: Annotated[Session, Depends(get_db)],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+) -> AuthService:
+    return AuthService(db, user_repo, settings.auth)
+
+
+_bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def get_current_user(
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)
+    ],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+) -> User:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    try:
+        payload = decode_access_token(credentials.credentials, settings.auth)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        ) from None
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        ) from None
+
+    subject = payload.get("sub")
+    if not subject:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
+    try:
+        user_id = uuid.UUID(str(subject))
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        ) from None
+
+    user = user_repo.get_by_id(user_id)
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    return user
+
+
 OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization_service)]
 DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]
@@ -271,4 +335,6 @@ RecommendationServiceDep = Annotated[
 ]
 TimelineServiceDep = Annotated[TimelineService, Depends(get_timeline_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+CurrentUserDep = Annotated[User, Depends(get_current_user)]
 PaginationDep = Annotated[PaginationParams, Depends()]
