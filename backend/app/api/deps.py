@@ -10,6 +10,7 @@ from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.ai.client import OllamaClient
 from app.core.config import settings
 from app.core.jwt import decode_access_token
 from app.db.models import User
@@ -337,4 +338,11 @@ TimelineServiceDep = Annotated[TimelineService, Depends(get_timeline_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+
+def get_ollama_client() -> OllamaClient:
+    return OllamaClient(settings.ai)
+
+
+OllamaClientDep = Annotated[OllamaClient, Depends(get_ollama_client)]
 PaginationDep = Annotated[PaginationParams, Depends()]

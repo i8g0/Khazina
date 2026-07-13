@@ -36,6 +36,15 @@ Ollama runs independently in Compose and does not block startup of postgres, bac
 
 Cloud-hosted AI providers may be evaluated in later phases through a separate ADR if requirements change.
 
+## Model Selection Policy (Phase 5 — Sprint 5.1+)
+
+The backend AI layer is **model-agnostic**:
+
+- No default, preferred, or recommended model is defined in application code or repository configuration examples.
+- The deployment operator selects the model by setting `OLLAMA_MODEL` in the environment (`backend/.env` or `docker/.env`).
+- Switching models requires a configuration change only (`OLLAMA_MODEL`); no source code changes.
+- Ollama model pull/load remains an operator responsibility outside the application.
+
 **Related Documents**
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md)

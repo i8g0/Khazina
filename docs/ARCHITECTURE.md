@@ -345,6 +345,32 @@ See [ADR 007: Authentication & Authorization Architecture](ADR/007-authenticatio
 
 ---
 
+## AI Infrastructure (Phase 5 — Sprint 5.1)
+
+The AI layer is isolated from repositories, business services, and domain logic. **Only `app/ai/client.py` communicates with Ollama.**
+
+| Component | Location | Notes |
+|-----------|----------|-------|
+| Package root | `app/ai/` | Infrastructure-only; no business logic |
+| Ollama client | `app/ai/client.py` | Sole Ollama HTTP integration via `httpx`; connectivity check uses `GET /api/tags` |
+| Configuration | `app/core/config/ai.py` | `OLLAMA_URL`, `OLLAMA_MODEL`, `AI_TIMEOUT` from environment; **`OLLAMA_MODEL` is operator-supplied with no application default or preferred model** |
+| AI config access | `app/ai/config.py` | Thin accessor over application settings |
+| Exceptions | `app/ai/exceptions.py` | `AIConnectionError`, `AITimeoutError`, `AIConfigurationError` |
+| Health | `app/ai/health.py` | Connectivity check only — no generation |
+| API endpoint | `app/api/v1/ai.py` | `GET /api/v1/ai/health` — public infrastructure probe |
+| Placeholders | `app/ai/prompts/`, `context/`, `parsers/`, `services/` | Reserved for future sprints |
+
+**Dependency rules (enforced):**
+
+- Repositories MUST NOT import `app.ai`
+- Business services (`app/services/`) MUST NOT import Ollama or `app.ai.client`
+- Routers MUST NOT call Ollama directly — they inject `OllamaClient` via `app/api/deps.py` for infrastructure endpoints only
+- Model or endpoint changes require configuration updates only (`OLLAMA_URL`, `OLLAMA_MODEL`)
+
+See [ADR 006: Ollama for Local AI Inference](ADR/006-ollama.md).
+
+---
+
 ## Docker Architecture
 
 ### Services
@@ -371,6 +397,7 @@ Healthchecks in `docker/docker-compose.yml` enforce startup ordering. Dockerfile
 - Environment defaults: `docker/.env.example`
 - Build contexts are relative to `docker/`: `../backend`, `../frontend`
 - Frontend `NEXT_PUBLIC_API_URL` is passed as a Docker build argument
+- Backend AI settings: `OLLAMA_URL` (Compose network default may point at the `ollama` service); **`OLLAMA_MODEL` must be set by the operator — no default model name in Compose or application code**
 
 ---
 
@@ -383,7 +410,9 @@ Configuration uses `pydantic-settings` with domain-specific settings classes:
 | Class | Module | Variables |
 |-------|--------|-----------|
 | `AppSettings` | `app/core/config/app.py` | `app_name`, `app_version`, `debug` |
+| `AuthSettings` | `app/core/config/auth.py` | `jwt_secret_key`, `jwt_algorithm`, `jwt_access_token_expire_minutes` |
 | `DatabaseSettings` | `app/core/config/database.py` | `database_url`, pool settings |
+| `AiSettings` | `app/core/config/ai.py` | `ollama_url`, `ollama_model`, `ai_timeout` — **`ollama_model` (`OLLAMA_MODEL`) is operator-supplied; the application defines no default or recommended model** |
 | `LoggingSettings` | `app/core/config/logging_config.py` | `log_level` |
 
 A facade `Settings` class in `app/core/config/__init__.py` composes all domain settings and exposes backward-compatible property accessors.

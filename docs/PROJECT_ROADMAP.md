@@ -193,7 +193,7 @@ Establish the AI service layer and integration patterns between the backend, Oll
 **Objectives**
 
 - Define the `ai/` service structure and backend integration points
-- Establish Ollama connectivity and model management conventions
+- Establish Ollama connectivity and operator-driven model configuration (`OLLAMA_MODEL`; no application default model)
 - Create approved patterns for AI request and response handling
 - Document AI usage boundaries and security constraints
 
@@ -201,6 +201,7 @@ Establish the AI service layer and integration patterns between the backend, Oll
 
 - AI service scaffolding in `ai/` and backend integration layer
 - Ollama integration validated in Docker environment
+- Model-agnostic configuration documented (`OLLAMA_MODEL` operator-supplied; no default model in code)
 - AI guidelines enforced in development workflow
 - No unapproved model or dependency additions
 

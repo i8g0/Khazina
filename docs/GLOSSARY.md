@@ -62,7 +62,11 @@ Tool for defining and running multi-container Docker applications. Khazina uses 
 
 ## Ollama
 
-Local AI inference server included as a Docker Compose service. Provides on-device model execution without external API dependencies. Infrastructure only until Phase 5 AI services begin.
+Local AI inference server included as a Docker Compose service. Provides on-device model execution without external API dependencies. Backend integration is established in Phase 5 (Sprint 5.1); the application is **model-agnostic** and does not define a default or recommended model.
+
+## OLLAMA_MODEL
+
+Environment variable naming the Ollama model identifier for a deployment. **Required operator input** — not hardcoded, defaulted, or recommended by the Khazina backend. Set in `backend/.env` or `docker/.env`. Changing this value switches the configured model without code changes.
 
 ## REST API
 

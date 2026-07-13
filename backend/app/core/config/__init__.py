@@ -1,4 +1,5 @@
 from app.core.config.app import AppSettings
+from app.core.config.ai import AiSettings
 from app.core.config.auth import AuthSettings
 from app.core.config.database import DatabaseSettings
 from app.core.config.logging_config import LoggingSettings
@@ -7,6 +8,7 @@ from app.core.config.logging_config import LoggingSettings
 class Settings:
     def __init__(self) -> None:
         self.app = AppSettings()
+        self.ai = AiSettings()
         self.auth = AuthSettings()
         self.database = DatabaseSettings()
         self.logging = LoggingSettings()
@@ -54,6 +56,18 @@ class Settings:
     @property
     def jwt_access_token_expire_minutes(self) -> int:
         return self.auth.jwt_access_token_expire_minutes
+
+    @property
+    def ollama_url(self) -> str:
+        return str(self.ai.ollama_url)
+
+    @property
+    def ollama_model(self) -> str:
+        return self.ai.ollama_model
+
+    @property
+    def ai_timeout(self) -> float:
+        return self.ai.ai_timeout
 
 
 settings = Settings()

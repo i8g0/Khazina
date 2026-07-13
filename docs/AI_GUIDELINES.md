@@ -45,6 +45,15 @@ Never assume previous context is still valid.
 
 Always treat the documentation as the single source of truth.
 
+### AI Model Configuration (Phase 5+)
+
+The backend AI infrastructure is **model-agnostic**. When working on AI-related sprints:
+
+- Do **not** hardcode, default, or document a specific model name (e.g. in code, `.env.example`, or docs) unless explicitly approved for a one-off test fixture.
+- **`OLLAMA_MODEL`** is set by the deployment operator; the application does not recommend or prefer a model.
+- Switching models must require **configuration changes only** (`OLLAMA_MODEL`), not source code changes.
+- See [ARCHITECTURE.md](ARCHITECTURE.md) (AI Infrastructure) and [ADR 006: Ollama](ADR/006-ollama.md) (Model Selection Policy).
+
 ### Step 2 — Determine Current Project Status
 
 Identify:

@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 5 – AI Integration                                      |
-| Current Sprint | Maintenance — Documentation Alignment (pre–Phase 5)           |
-| Overall Status | Phase 4 (Authentication & Security) frozen — Phase 5 ready    |
+| Current Sprint | 5.1 (AI Foundation)                                           |
+| Overall Status | Phase 5 in progress — AI infrastructure established           |
 | Last Updated   | 2026-07-13                                                    |
 
 ---
@@ -24,7 +24,7 @@ Official progress tracker for the Khazina project.
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
-| Phase 5 – AI Integration      | 🔄 In progress (not started)     |
+| Phase 5 – AI Integration      | 🔄 In progress (Sprint 5.1)      |
 
 ---
 
@@ -79,6 +79,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 4.4    | Auth       | Security Hardening                   | Approved |             | 2026-07-13    |
 | 4.5    | Auth       | Authentication Freeze                | Approved |             | 2026-07-13    |
 | —      | Maintenance | Documentation Alignment (pre–Phase 5) | Completed |             | 2026-07-13    |
+| 5.1    | AI         | AI Foundation                        | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1263,6 +1264,75 @@ Services currently persist and return caller-supplied values; they do not yet co
 | No application source code modified | ✅ Pass |
 
 **Next step:** Begin Phase 5 — AI Integration.
+
+---
+
+### Phase 5 — Sprint 5.1: AI Foundation
+
+**Date:** 2026-07-13
+
+**Status:** Completed — awaiting Technical Lead approval
+
+**Objective:** Establish isolated AI infrastructure (Ollama client, configuration, health, exceptions). No business logic, prompts, or generation.
+
+**Deliverables:**
+
+- `backend/app/ai/` — new AI package (`client`, `config`, `exceptions`, `health`, placeholder subpackages)
+- `backend/app/core/config/ai.py` — `AiSettings` (`OLLAMA_URL`, `OLLAMA_MODEL`, `AI_TIMEOUT`)
+- `backend/app/core/config/__init__.py` — AI settings registered on application `Settings` facade
+- `backend/app/api/v1/ai.py` — `GET /api/v1/ai/health` (connectivity probe)
+- `backend/app/api/deps.py` — `OllamaClientDep` factory
+- `backend/app/api/v1/router.py` — AI router registered
+- `backend/app/schemas/ai.py` — `AiHealthData` response schema
+- `backend/requirements.txt` — `httpx` HTTP client
+- `backend/.env.example` — AI environment variables documented
+- `docker/docker-compose.yml` — backend `OLLAMA_*` / `AI_TIMEOUT` env wiring
+- `docker/.env.example` — AI defaults for Compose
+- `docs/ARCHITECTURE.md` — Phase 5 Sprint 5.1 AI infrastructure section
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Application imports successfully | ✅ Pass |
+| No circular dependencies | ✅ Pass |
+| Existing business APIs unchanged | ✅ Pass |
+| Existing authentication unchanged | ✅ Pass |
+| Existing authorization unchanged | ✅ Pass |
+| OpenAPI generation succeeds | ✅ Pass |
+| AI layer isolated (Ollama only in `app/ai/client.py`) | ✅ Pass |
+| Repositories/services do not import AI | ✅ Pass |
+| Project starts with required env vars | ✅ Pass |
+
+**Next step:** Await Technical Lead approval, then proceed to Sprint 5.2.
+
+---
+
+### Maintenance — AI Model Configuration Neutrality (pre–Sprint 5.2)
+
+**Date:** 2026-07-13
+
+**Status:** Completed
+
+**Objective:** Remove assumed/preferred model names from configuration examples; keep AI infrastructure model-agnostic.
+
+**Changes:** Cleared `OLLAMA_MODEL` examples in `backend/.env.example` and `docker/.env.example`; removed Compose default `${OLLAMA_MODEL:-llama3.2}`; clarified `AiSettings` field description and `ARCHITECTURE.md` note.
+
+**Validation:** No model name hardcoded in application code; model switch requires only `OLLAMA_MODEL` env change.
+
+---
+
+### Maintenance — Documentation Model-Agnostic Consistency (pre–Sprint 5.2)
+
+**Date:** 2026-07-13
+
+**Status:** Completed
+
+**Objective:** Final documentation pass — ensure no doc recommends or assumes a default AI model.
+
+**Files updated:** `docs/ARCHITECTURE.md`, `docs/ADR/006-ollama.md`, `docs/GLOSSARY.md`, `docs/PROJECT_ROADMAP.md`, `docs/AI_GUIDELINES.md`
+
+**Validation:** Searched all of `docs/` for `llama3`, `llama3.1`, `llama3.2`, `qwen`, `qwen3`, `default model`, and `recommended model` — no active policy violations; only historical maintenance notes reference removed defaults.
 
 ---
 
