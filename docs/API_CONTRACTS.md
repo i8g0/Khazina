@@ -2,7 +2,7 @@
 
 This document defines the API standards for all Khazina REST endpoints. These conventions apply to current and future endpoints under `/api/v1/`.
 
-For implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md). For the architectural decision behind the response envelope, see [ADR 005: ApiResponse Standard](ADR/005-api-response.md).
+For implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md). For the architectural decision behind the response envelope, see [ADR 005: ApiResponse Standard](ADR/005-api-response.md). For authentication and authorization, see [ADR 007: Authentication & Authorization Architecture](ADR/007-authentication-authorization.md).
 
 No endpoints are listed here. This document describes standards only.
 
@@ -17,7 +17,8 @@ All API endpoints are versioned under `/api/v1/`.
 | Prefix | `/api/v1` |
 | Router | `app/api/v1/router.py` aggregates version-specific routes |
 | Breaking changes | Require a new version (e.g., `/api/v2/`) |
-| Current endpoints | `GET /api/v1/health` |
+| Current public endpoints | `GET /api/v1/health`, `POST /api/v1/auth/login` |
+| Protected endpoints | All organization-scoped business routes under `/api/v1/organizations/{organization_id}/...` |
 
 New endpoints must be added to the appropriate version router, never directly to the application root.
 
@@ -135,19 +136,24 @@ Only whitelisted sort fields are permitted to prevent SQL injection through sort
 
 ---
 
-## Authentication Header (Reserved for Phase 4)
+## Authentication Header (Phase 4 — Implemented)
 
-Authentication is not implemented in Phase 1 or Phase 2. The following convention is reserved for Phase 4:
+All protected endpoints require a valid JWT access token in the `Authorization` header:
 
 ```
-Authorization: Bearer <token>
+Authorization: Bearer <access_token>
 ```
 
-Until Phase 4:
+| Rule | Detail |
+|------|--------|
+| Obtain token | `POST /api/v1/auth/login` with `{ "email", "password" }` |
+| Token type | Bearer JWT (HS256); see [ADR 007](ADR/007-authentication-authorization.md) |
+| Public endpoints | `GET /api/v1/health`, `POST /api/v1/auth/login` |
+| Missing/invalid token | HTTP `401` with `ApiResponse` envelope (`success: false`) |
+| Wrong role or organization | HTTP `403` with `ApiResponse` envelope |
+| Production messages | Auth/forbidden details sanitized when `DEBUG=false` (Sprint 4.4) |
 
-- No authentication middleware is active
-- Endpoints are publicly accessible in local development
-- Error responses for missing auth will follow the standard `ApiResponse` envelope with HTTP `401`
+Protected business routes are organization-scoped under `/api/v1/organizations/{organization_id}/...`. The authenticated user's organization must match the path parameter.
 
 ---
 

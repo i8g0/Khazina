@@ -9,10 +9,10 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 3 – Backend Core (Frozen)                               |
-| Current Sprint | 3.7 (Backend Core Freeze)                                     |
-| Overall Status | Backend Core frozen — awaiting TL approval for Phase 4          |
-| Last Updated   | 2026-07-12                                                    |
+| Current Phase  | Phase 5 – AI Integration                                      |
+| Current Sprint | Maintenance — Documentation Alignment (pre–Phase 5)           |
+| Overall Status | Phase 4 (Authentication & Security) frozen — Phase 5 ready    |
+| Last Updated   | 2026-07-13                                                    |
 
 ---
 
@@ -23,8 +23,8 @@ Official progress tracker for the Khazina project.
 | Phase 1 – Foundation          | ✅ Completed (5/5) |
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
-| Phase 4 – Authentication      | ⏸ Pending          |
-| Phase 5 – AI Integration      | ⏸ Pending          |
+| Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
+| Phase 5 – AI Integration      | 🔄 In progress (not started)     |
 
 ---
 
@@ -73,6 +73,12 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 3.5    | Database   | Repository Layer                     | Approved |             |               |
 | 3.6    | Database   | CRUD APIs                            | Approved |             |               |
 | 3.7    | Database   | Backend Core Freeze                  |          |             |               |
+| 4.1    | Auth       | User System                          | Approved |             | 2026-07-13    |
+| 4.2    | Auth       | JWT Authentication                   | Approved |             | 2026-07-13    |
+| 4.3    | Auth       | Roles & Permissions                  | Approved |             | 2026-07-13    |
+| 4.4    | Auth       | Security Hardening                   | Approved |             | 2026-07-13    |
+| 4.5    | Auth       | Authentication Freeze                | Approved |             | 2026-07-13    |
+| —      | Maintenance | Documentation Alignment (pre–Phase 5) | Completed |             | 2026-07-13    |
 
 ---
 
@@ -1226,6 +1232,37 @@ Services currently persist and return caller-supplied values; they do not yet co
 **Recommendation for Phase 5:** Proceed with frontend authentication integration and API consumption, building on the frozen JWT + role-based authorization stack. Backend AI and business-domain features can wire `CurrentUserDep` / permission dependencies without modifying the auth layer.
 
 **Next step:** Await Technical Lead approval, then proceed to Phase 5.
+
+---
+
+### Maintenance — Documentation Alignment (pre–Phase 5)
+
+**Date:** 2026-07-13
+
+**Status:** Completed — governance and documentation debt closed before Phase 5
+
+**Objective:** Reconcile project documentation with the implemented backend (codebase is source of truth). No application code, schema, or API changes.
+
+**Deliverables:**
+
+- `docs/progress.md` — project status updated: Phase 4 complete and frozen; current phase set to Phase 5
+- `docs/ADR/007-authentication-authorization.md` — ADR documenting JWT, bcrypt, layering, API-layer authorization, org ownership, and HS256
+- `docs/FRONTEND_SPECIFICATION.md` — authentication model synchronized with backend (login, JWT, roles, protected endpoints, org-scoped access)
+- `docs/ARCHITECTURE.md` — ADR-007 cross-reference appended to Phase 4 section
+- `docs/API_CONTRACTS.md` — authentication header section updated to reflect Phase 4 implementation
+- `docs/COMPONENT_SPECIFICATION.md` — AppLayout usage note aligned with Phase 4 auth contract
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Phase 4 sprints 4.1–4.5 reflected as completed/frozen in progress.md | ✅ Pass |
+| ADR-007 created and consistent with ARCHITECTURE.md | ✅ Pass |
+| FRONTEND_SPECIFICATION aligned with backend auth model | ✅ Pass |
+| API_CONTRACTS auth section no longer describes pre–Phase 4 state | ✅ Pass |
+| No application source code modified | ✅ Pass |
+
+**Next step:** Begin Phase 5 — AI Integration.
 
 ---
 

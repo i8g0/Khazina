@@ -55,7 +55,7 @@ Implementation reference (Sprint 2.1): `frontend/components/`
 
 **Future integration:** Nav items link to App Router routes; active state driven by pathname.
 
-**Usage:** Wrap every authenticated application page (single executive user — no auth UI in MVP).
+**Usage:** Wrap every authenticated application page. Unauthenticated users use the `/login` route (Phase 5 integration). Phase 2 shells may omit session UI until API client integration.
 
 **Design rules:** Light background (`bg-light`); white sidebar surface; gold accent on active nav item.
 

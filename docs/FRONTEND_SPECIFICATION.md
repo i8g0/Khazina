@@ -21,12 +21,41 @@ Define the structure, content boundaries, states, and integration contracts for 
 | Page layout, sections, component composition | Backend business logic |
 | Placeholder data binding rules | Database schema |
 | Loading, empty, and error states | AI model implementation |
-| Responsive and accessibility requirements | Authentication UI (single executive user — no login in MVP) |
-| Future API and AI integration points | Real financial calculations |
+| Responsive and accessibility requirements | OAuth, MFA, refresh tokens (backend deferred) |
+| Authentication integration contract (JWT, roles, org scope) | Real financial calculations |
+| Future API and AI integration points | |
 
-**Target user:** Single executive (financial decision maker). No roles, no multi-user UI, no authentication screens in hackathon MVP.
+**Target user:** Primary persona is the financial executive (CFO-level). The backend supports three roles — **Admin**, **Executive**, and **Analyst** — with hierarchical permissions. Organization-scoped API access applies to all authenticated business endpoints. Phase 2 page shells may still use placeholder data; live JWT integration is a Phase 5 frontend task.
 
-**Implementation phase:** Page shells with placeholder data in hackathon MVP (Phase 7 scope per [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md)); live API integration follows backend readiness.
+**Implementation phase:** Page shells with placeholder data were delivered in Phase 2; backend authentication is complete and frozen (Phase 4). Protected API calls require a valid JWT from `POST /api/v1/auth/login`.
+
+---
+
+## Authentication & Authorization (Backend Contract — Phase 4, Frozen)
+
+The backend is the source of truth. Frontend pages must conform to this contract when connecting to the API (Phase 5 integration).
+
+| Concern | Backend behavior |
+|---------|------------------|
+| Login | `POST /api/v1/auth/login` — email + password → `{ access_token, token_type: "bearer" }` |
+| Protected requests | `Authorization: Bearer <access_token>` on all business endpoints |
+| Public endpoints | `GET /api/v1/health`, `POST /api/v1/auth/login` only |
+| Roles | `admin`, `executive`, `analyst` — hierarchy: admin ≥ executive ≥ analyst |
+| Organization scope | Routes under `/api/v1/organizations/{organization_id}/...` require the authenticated user's `organization_id` to match |
+| User management | Organization user CRUD requires org **admin** |
+| Mutations / deletes | Generally **executive** minimum; deletes require **admin** (per endpoint) |
+| HTTP status | `401` — missing/invalid/expired token or inactive user; `403` — wrong role or cross-organization access |
+
+**Frontend integration rules (Phase 5):**
+
+1. Unauthenticated users are redirected to a dedicated login route (proposed: `/login`).
+2. Store the access token securely (implementation choice: memory, httpOnly cookie, or secure storage — Tech Lead approval required).
+3. Attach the Bearer token to all protected API client requests.
+4. On `401`, clear session state and redirect to login.
+5. On `403`, show an Arabic forbidden message; do not expose internal role names to end users unless required for admin UI.
+6. Role-aware UI (hide actions the user's role cannot perform) is recommended but must mirror backend enforcement — the API is authoritative.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) (Phase 4), [API_CONTRACTS.md](API_CONTRACTS.md), and [ADR 007: Authentication & Authorization Architecture](ADR/007-authentication-authorization.md).
 
 ---
 
@@ -55,7 +84,7 @@ Define the structure, content boundaries, states, and integration contracts for 
 4. Use components from [COMPONENT_SPECIFICATION.md](COMPONENT_SPECIFICATION.md) — no ad-hoc UI.
 5. Respect maximum card/chart/table counts per page (defined below).
 6. Implement all three states: loading, empty, error — even if placeholder-triggered in MVP.
-7. No API calls until API client sprint approves integration pattern.
+7. Protected API calls require JWT authentication per the [Authentication & Authorization](#authentication--authorization-backend-contract--phase-4-frozen) section; placeholder data remains valid until Phase 5 API client integration.
 8. No Framer Motion beyond subtle transitions already in layout components.
 9. File naming: App Router routes under `frontend/app/`; feature components under `frontend/components/`.
 10. One `h1` per page — owned by HeroSection or PageHeader.
@@ -98,14 +127,15 @@ Desktop-first design; all pages must function on mobile without hidden critical 
 
 ## Route Map
 
-| Page | Route (proposed) | Nav label |
-|------|------------------|-----------|
-| Dashboard | `/` or `/dashboard` | لوحة التحكم |
-| Financial Waste Detection | `/financial-waste` | كشف الهدر |
-| Risk Management | `/risk` | إدارة المخاطر |
-| Business Simulation | `/simulation` | محاكاة الأعمال |
-| Reports | `/reports` | التقارير |
-| Data Management | `/data` | إدارة البيانات |
+| Page | Route (proposed) | Nav label | Auth |
+|------|------------------|-----------|------|
+| Login | `/login` | — | Public (unauthenticated entry) |
+| Dashboard | `/` or `/dashboard` | لوحة التحكم | Protected |
+| Financial Waste Detection | `/financial-waste` | كشف الهدر | Protected |
+| Risk Management | `/risk` | إدارة المخاطر | Protected |
+| Business Simulation | `/simulation` | محاكاة الأعمال | Protected |
+| Reports | `/reports` | التقارير | Protected |
+| Data Management | `/data` | إدارة البيانات | Protected |
 
 ---
 
@@ -121,7 +151,7 @@ Enable the CFO/executive to assess organizational financial posture within 30 se
 
 ## Target User
 
-Single executive user — الرئيس التنفيذي للشؤون المالية.
+Authenticated user with **Executive** role or higher (primary persona: الرئيس التنفيذي للشؤون المالية). Analyst and Admin roles may access permitted endpoints per backend authorization rules.
 
 ## Layout Hierarchy
 
@@ -247,7 +277,7 @@ ErrorState with retry — **تعذّر تحميل لوحة التحكم** — re
 
 - No scrolling required to see 5 KPIs on 1440px desktop
 - Gold used only for primary KPI icon accents and primary CTA
-- No notification bell, user avatar, or settings in MVP header
+- No notification bell, user avatar, or settings in MVP header (logout/session controls deferred to Phase 5 auth integration)
 - Dashboard prioritizes clarity over density — max 3 recommendation cards
 
 ## Design Notes
@@ -257,8 +287,8 @@ ErrorState with retry — **تعذّر تحميل لوحة التحكم** — re
 
 ## Items That Must Never Appear
 
-- Login/logout controls
-- Multi-user selector
+- Login form on the dashboard (login belongs on `/login`)
+- Multi-user selector on dashboard (role context comes from authenticated session)
 - English text
 - Fake live API indicators
 - More than 5 KPI cards
@@ -287,7 +317,7 @@ Identify and quantify organizational financial waste with actionable recommendat
 
 ## Target User
 
-Single executive user reviewing procurement and operational spend.
+Authenticated user with **Executive** role or higher reviewing procurement and operational spend.
 
 ## Layout
 
@@ -394,7 +424,7 @@ Give the executive immediate visibility into top risks requiring attention.
 
 ## Target User
 
-Single executive user.
+Authenticated user with **Executive** role or higher.
 
 ## Layout
 
@@ -491,7 +521,7 @@ Support executive decision-making through scenario comparison without committing
 
 ## Target User
 
-Single executive user.
+Authenticated user with **Executive** role or higher.
 
 ## Layout
 
@@ -584,7 +614,7 @@ Provide centralized access to all analysis outputs for executive review and boar
 
 ## Target User
 
-Single executive user.
+Authenticated user with **Executive** role or higher.
 
 ## Layout
 
@@ -668,7 +698,7 @@ Give the executive transparency into what data powers Khazina analyses.
 
 ## Target User
 
-Single executive user.
+Authenticated user with **Executive** role or higher.
 
 ## Layout
 

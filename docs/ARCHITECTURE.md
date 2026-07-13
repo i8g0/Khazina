@@ -273,6 +273,8 @@ Phase 4 is feature-complete and frozen. Sprints 4.1–4.4 delivered and were val
 
 No further authentication or authorization changes unless a defect is discovered. Phase 5 builds on this foundation.
 
+Architectural decision record: [ADR 007: Authentication & Authorization Architecture](ADR/007-authentication-authorization.md).
+
 ### User System (Phase 4 — Sprint 4.1)
 
 The User domain extends the frozen backend core without modifying existing business workflows:
@@ -338,6 +340,8 @@ The Authentication & Security layer is **officially frozen**. Layer boundaries v
 - **Core** — JWT, bcrypt, security headers, sanitized errors, log redaction
 
 Required runtime configuration: `DATABASE_URL`, `JWT_SECRET_KEY` (≥32 characters), optional `JWT_ALGORITHM=HS256`.
+
+See [ADR 007: Authentication & Authorization Architecture](ADR/007-authentication-authorization.md) for decision rationale.
 
 ---
 
