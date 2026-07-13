@@ -142,6 +142,8 @@ backend/
 │   │   ├── exceptions.py        AppError exception class
 │   │   ├── exception_handlers.py Global exception handlers
 │   │   ├── jwt.py               JWT access-token utilities (Sprint 4.2)
+│   │   ├── logging_filters.py   Sensitive log redaction (Sprint 4.4)
+│   │   ├── middleware/          HTTP middleware (Sprint 4.4 security headers)
 │   │   └── security.py          Password hashing utilities (Sprint 4.1)
 │   ├── db/
 │   │   ├── base.py              Shared Base, UUID and timestamp mixins
@@ -298,6 +300,18 @@ Authorization uses the existing `UserRole` enum (`admin`, `executive`, `analyst`
 | Status codes | — | `401` unauthenticated; `403` authenticated but forbidden or cross-org |
 
 Role hierarchy: `admin` ≥ `executive` ≥ `analyst`. Organization-scoped routes require membership (`user.organization_id == path organization_id`). User management routes require org admin. Mutations generally require executive; deletes require admin.
+
+### Security Hardening (Phase 4 — Sprint 4.4)
+
+Defensive improvements over the approved auth stack without changing business behavior or API contracts.
+
+| Area | Location | Notes |
+|------|----------|-------|
+| Required secrets | `app/core/config/auth.py`, `database.py` | `JWT_SECRET_KEY` (≥32 chars) and `DATABASE_URL` required from environment; no insecure code defaults |
+| JWT safety | `app/core/config/auth.py` | `JWT_ALGORITHM` restricted to `HS256` |
+| Security headers | `app/core/middleware/security_headers.py` | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`, `X-Permitted-Cross-Domain-Policies` |
+| Error sanitization | `app/core/exception_handlers.py` | Production hides internal/DB/auth details; dedicated SQLAlchemy handler |
+| Log redaction | `app/core/logging_filters.py` | Filters passwords, tokens, Authorization headers, database URLs |
 
 ---
 
@@ -598,6 +612,8 @@ Files should remain small and focused. If a file exceeds approximately 200 lines
 - Debug mode exposes exception details; production must run with `debug=false`.
 - JWT access-token authentication is available via `POST /api/v1/auth/login` and the `get_current_user()` dependency (Sprint 4.2).
 - Role-based authorization is enforced via `app/api/permissions.py` dependencies on protected endpoints (Sprint 4.3).
+- Required secrets (`JWT_SECRET_KEY`, `DATABASE_URL`) must be supplied via environment variables; startup fails fast if missing (Sprint 4.4).
+- Production error responses and logs are sanitized; security headers are applied via middleware (Sprint 4.4).
 - User passwords are hashed with `bcrypt` before persistence (`app/core/security.py`); plain passwords are never stored or returned in API responses.
 - All user input is validated through Pydantic models.
 - SQL queries use SQLAlchemy ORM; raw SQL only with Tech Lead approval.

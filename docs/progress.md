@@ -1121,6 +1121,51 @@ Services currently persist and return caller-supplied values; they do not yet co
 
 ---
 
+### Phase 4 — Sprint 4.4: Security Hardening
+
+**Date:** 2026-07-13
+
+**Status:** Completed — awaiting Technical Lead approval
+
+**Deliverables:**
+
+- `backend/app/core/config/database.py` — `DATABASE_URL` required from environment (removed insecure default)
+- `backend/app/core/config/auth.py` — `JWT_SECRET_KEY` minimum 32 characters; `JWT_ALGORITHM` restricted to `HS256`
+- `backend/app/core/middleware/security_headers.py` — standard defensive HTTP headers
+- `backend/app/core/logging_filters.py` — redacts passwords, tokens, Authorization headers, and database URLs from logs
+- `backend/app/core/exception_handlers.py` — production-safe auth/DB/integrity error messages; SQLAlchemy error handler
+- `backend/app/core/logging.py` — attaches sensitive-data filter to application log handlers
+- `backend/app/main.py` — registers security headers middleware
+- `backend/.env.example` — documents required `DATABASE_URL` and `JWT_SECRET_KEY`
+
+**Security review (no auth/authz redesign):**
+
+| Area | Outcome |
+| ---- | ------- |
+| JWT signature + expiration validation | ✅ Confirmed — no change required |
+| `get_current_user` inactive-user handling | ✅ Confirmed — no change required |
+| Role hierarchy + org ownership | ✅ Confirmed — no change required |
+| 401 vs 403 behavior | ✅ Improved — production auth/forbidden responses sanitized |
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| App starts with required env secrets | ✅ Pass |
+| Alembic at head | ✅ Pass |
+| OpenAPI / Swagger builds | ✅ Pass |
+| Login works | ✅ Pass |
+| Authorization works | ✅ Pass |
+| Security headers present | ✅ Pass |
+| Production 401 message sanitized | ✅ Pass |
+| Log redaction smoke test | ✅ Pass |
+| Linter | ✅ Pass |
+| No service/repository/schema changes | ✅ Pass |
+
+**Next step:** Await Technical Lead approval.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width
