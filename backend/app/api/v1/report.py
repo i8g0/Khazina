@@ -6,10 +6,19 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from app.api.deps import PaginationDep, ReportServiceDep
+from app.api.deps import PaginationDep, ReportBuilderServiceDep, ReportServiceDep
 from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
 from app.db.models.enums import UserRole
-from app.schemas.report import ReportCreate, ReportResponse, ReportUpdate
+from app.reports.content import content_fingerprint
+from app.schemas.report import (
+    ReportContentResponse,
+    ReportCreate,
+    ReportExportResponse,
+    ReportGenerateRequest,
+    ReportGenerateResponse,
+    ReportResponse,
+    ReportUpdate,
+)
 from app.schemas.response import ApiResponse, success_response
 
 router = APIRouter(
@@ -17,6 +26,75 @@ router = APIRouter(
     tags=["reports"],
     dependencies=[Depends(require_org_role(UserRole.ANALYST))],
 )
+
+
+@router.post(
+    "/generate",
+    response_model=ApiResponse[ReportGenerateResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate executive report from completed analysis run",
+)
+def generate_report(
+    organization_id: UUID,
+    body: ReportGenerateRequest,
+    builder: ReportBuilderServiceDep,
+    _current_user: RequireOrgExecutive,
+) -> ApiResponse[ReportGenerateResponse]:
+    outcome = builder.generate_report(
+        organization_id,
+        body.analysis_run_id,
+        title=body.title,
+        department_id=body.department_id,
+    )
+    content = outcome.report.content_representation or {}
+    extended = content.get("extended_metadata") or {}
+    return success_response(
+        data=ReportGenerateResponse(
+            report=ReportResponse.model_validate(outcome.report),
+            profile=str(content.get("profile", outcome.content.profile)),
+            sections_included=list(extended.get("sections_included") or []),
+            export_fingerprint=str(content.get("export_fingerprint", "")),
+        ),
+        message="Executive report generated",
+    )
+
+
+@router.get(
+    "/{report_id}/content",
+    response_model=ApiResponse[ReportContentResponse],
+    summary="Get persisted Report Content Representation",
+)
+def get_report_content(
+    organization_id: UUID,
+    report_id: UUID,
+    builder: ReportBuilderServiceDep,
+) -> ApiResponse[ReportContentResponse]:
+    content = builder.get_content_representation(organization_id, report_id)
+    return success_response(
+        data=ReportContentResponse(report_id=report_id, content=content),
+        message="Report content retrieved",
+    )
+
+
+@router.get(
+    "/{report_id}/export",
+    response_model=ApiResponse[ReportExportResponse],
+    summary="Export deterministic Report Content Representation serialization",
+)
+def export_report(
+    organization_id: UUID,
+    report_id: UUID,
+    builder: ReportBuilderServiceDep,
+) -> ApiResponse[ReportExportResponse]:
+    serialization = builder.export_report(organization_id, report_id)
+    return success_response(
+        data=ReportExportResponse(
+            report_id=report_id,
+            serialization=serialization,
+            fingerprint=content_fingerprint(serialization),
+        ),
+        message="Report exported",
+    )
 
 
 @router.post(

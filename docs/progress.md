@@ -1896,6 +1896,38 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 
 ---
 
+### Phase 6 — Sprint 6.6: Reports
+
+**Status:** Completed — deterministic executive report generation from persisted artifacts
+
+**Objective:** Assemble Executive Reports from completed analysis runs without AI or Business Engine execution. Persist Report Content Representation bound to catalog rows.
+
+**Deliverables:**
+
+- `app/reports/` — Report Builder (loaders, section assemblers, content model, serialization, service)
+- `reports.content_representation` column + Alembic migration `e6c1a4f93b08`
+- `POST /organizations/{id}/reports/generate` — generate from completed analysis run
+- `GET /organizations/{id}/reports/{id}/content` — retrieve persisted Report Content Representation
+- `GET /organizations/{id}/reports/{id}/export` — deterministic export serialization
+- Waste Decision (`analysis`) and Scenario (`simulation`) profiles with fixed section order
+- `tests/reports/` — facts loader, content, sections, service, isolation tests
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Waste profile from `financial_waste` run + Facts + Gold + optional AI/recommendations | ✅ Pass |
+| Scenario profile from `simulation` run + Gold + provenance + optional baseline | ✅ Pass |
+| Report Content Representation persisted immutably at generation | ✅ Pass |
+| No AI / no Business Engine execution | ✅ Pass |
+| Deterministic export serialization | ✅ Pass |
+| Existing catalog workflow (draft/publish/list/delete) preserved | ✅ Pass |
+| Full test suite | ✅ Pass (109 tests) |
+
+**Next step:** Frontend Reports page wiring (Phase 7), binary export (`report_exports`), or simulation-domain AI — separate sprint approval required.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import Date, ForeignKey, Index, String, Text, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -58,6 +58,9 @@ class Report(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         server_default=ReportStatus.DRAFT.value,
     )
     summary: Mapped[str] = mapped_column(Text, nullable=False)
+    content_representation: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB, nullable=True
+    )
     published_at: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     organization: Mapped[Organization] = relationship(

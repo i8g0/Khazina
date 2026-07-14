@@ -8,7 +8,7 @@ from app.core.exceptions import AppError
 from app.core.logging import get_logger
 from app.schemas.response import error_response
 from app.decision.exceptions import SnapshotAdapterError
-from app.ai_recommendations.exceptions import AiRecommendationError
+from app.reports.exceptions import ReportBuilderError
 from app.services.exceptions import (
     AuthenticationError,
     BusinessRuleViolationError,
@@ -77,6 +77,7 @@ def _format_validation_errors(exc: RequestValidationError) -> list[str]:
 def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(SnapshotAdapterError, snapshot_adapter_error_handler)
     app.add_exception_handler(AiRecommendationError, ai_recommendation_error_handler)
+    app.add_exception_handler(ReportBuilderError, report_builder_error_handler)
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(ServiceError, service_error_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
@@ -105,6 +106,18 @@ async def ai_recommendation_error_handler(
         content=error_response(
             message=exc.message,
             errors=[exc.error_code],
+        ).model_dump(),
+    )
+
+
+async def report_builder_error_handler(
+    _: Request, exc: ReportBuilderError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=error_response(
+            message=exc.message,
+            errors=[exc.code],
         ).model_dump(),
     )
 

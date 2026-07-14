@@ -30,6 +30,7 @@ from app.repositories import (
     UserRepository,
     WasteRepository,
 )
+from app.reports.service import ReportBuilderService
 from app.decision.service import DecisionService
 from app.scenario.service import ScenarioService
 from app.ai_recommendations.service import AiRecommendationService
@@ -307,6 +308,32 @@ def get_simulation_service(
     return SimulationService(db, simulation_repo, analysis_repo, organization_repo)
 
 
+def get_report_builder_service(
+    db: Annotated[Session, Depends(get_db)],
+    report_repo: Annotated[ReportRepository, Depends(get_report_repository)],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    waste_repo: Annotated[WasteRepository, Depends(get_waste_repository)],
+    simulation_repo: Annotated[SimulationRepository, Depends(get_simulation_repository)],
+    recommendation_repo: Annotated[
+        RecommendationRepository, Depends(get_recommendation_repository)
+    ],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+) -> ReportBuilderService:
+    return ReportBuilderService(
+        db,
+        report_repo,
+        analysis_repo,
+        waste_repo,
+        simulation_repo,
+        recommendation_repo,
+        organization_repo,
+        financial_repo,
+    )
+
+
 def get_report_service(
     db: Annotated[Session, Depends(get_db)],
     report_repo: Annotated[ReportRepository, Depends(get_report_repository)],
@@ -444,6 +471,9 @@ WasteServiceDep = Annotated[WasteService, Depends(get_waste_service)]
 RiskServiceDep = Annotated[RiskService, Depends(get_risk_service)]
 SimulationServiceDep = Annotated[SimulationService, Depends(get_simulation_service)]
 ReportServiceDep = Annotated[ReportService, Depends(get_report_service)]
+ReportBuilderServiceDep = Annotated[
+    ReportBuilderService, Depends(get_report_builder_service)
+]
 RecommendationServiceDep = Annotated[
     RecommendationService, Depends(get_recommendation_service)
 ]
