@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 
-from app.api.deps import FinancialServiceDep, PaginationDep
+from app.api.deps import FinancialServiceDep, IngestionServiceDep, PaginationDep
 from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
-from app.db.models.enums import UserRole
+from app.db.models.enums import UploadSource, UserRole
 from app.schemas.financial import (
     CompleteProcessingRequest,
     DataQualityCheckResponse,
@@ -20,6 +20,11 @@ from app.schemas.financial import (
     ImportRecordResponse,
 )
 from app.schemas.response import ApiResponse, success_response
+from app.schemas.snapshot import (
+    FinancialSnapshotDetailResponse,
+    FinancialSnapshotResponse,
+    UploadIngestionResponse,
+)
 
 router = APIRouter(
     prefix="/organizations/{organization_id}",
@@ -55,6 +60,55 @@ def register_financial_file(
     return success_response(
         data=FinancialFileResponse.model_validate(file),
         message="Financial file registered",
+    )
+
+
+@router.post(
+    "/financial-files/upload",
+    response_model=ApiResponse[UploadIngestionResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload and ingest financial file",
+)
+async def upload_financial_file(
+    organization_id: UUID,
+    ingestion_service: IngestionServiceDep,
+    _current_user: RequireOrgExecutive,
+    upload: UploadFile = File(...),
+    upload_source: str = Form(UploadSource.REPOSITORY),
+    department_id: UUID | None = Form(None),
+    reporting_period_id: UUID | None = Form(None),
+) -> ApiResponse[UploadIngestionResponse]:
+    content = await upload.read()
+    outcome = ingestion_service.upload_and_ingest(
+        organization_id,
+        file_name=upload.filename or "upload.xlsx",
+        content=content,
+        upload_source=upload_source,
+        department_id=department_id,
+        reporting_period_id=reporting_period_id,
+        mime_type=upload.content_type,
+    )
+    snapshot_response = (
+        FinancialSnapshotResponse.model_validate(outcome.financial_snapshot)
+        if outcome.financial_snapshot
+        else None
+    )
+    return success_response(
+        data=UploadIngestionResponse(
+            financial_file=FinancialFileResponse.model_validate(outcome.financial_file),
+            financial_snapshot=snapshot_response,
+            quality_snapshot_id=(
+                outcome.quality_snapshot.id if outcome.quality_snapshot else None
+            ),
+            import_record_id=(
+                outcome.import_record.id if outcome.import_record else None
+            ),
+        ),
+        message=(
+            "Financial file ingested and ready for analysis"
+            if outcome.financial_snapshot
+            else "Financial file ingestion failed"
+        ),
     )
 
 
@@ -95,7 +149,7 @@ def get_financial_file(
     file_id: UUID,
     service: FinancialServiceDep,
 ) -> ApiResponse[FinancialFileResponse]:
-    file = service.get_file(file_id)
+    file = service.get_organization_file(organization_id, file_id)
     return success_response(
         data=FinancialFileResponse.model_validate(file),
         message="Financial file retrieved",
@@ -276,4 +330,59 @@ def list_quality_checks(
     return success_response(
         data=[DataQualityCheckResponse.model_validate(c) for c in checks],
         message="Quality checks retrieved",
+    )
+
+
+@router.get(
+    "/financial-files/{file_id}/snapshots",
+    response_model=ApiResponse[list[FinancialSnapshotResponse]],
+    summary="List financial snapshots for a file",
+)
+def list_financial_snapshots(
+    organization_id: UUID,
+    file_id: UUID,
+    ingestion_service: IngestionServiceDep,
+    pagination: PaginationDep,
+) -> ApiResponse[list[FinancialSnapshotResponse]]:
+    snapshots = ingestion_service.list_snapshots_for_file(
+        organization_id,
+        file_id,
+        limit=pagination.limit,
+        offset=pagination.offset,
+    )
+    return success_response(
+        data=[FinancialSnapshotResponse.model_validate(s) for s in snapshots],
+        message="Financial snapshots retrieved",
+    )
+
+
+@router.get(
+    "/financial-files/{file_id}/snapshots/latest",
+    response_model=ApiResponse[FinancialSnapshotResponse | None],
+    summary="Get latest financial snapshot for a file",
+)
+def get_latest_financial_snapshot(
+    organization_id: UUID,
+    file_id: UUID,
+    ingestion_service: IngestionServiceDep,
+) -> ApiResponse[FinancialSnapshotResponse | None]:
+    snapshot = ingestion_service.get_latest_snapshot_for_file(organization_id, file_id)
+    data = FinancialSnapshotResponse.model_validate(snapshot) if snapshot else None
+    return success_response(data=data, message="Latest financial snapshot retrieved")
+
+
+@router.get(
+    "/financial-snapshots/{snapshot_id}",
+    response_model=ApiResponse[FinancialSnapshotDetailResponse],
+    summary="Get financial snapshot with payload",
+)
+def get_financial_snapshot(
+    organization_id: UUID,
+    snapshot_id: UUID,
+    ingestion_service: IngestionServiceDep,
+) -> ApiResponse[FinancialSnapshotDetailResponse]:
+    snapshot = ingestion_service.get_snapshot(organization_id, snapshot_id)
+    return success_response(
+        data=FinancialSnapshotDetailResponse.model_validate(snapshot),
+        message="Financial snapshot retrieved",
     )

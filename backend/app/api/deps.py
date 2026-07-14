@@ -15,10 +15,12 @@ from app.core.config import settings
 from app.core.jwt import decode_access_token
 from app.db.models import User
 from app.db.session import get_db
+from app.ingestion.storage import BronzeStorage
 from app.repositories import (
     AnalysisRepository,
     DepartmentRepository,
     FinancialRepository,
+    FinancialSnapshotRepository,
     OrganizationRepository,
     RecommendationRepository,
     ReportRepository,
@@ -33,6 +35,7 @@ from app.services import (
     AuthService,
     DepartmentService,
     FinancialService,
+    IngestionService,
     OrganizationService,
     RecommendationService,
     ReportService,
@@ -120,6 +123,39 @@ def get_user_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> UserRepository:
     return UserRepository(db)
+
+
+def get_financial_snapshot_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> FinancialSnapshotRepository:
+    return FinancialSnapshotRepository(db)
+
+
+def get_bronze_storage() -> BronzeStorage:
+    return BronzeStorage(settings.bronze_storage_root)
+
+
+def get_ingestion_service(
+    db: Annotated[Session, Depends(get_db)],
+    financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+    snapshot_repo: Annotated[
+        FinancialSnapshotRepository, Depends(get_financial_snapshot_repository)
+    ],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    department_repo: Annotated[DepartmentRepository, Depends(get_department_repository)],
+    bronze_storage: Annotated[BronzeStorage, Depends(get_bronze_storage)],
+) -> IngestionService:
+    return IngestionService(
+        db,
+        financial_repo,
+        snapshot_repo,
+        organization_repo,
+        department_repo,
+        bronze_storage,
+        max_upload_size_bytes=settings.max_upload_size_bytes,
+    )
 
 
 def get_organization_service(
@@ -326,6 +362,7 @@ def get_current_user(
 OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization_service)]
 DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]
+IngestionServiceDep = Annotated[IngestionService, Depends(get_ingestion_service)]
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 WasteServiceDep = Annotated[WasteService, Depends(get_waste_service)]
 RiskServiceDep = Annotated[RiskService, Depends(get_risk_service)]

@@ -9,10 +9,10 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 6 – Business Features (next)                            |
-| Current Sprint | 5.6 (AI Freeze) — **Completed**                               |
-| Overall Status | Phase 5 **completed and frozen** — AI layer approved          |
-| Last Updated   | 2026-07-14                                                    |
+| Current Phase  | Phase 6 – Business Features                                     |
+| Current Sprint | 6.2 (Financial Statements / Ingestion) — **Completed**            |
+| Overall Status | Phase 6 Sprint 6.2 complete — ingestion pipeline operational      |
+| Last Updated   | 2026-07-15                                                      |
 
 ---
 
@@ -25,6 +25,7 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
+| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.2 complete) |
 
 ---
 
@@ -90,6 +91,8 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.5-R  | AI         | Benchmark Framework Refinement       | Completed |             | 2026-07-14    |
 | 5.5-C  | AI         | Benchmark `.env` Loading Fix         | Completed |             | 2026-07-14    |
 | 5.6    | AI         | AI Freeze                            | Completed |             | 2026-07-14    |
+| 6.1    | Business   | Financial Snapshot Architecture (ADR-010) | Completed |             | 2026-07-15    |
+| 6.2    | Business   | Financial Statements (Ingestion)     | Completed |             | 2026-07-15    |
 
 ---
 
@@ -1750,6 +1753,53 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | No Prompt Engine / Orchestrator / Parser changes | ✅ Pass |
 
 **Phase 5 exit:** AI layer **APPROVED** — ready for Phase 6 Business Features.
+
+---
+
+### Phase 6 — Sprint 6.1: Financial Snapshot Architecture
+
+**Status:** Completed — ADR-010 accepted; Financial Snapshot Contract approved
+
+**Deliverables:**
+
+- `docs/ADR/010-financial-snapshot-architecture.md` — Bronze/Silver/Gold, immutability, versioning
+- `docs/SPRINT_6.2_SPECIFICATION.md` — implementation specification with Financial Snapshot Contract (§11)
+
+---
+
+### Phase 6 — Sprint 6.2: Financial Statements (Ingestion)
+
+**Status:** Completed — Bronze-to-Silver ingestion pipeline operational
+
+**Objective:** Implement Excel/CSV upload, deterministic parsing, validation, data quality assessment, and immutable Financial Snapshot creation per ADR-010 and Sprint 6.2 specification. Stop at `ready_for_analysis` — no Business Engine or AI execution.
+
+**Deliverables:**
+
+- `app/ingestion/` — Parser, Validator, Quality assessor, Bronze storage, Orchestrator (outside frozen `app/ai/`)
+- `app/services/ingestion.py` — upload-and-ingest orchestration with lifecycle transitions
+- `app/db/models/snapshot.py` — `FinancialSnapshot` ORM (Silver layer)
+- `app/repositories/snapshot.py` — immutable snapshot persistence
+- `alembic/versions/c3f8a1d92e04_add_financial_snapshots.py` — migration
+- `POST /organizations/{id}/financial-files/upload` — multipart binary upload + full pipeline
+- Snapshot retrieval endpoints under financial router
+- `pandas`, `openpyxl`, `python-multipart` dependencies
+- `BRONZE_STORAGE_ROOT`, `MAX_UPLOAD_SIZE_BYTES` configuration
+- `tests/ingestion/` — 14 unit/integration tests for ingestion modules
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Bronze file bytes persisted (`storage_path`) | ✅ Pass |
+| Excel/CSV parsing deterministic (no LLM) | ✅ Pass |
+| Financial Snapshot immutable with version metadata | ✅ Pass |
+| Lifecycle: pending → processing → completed → ready_for_analysis | ✅ Pass |
+| Failed parse/validation → failed status + error_message | ✅ Pass |
+| Four quality checks (placeholder categories) | ✅ Pass |
+| No AI / Business Engine / Facts Contract changes | ✅ Pass |
+| Full test suite (53 tests) | ✅ Pass |
+
+**Next step:** Engine sprint — bind Business Engines to Financial Snapshot references.
 
 ---
 

@@ -22,6 +22,7 @@ from app.services.exceptions import (
     ServiceError,
 )
 from app.services.financial import FinancialService
+from app.services.ingestion import IngestionService, UploadIngestionOutcome
 from app.services.organization import OrganizationService
 from app.services.recommendation import RecommendationService
 from app.services.report import ReportService
@@ -41,6 +42,7 @@ __all__ = [
     "DepartmentService",
     "DuplicateResourceError",
     "FinancialService",
+    "IngestionService",
     "InvalidStateError",
     "InvalidStateTransitionError",
     "OrganizationService",
@@ -53,5 +55,6 @@ __all__ = [
     "SimulationService",
     "TimelineService",
     "UserService",
+    "UploadIngestionOutcome",
     "WasteService",
 ]

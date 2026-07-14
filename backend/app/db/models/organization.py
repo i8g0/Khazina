@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from app.db.models.reporting import Report
     from app.db.models.risk import Risk
     from app.db.models.simulation import SimulationScenario
+    from app.db.models.snapshot import FinancialSnapshot
     from app.db.models.timeline import TimelineEvent
     from app.db.models.waste import WasteTrendPoint
 
@@ -69,6 +70,9 @@ class Organization(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         back_populates="organization",
     )
     waste_trend_points: Mapped[list[WasteTrendPoint]] = relationship(
+        back_populates="organization",
+    )
+    financial_snapshots: Mapped[list[FinancialSnapshot]] = relationship(
         back_populates="organization",
     )
 
@@ -122,5 +126,8 @@ class ReportingPeriod(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         back_populates="reporting_period",
     )
     waste_trend_points: Mapped[list[WasteTrendPoint]] = relationship(
+        back_populates="reporting_period",
+    )
+    financial_snapshots: Mapped[list[FinancialSnapshot]] = relationship(
         back_populates="reporting_period",
     )

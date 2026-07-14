@@ -3,6 +3,7 @@ from app.core.config.ai import AiSettings
 from app.core.config.auth import AuthSettings
 from app.core.config.database import DatabaseSettings
 from app.core.config.logging_config import LoggingSettings
+from app.core.config.storage import StorageSettings
 
 
 class Settings:
@@ -12,6 +13,7 @@ class Settings:
         self.auth = AuthSettings()
         self.database = DatabaseSettings()
         self.logging = LoggingSettings()
+        self.storage = StorageSettings()
 
     @property
     def app_name(self) -> str:
@@ -72,6 +74,14 @@ class Settings:
     @property
     def default_prompt_language(self) -> str:
         return self.ai.default_prompt_language
+
+    @property
+    def bronze_storage_root(self) -> str:
+        return self.storage.bronze_storage_root
+
+    @property
+    def max_upload_size_bytes(self) -> int:
+        return self.storage.max_upload_size_bytes
 
 
 settings = Settings()

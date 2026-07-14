@@ -23,6 +23,7 @@ from app.db.models.simulation import (
     SimulationRun,
     SimulationScenario,
 )
+from app.db.models.snapshot import FinancialSnapshot
 from app.db.models.timeline import TimelineEvent
 from app.db.models.user import User
 from app.db.models.waste import (
@@ -39,6 +40,7 @@ __all__ = [
     "DataQualitySnapshot",
     "Department",
     "FinancialFile",
+    "FinancialSnapshot",
     "ImportRecord",
     "Organization",
     "Recommendation",

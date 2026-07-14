@@ -110,6 +110,11 @@ class FinancialService(BaseService):
             self._financials.get_file(file_id), "FinancialFile", file_id
         )
 
+    def get_organization_file(
+        self, organization_id: uuid.UUID, file_id: uuid.UUID
+    ) -> FinancialFile:
+        return self._owned_file(organization_id, file_id)
+
     def list_files(
         self,
         organization_id: uuid.UUID,

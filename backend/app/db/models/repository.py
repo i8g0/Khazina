@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from app.db.models.department import Department
     from app.db.models.organization import Organization, ReportingPeriod
     from app.db.models.reporting import Report
+    from app.db.models.snapshot import FinancialSnapshot
 
 
 class FinancialFile(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -104,6 +105,10 @@ class FinancialFile(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         back_populates="source_file",
         foreign_keys="Report.source_file_id",
     )
+    financial_snapshots: Mapped[list["FinancialSnapshot"]] = relationship(
+        back_populates="financial_file",
+        passive_deletes=True,
+    )
 
 
 class ImportRecord(Base, UUIDPrimaryKeyMixin, CreatedAtMixin):
@@ -140,6 +145,10 @@ class ImportRecord(Base, UUIDPrimaryKeyMixin, CreatedAtMixin):
 
     financial_file: Mapped[FinancialFile] = relationship(
         back_populates="import_records",
+    )
+    financial_snapshot: Mapped["FinancialSnapshot | None"] = relationship(
+        back_populates="import_record",
+        uselist=False,
     )
 
 
