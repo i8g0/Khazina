@@ -9,10 +9,10 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 5 – AI Integration                                      |
-| Current Sprint | 5.3A (Business Engine Architecture)                           |
-| Overall Status | Phase 5 in progress — Business Engine architecture frozen     |
-| Last Updated   | 2026-07-13                                                    |
+| Current Phase  | Phase 6 – Business Features (next)                            |
+| Current Sprint | 5.6 (AI Freeze) — **Completed**                               |
+| Overall Status | Phase 5 **completed and frozen** — AI layer approved          |
+| Last Updated   | 2026-07-14                                                    |
 
 ---
 
@@ -24,7 +24,7 @@ Official progress tracker for the Khazina project.
 | Phase 2 – Frontend Foundation | ✅ Completed (7/7)   |
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
-| Phase 5 – AI Integration      | 🔄 In progress (Sprint 5.2 — architecture frozen) |
+| Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
 
 ---
 
@@ -88,6 +88,8 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.4    | AI         | Conversation & Context Management    | Completed |             | 2026-07-13    |
 | 5.5    | AI         | AI Performance Validation            | Completed |             | 2026-07-14    |
 | 5.5-R  | AI         | Benchmark Framework Refinement       | Completed |             | 2026-07-14    |
+| 5.5-C  | AI         | Benchmark `.env` Loading Fix         | Completed |             | 2026-07-14    |
+| 5.6    | AI         | AI Freeze                            | Completed |             | 2026-07-14    |
 
 ---
 
@@ -1687,6 +1689,67 @@ Services currently persist and return caller-supplied values; they do not yet co
 ```bash
 python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode disabled
 ```
+
+---
+
+### Phase 5 — Sprint 5.5-C: Benchmark `.env` Loading Fix
+
+**Date:** 2026-07-14
+
+**Status:** Completed
+
+**Objective:** Fix benchmark configuration bug — benchmark ignored `backend/.env` and silently used hardcoded defaults.
+
+**Deliverable:**
+
+- `backend/scripts/ai_benchmark/config.py` — `_load_backend_env()` loads `backend/.env` via `python-dotenv` before `load_benchmark_config()` and `ensure_runtime_env()`
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| `load_benchmark_config().ollama_model` reads `OLLAMA_MODEL` from `.env` | ✅ Pass |
+| No production code modified | ✅ Pass |
+| Benchmark unit tests passing | ✅ Pass |
+
+---
+
+### Phase 5 — Sprint 5.6: AI Freeze
+
+**Date:** 2026-07-14
+
+**Status:** Completed — **Phase 5 (AI Integration) officially frozen**
+
+**Objective:** Formally freeze the AI layer — documentation and validation only. No code redesign, no optimization, no new architecture.
+
+**Deliverables:**
+
+- `docs/AI_FREEZE.md` — official AI freeze document (architecture status, production config, benchmark baseline, approved components, known limitations, acceptance checklist, freeze decision)
+- `docs/progress.md` — Sprint 5.6 and Phase 5 marked completed
+
+**Approved production configuration (frozen):**
+
+| Setting | Value |
+| ------- | ----- |
+| Model | `qwen3.5:2b` |
+| Thinking | Disabled |
+| Production timeout | `180` s (`AI_TIMEOUT`) |
+| Benchmark timeout | `600` s (`BENCHMARK_TIMEOUT`) |
+| Prompt version | `1.0` |
+| Facts Contract version | `1.0` |
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| AI layer components documented and frozen | ✅ Pass |
+| Benchmark baseline referenced | ✅ Pass |
+| Acceptance checklist complete | ✅ Pass |
+| No production runtime changes | ✅ Pass |
+| No Business Engine changes | ✅ Pass |
+| No Prompt Engine / Orchestrator / Parser changes | ✅ Pass |
+
+**Phase 5 exit:** AI layer **APPROVED** — ready for Phase 6 Business Features.
 
 ---
 
