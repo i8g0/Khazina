@@ -31,6 +31,7 @@ from app.repositories import (
     WasteRepository,
 )
 from app.decision.service import DecisionService
+from app.ai_recommendations.service import AiRecommendationService
 from app.services import (
     AnalysisService,
     AuthService,
@@ -180,6 +181,24 @@ def get_decision_service(
         financial_repo,
         organization_repo,
         analysis_repo,
+    )
+
+
+def get_ai_recommendation_service(
+    db: Annotated[Session, Depends(get_db)],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    waste_repo: Annotated[WasteRepository, Depends(get_waste_repository)],
+    recommendation_repo: Annotated[
+        RecommendationRepository, Depends(get_recommendation_repository)
+    ],
+    ollama_client: Annotated[OllamaClient, Depends(get_ollama_client)],
+) -> AiRecommendationService:
+    return AiRecommendationService(
+        db,
+        analysis_repo,
+        waste_repo,
+        recommendation_repo,
+        ollama_client=ollama_client,
     )
 
 
@@ -389,6 +408,9 @@ DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_servi
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]
 IngestionServiceDep = Annotated[IngestionService, Depends(get_ingestion_service)]
 DecisionServiceDep = Annotated[DecisionService, Depends(get_decision_service)]
+AiRecommendationServiceDep = Annotated[
+    AiRecommendationService, Depends(get_ai_recommendation_service)
+]
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 WasteServiceDep = Annotated[WasteService, Depends(get_waste_service)]
 RiskServiceDep = Annotated[RiskService, Depends(get_risk_service)]

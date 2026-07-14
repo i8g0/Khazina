@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 6 – Business Features                                     |
-| Current Sprint | 6.3 (Decision Engine) — **Completed**                           |
-| Overall Status | Phase 6 Sprint 6.3 complete — Silver-to-Gold waste path live      |
+| Current Sprint | 6.4 (AI Recommendations) — **Completed**                           |
+| Overall Status | Phase 6 Sprint 6.4 complete — Facts-to-AI recommendations path live      |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -25,7 +25,7 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
-| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.3 complete) |
+| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.4 complete) |
 
 ---
 
@@ -1830,7 +1830,38 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | No AI / Business Engine internals / Facts Contract changes | ✅ Pass |
 | Full test suite | ✅ Pass (66 tests) |
 
-**Next step:** AI orchestration wired to completed run Facts, frontend Waste page, or Financial Engine — separate sprint approval required.
+**Next step:** Frontend recommendation consumption (Phase 7), Number Guard hardening, or Financial Engine — separate sprint approval required.
+
+---
+
+### Phase 6 — Sprint 6.4: AI Recommendations
+
+**Status:** Completed — Facts-to-AI executive insights and recommendation registry operational
+
+**Objective:** Compose frozen Phase 5 AI components against persisted Facts from completed waste decision runs. No Business Engine re-execution, no snapshot access, no Number Guard.
+
+**Deliverables:**
+
+- `app/ai_recommendations/` — Facts rehydration, task pipeline, response mapper, orchestration service
+- `POST /organizations/{id}/ai-recommendations/waste/generate` — AI generation entry point with idempotency/regenerate
+- Run-scoped `runtime_metadata.ai_insights` artifact (executive summary, risk explanation, narrative)
+- `recommendations` rows via centralized registry (`domain_source=waste`, `analysis_run_id` FK)
+- `tests/ai_recommendations/` — parser, Facts loader, pipeline, service, isolation tests
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Facts rehydration from completed run metadata | ✅ Pass |
+| Three tasks: EXECUTIVE_SUMMARY, RECOMMENDATIONS, RISK_ANALYSIS | ✅ Pass |
+| §11 AI Response Mapping Contract (Arabic numbered list) | ✅ Pass |
+| Idempotency + regenerate (delete waste recs, replace insights) | ✅ Pass |
+| No `AiOrchestrator` / `engine.run()` in AI path | ✅ Pass |
+| No snapshot/Bronze/Gold in LLM prompts | ✅ Pass |
+| No frozen `app/ai/` or Business Engine modifications | ✅ Pass |
+| Full test suite | ✅ Pass |
+
+**Next step:** Frontend Waste/Dashboard recommendation consumption (Phase 7), Number Guard hardening, or Financial Engine — separate sprint approval required.
 
 ---
 
