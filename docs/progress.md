@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 6 – Business Features                                     |
-| Current Sprint | 6.4 (AI Recommendations) — **Completed**                           |
-| Overall Status | Phase 6 Sprint 6.4 complete — Facts-to-AI recommendations path live      |
+| Current Sprint | 6.5 (Scenario Analysis) — **Completed**                           |
+| Overall Status | Phase 6 Sprint 6.5 complete — deterministic scenario path live      |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -25,7 +25,7 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
-| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.4 complete) |
+| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.5 complete) |
 
 ---
 
@@ -1861,7 +1861,38 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | No frozen `app/ai/` or Business Engine modifications | ✅ Pass |
 | Full test suite | ✅ Pass |
 
-**Next step:** Frontend Waste/Dashboard recommendation consumption (Phase 7), Number Guard hardening, or Financial Engine — separate sprint approval required.
+**Next step:** Frontend simulation wiring (Phase 7), simulation-domain AI, or Financial Engine — separate sprint approval required.
+
+---
+
+### Phase 6 — Sprint 6.5: Scenario Analysis
+
+**Status:** Completed — deterministic snapshot-to-simulation Gold path operational
+
+**Objective:** Execute what-if scenarios against Financial Snapshots via Scenario Business Engine. No AI, no snapshot mutation, no Waste Engine modification.
+
+**Deliverables:**
+
+- `app/business/engines/scenario/` — Scenario Business Engine v1 (calculator, detector, assembler, manifest)
+- `app/scenario/` — ScenarioSnapshotAdapterV1, ScenarioAssumptionsAdapter, ScenarioGoldMapper, ScenarioService
+- `POST /organizations/{id}/simulation/scenarios/{scenario_id}/execute` — scenario execution entry point
+- Run-scoped `runtime_metadata.facts_contract` + `scenario_provenance` on completed simulation runs
+- Simulation Gold persistence (forecast summary, chart points, comparison metrics, impact items, action items)
+- `tests/scenario/` + `tests/business/test_scenario_engine.py` — adapter, engine, mapper, service, isolation, determinism tests
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Financial Snapshot baseline adapter (S-1, §11 pattern) | ✅ Pass |
+| Scenario assumptions → typed parameters (3 archetypes) | ✅ Pass |
+| Scenario Business Engine → Facts Contract | ✅ Pass |
+| ScenarioGoldMapper → simulation Gold tables | ✅ Pass |
+| Snapshot immutability + `source_snapshot_id` provenance | ✅ Pass |
+| No AI / no Waste Engine modification | ✅ Pass |
+| Full test suite | ✅ Pass (94 tests) |
+
+**Next step:** Frontend Business Simulation wiring (Phase 7), simulation-domain AI (`SCENARIO_ANALYSIS`), or Financial Engine — separate sprint approval required.
 
 ---
 

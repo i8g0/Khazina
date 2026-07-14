@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.business.engines.scenario import ScenarioEngine
 from app.business.engines.waste import WasteEngine
 from app.business.registry import freeze_registry, is_registry_frozen, register_engine
 
@@ -11,4 +12,5 @@ def initialize_business_engines() -> None:
     if is_registry_frozen():
         return
     register_engine(WasteEngine())
+    register_engine(ScenarioEngine())
     freeze_registry()

@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.v1.scenario import router as scenario_router
 from app.api.v1.ai_recommendations import router as ai_recommendations_router
 from app.api.v1.ai import router as ai_router
 from app.api.v1.analysis import router as analysis_router
@@ -29,6 +30,7 @@ api_v1_router.include_router(analysis_router)
 api_v1_router.include_router(waste_router)
 api_v1_router.include_router(risk_router)
 api_v1_router.include_router(simulation_router)
+api_v1_router.include_router(scenario_router)
 api_v1_router.include_router(report_router)
 api_v1_router.include_router(recommendation_router)
 api_v1_router.include_router(timeline_router)

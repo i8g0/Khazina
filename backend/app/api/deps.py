@@ -31,6 +31,7 @@ from app.repositories import (
     WasteRepository,
 )
 from app.decision.service import DecisionService
+from app.scenario.service import ScenarioService
 from app.ai_recommendations.service import AiRecommendationService
 from app.services import (
     AnalysisService,
@@ -181,6 +182,32 @@ def get_decision_service(
         financial_repo,
         organization_repo,
         analysis_repo,
+    )
+
+
+def get_scenario_service(
+    db: Annotated[Session, Depends(get_db)],
+    analysis_service: Annotated[AnalysisService, Depends(get_analysis_service)],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    simulation_repo: Annotated[SimulationRepository, Depends(get_simulation_repository)],
+    snapshot_repo: Annotated[
+        FinancialSnapshotRepository, Depends(get_financial_snapshot_repository)
+    ],
+    financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    waste_repo: Annotated[WasteRepository, Depends(get_waste_repository)],
+) -> ScenarioService:
+    return ScenarioService(
+        db,
+        analysis_service,
+        analysis_repo,
+        simulation_repo,
+        snapshot_repo,
+        financial_repo,
+        organization_repo,
+        waste_repo,
     )
 
 
@@ -408,6 +435,7 @@ DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_servi
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]
 IngestionServiceDep = Annotated[IngestionService, Depends(get_ingestion_service)]
 DecisionServiceDep = Annotated[DecisionService, Depends(get_decision_service)]
+ScenarioServiceDep = Annotated[ScenarioService, Depends(get_scenario_service)]
 AiRecommendationServiceDep = Annotated[
     AiRecommendationService, Depends(get_ai_recommendation_service)
 ]
