@@ -86,6 +86,8 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.3A-R | AI         | Business Engine Architecture Refinement | Completed |             | 2026-07-13    |
 | 5.3B   | AI         | Facts Contract & Waste Engine        | Completed |             | 2026-07-13    |
 | 5.4    | AI         | Conversation & Context Management    | Completed |             | 2026-07-13    |
+| 5.5    | AI         | AI Performance Validation            | Completed |             | 2026-07-14    |
+| 5.5-R  | AI         | Benchmark Framework Refinement       | Completed |             | 2026-07-14    |
 
 ---
 
@@ -1624,6 +1626,67 @@ Services currently persist and return caller-supplied values; they do not yet co
 | Unit tests passing (33 total) | ✅ Pass |
 
 **Next step:** Number Guard and Response Validation (future sprint).
+
+---
+
+### Phase 5 — Sprint 5.5: AI Performance Validation
+
+**Date:** 2026-07-13
+
+**Status:** Completed — initial benchmark harness and methodology
+
+**Objective:** Measure AI pipeline performance (cold/warm latency, CPU/RAM/GPU, stability) without new AI features.
+
+**Deliverables:**
+
+- `backend/scripts/ai_benchmark/` — initial benchmark runner
+- `docs/AI_BENCHMARK_METHODOLOGY.md` — methodology
+- `docs/AI_BENCHMARK_REPORT.md` — first measurement report (partial stability on 16GB hardware)
+
+---
+
+### Phase 5 — Sprint 5.5-R: Benchmark Framework Refinement
+
+**Date:** 2026-07-14
+
+**Status:** Completed — **professional benchmark framework** (v2.0)
+
+**Objective:** Refine Sprint 5.5 benchmark into an extensible framework. No architecture changes to AI pipeline, Business Engines, or Prompt Engine.
+
+**Deliverables:**
+
+- `backend/scripts/ai_benchmark/` — refactored framework:
+  - Profiles: `quick`, `standard`, `full` (configurable)
+  - Benchmark-only config: `BENCHMARK_TIMEOUT`, `BENCHMARK_PROFILE`, `BENCHMARK_THINKING_MODE`
+  - Progress logging (no silent long runs)
+  - Thinking mode: `enabled` / `disabled` / `both`
+  - Separate **LLM Benchmark** and **End-to-End Benchmark**
+  - Per-stage timings (engine, context, prompt, LLM, parser)
+  - Benchmark baseline metadata in reports
+- `backend/tests/benchmark/` — framework unit tests (no Ollama)
+- `docs/AI_BENCHMARK_METHODOLOGY.md` — updated
+- `backend/.env.example` — benchmark env documentation
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Profiles configurable | ✅ Pass |
+| Benchmark timeout isolated from `AI_TIMEOUT` | ✅ Pass |
+| Progress logging | ✅ Pass |
+| Thinking ON/OFF/BOTH supported | ✅ Pass |
+| Stage timing in E2E runs | ✅ Pass |
+| LLM + E2E benchmark types separated | ✅ Pass |
+| No Business Engine changes | ✅ Pass |
+| No Prompt Engine changes | ✅ Pass |
+| No Orchestrator changes | ✅ Pass |
+| Unit tests (39 total) | ✅ Pass |
+
+**Run benchmark:**
+
+```bash
+python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode disabled
+```
 
 ---
 

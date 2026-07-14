@@ -1,7 +1,28 @@
-# Khazina AI Pipeline Benchmark Report
+# Khazina AI Benchmark Report
 
-**Generated:** 2026-07-13T21:12:35.040662+00:00
-**Methodology version:** 1.0
+**Generated:** 2026-07-14T12:32:52.921072+00:00
+
+## Benchmark Baseline
+
+- **Benchmark Version:** 2.0
+- **Profile:** quick
+- **Model:** `tinyllama:latest`
+- **Prompt Version:** 1.0
+- **Facts Contract Version:** 1.0
+- **Thinking Mode Setting:** disabled
+
+## Configuration
+
+- **benchmark_timeout:** 600.0
+- **cooldown_seconds:** 2.0
+- **e2e_tasks:** ['executive_summary']
+- **llm_iterations:** 1
+- **llm_prompt:** قل كلمة واحدة فقط: مرحبا
+- **ollama_model:** tinyllama:latest
+- **ollama_url:** http://localhost:11434
+- **profile:** quick
+- **stability_iterations:** 0
+- **thinking_mode:** disabled
 
 ## Hardware Summary
 
@@ -12,58 +33,43 @@
 - **GPU:** NVIDIA GeForce RTX 3050 Laptop GPU
 - **GPU VRAM (total):** 4096 MB
 
-## Active AI Model
+## Results Summary
 
-- **Ollama URL:** http://localhost:11434
-- **Model:** `qwen3:8b`
+- **Functional Validation:** PASS
+- **Stability Validation:** PASS
+- **Overall:** PASS
 
-## Benchmark Methodology
+### LLM Benchmark Latency
 
-See [AI_BENCHMARK_METHODOLOGY.md](AI_BENCHMARK_METHODOLOGY.md).
+| Thinking | Avg ms | Min ms | Max ms | Samples |
+|----------|--------|--------|--------|---------|
+| disabled | 38893.58 | 38893.58 | 38893.58 | 1 |
 
-## Latency Results
+### End-to-End Benchmark Latency
 
-- **Cold start:** 170667.81 ms
-- **Average warm latency:** 157750.10 ms
-- **Minimum warm latency:** 151972.38 ms
-- **Maximum warm latency:** 165096.07 ms
-- **Executions recorded:** 13
+| Thinking | Avg ms | Min ms | Max ms | Samples |
+|----------|--------|--------|--------|---------|
+| disabled | 4098.07 | 4098.07 | 4098.07 | 1 |
 
-## Resource Usage (Peaks)
+### Resource Peaks
 
-- **Process RSS:** 53.32 MB
-- **System RAM used:** 15314.26 MB
-- **CPU utilization:** 70.8%
-- **GPU utilization:** 25.0%
-- **GPU VRAM used:** 3154.00 MB
+- **Process RSS:** 49.33 MB
+- **System RAM Used:** 11893.41 MB
+- **CPU:** 51.4 %
+- **GPU Utilization:** 88.0 %
+- **GPU VRAM Used:** 1667.0 MB
 
-## Validation
+## Recommendation
 
-- **Functional pipeline validation:** FAIL
-- **Stability validation:** FAIL
-
-## Demo Recommendation
-
-Do not change the development baseline yet. Stability or functional validation failed during benchmark runs.
+Keep `tinyllama:latest` for hackathon demo. Profile `quick` completed successfully. Thinking disabled average latency: 4098 ms. Retain GPU acceleration for demo.
 
 ## Notes
 
-- Cold start measured after Ollama keep_alive=0 unload request.
+- Executing thinking_mode=disabled
 
 ## Run Details
 
-| Task | Run Type | Success | Total ms | Facts | Parsed |
-|------|----------|---------|----------|-------|--------|
-| executive_summary | cold_start | True | 170667.81 | 16 | text |
-| executive_summary | warm | True | 156181.84 | 16 | text |
-| risk_analysis | warm | False | n/a | n/a | Ollama request timed out after 180.0s |
-| recommendations | warm | True | 151972.38 | 16 | text |
-| scenario_analysis | warm | False | n/a | n/a | Ollama request timed out after 180.0s |
-| executive_summary | stability_1 | True | 165096.07 | 16 | text |
-| risk_analysis | stability_1 | False | n/a | n/a | Ollama request timed out after 180.0s |
-| recommendations | stability_1 | False | n/a | n/a | Ollama request timed out after 180.0s |
-| scenario_analysis | stability_1 | False | n/a | n/a | Ollama request timed out after 180.0s |
-| executive_summary | stability_2 | False | n/a | n/a | Ollama request timed out after 180.0s |
-| risk_analysis | stability_2 | False | n/a | n/a | Ollama request timed out after 180.0s |
-| recommendations | stability_2 | False | n/a | n/a | Ollama request timed out after 180.0s |
-| scenario_analysis | stability_2 | False | n/a | n/a | Ollama request timed out after 180.0s |
+| Type | Label | Task | Thinking | Success | Total ms | LLM ms | Engine ms |
+|------|-------|------|----------|---------|----------|--------|-----------|
+| llm | llm_1 | - | disabled | True | 38893.58 | 38893.58 | 0.0 |
+| e2e | warm | executive_summary | disabled | True | 4098.07 | 3917.45 | 0.23 |

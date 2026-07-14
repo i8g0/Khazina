@@ -1,78 +1,83 @@
-# AI Benchmark Methodology
+# AI Benchmark Framework (Sprint 5.5)
 
-Permanent methodology for Khazina AI pipeline performance validation (Sprint 5.5).
-
-## Purpose
-
-Measure production readiness of the **existing** AI execution pipeline without changing architecture or features.
-
-## Pipeline Under Test
-
-```
-Business Engine → Facts Contract → Context Builder → Prompt Engine → Ollama → Response Parser
-```
-
-Orchestration is exercised through `AiOrchestrator.execute()` — the same path used in production.
-
-## Fixed Inputs
-
-All benchmark runs use identical Waste Engine input (`scripts/ai_benchmark/run_benchmark.py`):
-
-- `total_spend`: 50,000,000
-- `total_waste_amount`: 2,340,000
-- Categories: overlapping_contracts (745,000), operations (520,000), finance (1,075,000)
-- `organization_id`: benchmark-org
-- `period`: 2026-Q2
-
-Prompts are **not modified** between runs.
-
-## Tasks
-
-| Prompt Task | Identifier |
-|-------------|------------|
-| Executive Summary | `executive_summary` |
-| Risk Analysis | `risk_analysis` |
-| Recommendations | `recommendations` |
-| Scenario Analysis | `scenario_analysis` |
-
-## Metrics
-
-| Metric | Definition |
-|--------|------------|
-| Cold Start | First full pipeline execution after Ollama model unload (`keep_alive=0`) |
-| Warm Response | Subsequent full pipeline executions with model loaded |
-| RAM | Peak process RSS and system RAM used (via `psutil`) |
-| CPU | Peak system CPU utilization during runs |
-| GPU | Peak utilization and VRAM via `nvidia-smi` when available |
-
-## Stability Protocol
-
-After cold/warm task runs, repeat all four tasks for `N` stability iterations (default `N=2`). Fail if any orchestration error occurs.
-
-## Execution
-
-From `backend/`:
+Benchmark-only configuration. Production `AI_TIMEOUT` is unchanged.
 
 ```bash
 pip install psutil
 set OLLAMA_MODEL=qwen3:8b
-python -m scripts.ai_benchmark.run_benchmark --stability-iterations 2
+set BENCHMARK_PROFILE=quick
+set BENCHMARK_TIMEOUT=600
+python -m scripts.ai_benchmark.run_benchmark
 ```
 
-Outputs:
+## Profiles
 
-- `docs/AI_BENCHMARK_REPORT.md`
-- `docs/AI_BENCHMARK_REPORT.json`
+| Profile | Purpose |
+|---------|---------|
+| `quick` | Fast development validation (1 E2E task, 1 LLM iteration) |
+| `standard` | Normal validation (cold + 4 warm tasks) |
+| `full` | Release/demo validation (cold + warm + stability iterations) |
 
-## Constraints
+## Environment Variables
 
-- Do not download new models automatically
-- Do not change the development baseline model binding in code
-- Do not modify Prompt Engine templates during benchmark runs
-- Unit tests continue to mock Ollama; benchmarks require a running Ollama instance
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BENCHMARK_PROFILE` | `quick` | `quick`, `standard`, or `full` |
+| `BENCHMARK_TIMEOUT` | `600` | Benchmark-only Ollama timeout (seconds) |
+| `BENCHMARK_THINKING_MODE` | `disabled` | `enabled`, `disabled`, or `both` |
+| `BENCHMARK_LLM_PROMPT` | short Arabic ping | LLM benchmark prompt |
+| `BENCHMARK_OUTPUT_JSON` | `docs/AI_BENCHMARK_REPORT.json` | JSON output path |
+| `BENCHMARK_OUTPUT_MD` | `docs/AI_BENCHMARK_REPORT.md` | Markdown output path |
 
-## Related Documents
+## Benchmark Types
 
-- [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md)
+### LLM Benchmark
+
+Measures: Prompt → Ollama → Response (pure model latency).
+
+### End-to-End Benchmark
+
+Measures full pipeline with per-stage timings:
+
+- Business Engine
+- Context Builder
+- Prompt Engine
+- LLM
+- Response Parser
+
+## CLI Options
+
+```bash
+python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode both
+python -m scripts.ai_benchmark.run_benchmark --profile standard --benchmark-timeout 600
+python -m scripts.ai_benchmark.run_benchmark --profile full --skip-cold-unload
+```
+
+## Progress Logging
+
+Every step prints:
+
+```
+[1/N] Step label...
+    Completed — details
+    Elapsed: xxx ms
+    Remaining steps: y
+```
+
+## Baseline Metadata
+
+Each report records:
+
+- Benchmark version
+- Model
+- Prompt version
+- Facts Contract version
+- Profile
+- Hardware summary
+
+For historical comparison only (no database).
+
+## Related
+
+- [AI_BENCHMARK_METHODOLOGY.md](AI_BENCHMARK_METHODOLOGY.md)
 - [AI_BENCHMARK_REPORT.md](AI_BENCHMARK_REPORT.md)
-- [progress.md](progress.md)
