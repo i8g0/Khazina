@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 6 – Business Features                                     |
-| Current Sprint | 6.2 (Financial Statements / Ingestion) — **Completed**            |
-| Overall Status | Phase 6 Sprint 6.2 complete — ingestion pipeline operational      |
+| Current Sprint | 6.3 (Decision Engine) — **Completed**                           |
+| Overall Status | Phase 6 Sprint 6.3 complete — Silver-to-Gold waste path live      |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -25,7 +25,7 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
-| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.2 complete) |
+| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.3 complete) |
 
 ---
 
@@ -93,6 +93,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 5.6    | AI         | AI Freeze                            | Completed |             | 2026-07-14    |
 | 6.1    | Business   | Financial Snapshot Architecture (ADR-010) | Completed |             | 2026-07-15    |
 | 6.2    | Business   | Financial Statements (Ingestion)     | Completed |             | 2026-07-15    |
+| 6.3    | Business   | Decision Engine                      | Completed |             | 2026-07-15    |
 
 ---
 
@@ -1799,7 +1800,37 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | No AI / Business Engine / Facts Contract changes | ✅ Pass |
 | Full test suite (53 tests) | ✅ Pass |
 
-**Next step:** Engine sprint — bind Business Engines to Financial Snapshot references.
+**Next step:** Wire AI Orchestrator to completed run Facts, frontend Waste page integration, or Financial Engine snapshot binding — each requires separate sprint approval.
+
+---
+
+### Phase 6 — Sprint 6.3: Decision Engine
+
+**Status:** Completed — Silver-to-Gold deterministic waste decision path operational
+
+**Objective:** Bind Financial Snapshots to frozen Waste Business Engine; persist Gold results with snapshot provenance. No AI, no new engines, no frontend.
+
+**Deliverables:**
+
+- `app/decision/` — Waste v1 Snapshot adapter, Gold mapper, orchestration service
+- `analysis_runs.source_snapshot_id` — ADR-010 snapshot provenance binding
+- `alembic/versions/d4a9b2e81f05_add_analysis_runs_source_snapshot_id.py` — migration
+- `POST /organizations/{id}/decisions/waste/execute` — end-to-end decision execution
+- `tests/decision/` — adapter, mapper, determinism, isolation, orchestration tests
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Snapshot → WasteEngineInput adapter (§11 contract) | ✅ Pass |
+| Exactly-one sheet/column determinism (no guessing) | ✅ Pass |
+| Waste Engine via frozen registry → Facts Contract | ✅ Pass |
+| Gold persistence (waste_analysis_results + breakdowns) | ✅ Pass |
+| Snapshot provenance on analysis runs | ✅ Pass |
+| No AI / Business Engine internals / Facts Contract changes | ✅ Pass |
+| Full test suite | ✅ Pass (66 tests) |
+
+**Next step:** AI orchestration wired to completed run Facts, frontend Waste page, or Financial Engine — separate sprint approval required.
 
 ---
 

@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.db.models.repository import FinancialFile
     from app.db.models.reporting import Report
     from app.db.models.simulation import SimulationRun
+    from app.db.models.snapshot import FinancialSnapshot
     from app.db.models.waste import (
         WasteAnalysisResult,
         WasteCategoryBreakdown,
@@ -34,6 +35,7 @@ class AnalysisRun(Base, UUIDPrimaryKeyMixin, TimestampMixin):
             "status",
         ),
         Index("ix_analysis_runs_source_file_id", "source_file_id"),
+        Index("ix_analysis_runs_source_snapshot_id", "source_snapshot_id"),
         Index("ix_analysis_runs_org_completed_at", "organization_id", "completed_at"),
     )
 
@@ -50,6 +52,11 @@ class AnalysisRun(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     source_file_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("financial_files.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    source_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("financial_snapshots.id", ondelete="RESTRICT"),
         nullable=True,
     )
     analysis_type: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -76,6 +83,9 @@ class AnalysisRun(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     source_file: Mapped[FinancialFile | None] = relationship(
         back_populates="analysis_runs",
         foreign_keys=[source_file_id],
+    )
+    source_snapshot: Mapped[FinancialSnapshot | None] = relationship(
+        foreign_keys=[source_snapshot_id],
     )
     waste_analysis_result: Mapped[WasteAnalysisResult | None] = relationship(
         back_populates="analysis_run",

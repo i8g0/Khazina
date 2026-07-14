@@ -19,6 +19,7 @@ from app.db.models.enums import (
 from app.repositories import (
     AnalysisRepository,
     FinancialRepository,
+    FinancialSnapshotRepository,
     OrganizationRepository,
     TimelineRepository,
 )
@@ -73,6 +74,7 @@ class AnalysisService(BaseService):
         analysis_type: str,
         title: str,
         source_file_id: uuid.UUID | None = None,
+        source_snapshot_id: uuid.UUID | None = None,
         reporting_period_id: uuid.UUID | None = None,
         runtime_metadata: dict[str, Any] | None = None,
     ) -> AnalysisRun:
@@ -101,10 +103,26 @@ class AnalysisService(BaseService):
                 raise ResourceNotFoundError("ReportingPeriod", reporting_period_id)
             self._check_ownership(period, "ReportingPeriod", organization_id)
 
+        if source_snapshot_id is not None:
+            if source_file_id is None:
+                raise BusinessValidationError(
+                    "source_file_id is required when source_snapshot_id is provided"
+                )
+            snapshot_repo = FinancialSnapshotRepository(self._session)
+            snapshot = snapshot_repo.get_snapshot(source_snapshot_id)
+            if snapshot is None:
+                raise ResourceNotFoundError("FinancialSnapshot", source_snapshot_id)
+            self._check_ownership(snapshot, "FinancialSnapshot", organization_id)
+            if snapshot.financial_file_id != source_file_id:
+                raise BusinessValidationError(
+                    "Snapshot does not belong to the requested source file"
+                )
+
         run = AnalysisRun(
             organization_id=organization_id,
             reporting_period_id=reporting_period_id,
             source_file_id=source_file_id,
+            source_snapshot_id=source_snapshot_id,
             analysis_type=analysis_type,
             title=title,
             status=AnalysisRunStatus.PENDING,
@@ -159,21 +177,29 @@ class AnalysisService(BaseService):
         return run
 
     def complete_run(
-        self, organization_id: uuid.UUID, run_id: uuid.UUID
+        self,
+        organization_id: uuid.UUID,
+        run_id: uuid.UUID,
+        *,
+        success_metadata: dict[str, Any] | None = None,
     ) -> AnalysisRun:
         """Finalizes a run and appends the corresponding timeline event."""
         run = self._owned_run(organization_id, run_id)
         self._validate_transition(run, AnalysisRunStatus.COMPLETED)
         completed_at = datetime.now(timezone.utc)
 
+        values: dict[str, Any] = {
+            "status": AnalysisRunStatus.COMPLETED,
+            "completed_at": completed_at,
+        }
+        if success_metadata:
+            values["runtime_metadata"] = {
+                **(run.runtime_metadata or {}),
+                **success_metadata,
+            }
+
         with self._transaction():
-            self._analyses.update(
-                run,
-                {
-                    "status": AnalysisRunStatus.COMPLETED,
-                    "completed_at": completed_at,
-                },
-            )
+            self._analyses.update(run, values)
             self._timeline.create(
                 TimelineEvent(
                     organization_id=organization_id,

@@ -30,6 +30,7 @@ from app.repositories import (
     UserRepository,
     WasteRepository,
 )
+from app.decision.service import DecisionService
 from app.services import (
     AnalysisService,
     AuthService,
@@ -155,6 +156,30 @@ def get_ingestion_service(
         department_repo,
         bronze_storage,
         max_upload_size_bytes=settings.max_upload_size_bytes,
+    )
+
+
+def get_decision_service(
+    db: Annotated[Session, Depends(get_db)],
+    analysis_service: Annotated[AnalysisService, Depends(get_analysis_service)],
+    waste_service: Annotated[WasteService, Depends(get_waste_service)],
+    snapshot_repo: Annotated[
+        FinancialSnapshotRepository, Depends(get_financial_snapshot_repository)
+    ],
+    financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+) -> DecisionService:
+    return DecisionService(
+        db,
+        analysis_service,
+        waste_service,
+        snapshot_repo,
+        financial_repo,
+        organization_repo,
+        analysis_repo,
     )
 
 
@@ -363,6 +388,7 @@ OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization
 DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]
 IngestionServiceDep = Annotated[IngestionService, Depends(get_ingestion_service)]
+DecisionServiceDep = Annotated[DecisionService, Depends(get_decision_service)]
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 WasteServiceDep = Annotated[WasteService, Depends(get_waste_service)]
 RiskServiceDep = Annotated[RiskService, Depends(get_risk_service)]

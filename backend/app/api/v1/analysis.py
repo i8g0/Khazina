@@ -40,6 +40,7 @@ def create_analysis_run(
         analysis_type=body.analysis_type,
         title=body.title,
         source_file_id=body.source_file_id,
+        source_snapshot_id=body.source_snapshot_id,
         reporting_period_id=body.reporting_period_id,
         runtime_metadata=body.runtime_metadata,
     )

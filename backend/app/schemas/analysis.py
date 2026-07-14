@@ -15,6 +15,7 @@ class AnalysisRunCreate(SchemaBase):
     analysis_type: str = Field(..., max_length=50)
     title: str = Field(..., min_length=1, max_length=500)
     source_file_id: UUID | None = None
+    source_snapshot_id: UUID | None = None
     reporting_period_id: UUID | None = None
     runtime_metadata: dict[str, Any] | None = None
 
@@ -24,6 +25,7 @@ class AnalysisRunResponse(FullTimestampResponse):
     organization_id: UUID
     reporting_period_id: UUID | None
     source_file_id: UUID | None
+    source_snapshot_id: UUID | None
     analysis_type: str
     title: str
     status: str
