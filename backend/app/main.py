@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_v1_router
 from app.business.bootstrap import initialize_business_engines
@@ -10,6 +11,11 @@ from app.core.logging import get_logger, setup_logging
 from app.core.middleware.security_headers import SecurityHeadersMiddleware
 
 logger = get_logger(__name__)
+
+_DEMO_CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 
 
 @asynccontextmanager
@@ -30,6 +36,13 @@ def create_app() -> FastAPI:
     )
 
     register_exception_handlers(app)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_DEMO_CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.add_middleware(SecurityHeadersMiddleware)
     app.include_router(api_v1_router, prefix="/api/v1")
 

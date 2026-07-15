@@ -1,78 +1,150 @@
 "use client";
 
 import * as React from "react";
-import { Play, Plus } from "lucide-react";
 import { AppLayout, PageContainer } from "@/components/layout";
 import { DashboardBrand } from "@/components/dashboard/dashboard-brand";
-import { DashboardRecommendationCard } from "@/components/dashboard/dashboard-recommendation-card";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
-import { SimulationActionPanel } from "@/components/simulation/simulation-action-panel";
-import { SimulationAssumptions } from "@/components/simulation/simulation-assumptions";
+import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { SimulationComparisonChart } from "@/components/simulation/simulation-comparison-chart";
-import { SimulationImpactBreakdown } from "@/components/simulation/simulation-impact-breakdown";
-import { SimulationResultsSummary } from "@/components/simulation/simulation-results-summary";
 import { SimulationScenarioCard } from "@/components/simulation/simulation-scenario-card";
+import { DemoHeaderActions } from "@/components/notifications/notification-bell";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { PageHero } from "@/components/ui/page-hero";
-import { executivePageContainerClassName, executivePageSpacingClassName, executiveSectionSpacingClassName, getAppNavItems } from "@/lib/app-nav";
 import {
-  organization,
-  simulationActionItems,
-  simulationAssumptions,
-  simulationChartSeries,
-  simulationComparisonMetrics,
-  simulationForecasts,
-  simulationImpactBreakdown,
-  simulationRecommendations,
-  simulationResultSummaries,
-  simulationScenarios,
-} from "@/lib/placeholder-data";
-import { cn } from "@/lib/utils";
-
-type SimulationViewState = "idle" | "loading" | "ready";
-
-const LOADING_MS = 1400;
-
-function changeTone(direction: "up" | "down" | "neutral") {
-  if (direction === "up") {
-    return "text-warning";
-  }
-  if (direction === "down") {
-    return "text-success";
-  }
-  return "text-muted";
-}
+  executivePageContainerClassName,
+  executivePageSpacingClassName,
+  executiveSectionSpacingClassName,
+  getAppNavItems,
+} from "@/lib/app-nav";
+import { organization } from "@/lib/placeholder-data";
+import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
+import {
+  executeScenario,
+  getForecastSummary,
+  listChartPoints,
+  listComparisonMetrics,
+  listScenarios,
+} from "@/lib/api/khazina-api";
+import { readDemoArtifacts, writeDemoArtifacts } from "@/lib/demo/state";
+import { mapSimulationStatus } from "@/lib/format";
 
 export function SimulationPage() {
-  const [activeScenarioId, setActiveScenarioId] = React.useState(
-    simulationScenarios[0]?.id ?? "",
-  );
-  const [viewState, setViewState] = React.useState<SimulationViewState>("idle");
+  const auth = useRequireAuth();
+  const [loading, setLoading] = React.useState(true);
+  const [executing, setExecuting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [message, setMessage] = React.useState<string | null>(null);
+  const [scenarios, setScenarios] = React.useState<
+    { id: string; name: string; description: string; status: string }[]
+  >([]);
+  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [forecast, setForecast] = React.useState({
+    baseline: "—",
+    projected: "—",
+    delta: "—",
+    confidence: "—",
+  });
+  const [chartPoints, setChartPoints] = React.useState<
+    { quarter: string; baseline: number; projected: number }[]
+  >([]);
+  const [comparisons, setComparisons] = React.useState<
+    { name: string; current: string; simulated: string; change: string }[]
+  >([]);
 
-  const activeForecast = React.useMemo(
-    () => simulationForecasts.find((item) => item.scenarioId === activeScenarioId),
-    [activeScenarioId],
-  );
+  const loadScenarios = React.useCallback(async () => {
+    if (!auth.session) return;
+    setLoading(true);
+    try {
+      const rows = await listScenarios(auth.session.organizationId, auth.session.token);
+      setScenarios(rows);
+      if (!activeId && rows[0]) {
+        setActiveId(rows[0].id);
+      }
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [auth.session, activeId]);
 
-  const runSimulation = React.useCallback(() => {
-    setViewState("loading");
-    window.setTimeout(() => {
-      setViewState("ready");
-    }, LOADING_MS);
-  }, []);
+  React.useEffect(() => {
+    if (auth.session) void loadScenarios();
+  }, [auth.session, loadScenarios]);
 
-  const handleScenarioSelect = React.useCallback((scenarioId: string) => {
-    setActiveScenarioId(scenarioId);
-    setViewState("idle");
-  }, []);
+  const loadRunResults = async (runId: string) => {
+    if (!auth.session) return;
+    const [summary, points, metrics] = await Promise.all([
+      getForecastSummary(auth.session.organizationId, auth.session.token, runId),
+      listChartPoints(auth.session.organizationId, auth.session.token, runId),
+      listComparisonMetrics(auth.session.organizationId, auth.session.token, runId),
+    ]);
+    if (summary) {
+      setForecast({
+        baseline: summary.baseline_value,
+        projected: summary.projected_value,
+        delta: summary.delta_value,
+        confidence: summary.confidence_label ?? "—",
+      });
+    }
+    setChartPoints(
+      points.map((p) => ({
+        quarter: p.quarter_label,
+        baseline: p.baseline_amount,
+        projected: p.projected_amount,
+      })),
+    );
+    setComparisons(
+      metrics.map((m) => ({
+        name: m.metric_name,
+        current: m.current_value,
+        simulated: m.simulated_value,
+        change: m.change_value,
+      })),
+    );
+  };
 
-  const assumptions = simulationAssumptions[activeScenarioId] ?? [];
-  const chartData = simulationChartSeries[activeScenarioId] ?? [];
-  const comparisonMetrics = simulationComparisonMetrics[activeScenarioId] ?? [];
-  const impactItems = simulationImpactBreakdown[activeScenarioId] ?? [];
-  const resultSummary = simulationResultSummaries[activeScenarioId];
+  const runScenario = async () => {
+    if (!auth.session || !activeId) return;
+    const artifacts = readDemoArtifacts();
+    if (!artifacts.fileId || !artifacts.snapshotId || !artifacts.snapshotVersion) {
+      setError("ارفع ملفاً وشغّل تحليل الهدر أولاً");
+      return;
+    }
+    setExecuting(true);
+    setError(null);
+    try {
+      const outcome = await executeScenario(
+        auth.session.organizationId,
+        auth.session.token,
+        activeId,
+        {
+          source_file_id: artifacts.fileId,
+          source_snapshot_id: artifacts.snapshotId,
+          snapshot_version: artifacts.snapshotVersion,
+          baseline_analysis_run_id: artifacts.wasteRunId ?? undefined,
+        },
+      );
+      writeDemoArtifacts({ simulationRunId: outcome.simulation_run.id });
+      await loadRunResults(outcome.simulation_run.id);
+      setMessage("اكتملت المحاكاة بنجاح");
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const runId = readDemoArtifacts().simulationRunId;
+    if (auth.session && runId) {
+      void loadRunResults(runId).catch(() => undefined);
+    }
+  }, [auth.session]);
+
+  if (!auth.session) return null;
 
   return (
     <AppLayout
@@ -82,196 +154,71 @@ export function SimulationPage() {
       activeItemId="simulation"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
+      headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
-        <div
-          className={cn(
-            viewState === "ready"
-              ? executivePageSpacingClassName
-              : "space-y-6 md:space-y-8",
-          )}
-        >
+        <div className={executivePageSpacingClassName}>
           <PageHero
-            title="محاكاة الأعمال"
-            description="بناء ومقارنة سيناريوهات مالية افتراضية لدعم القرارات التنفيذية."
+            title="محاكاة السيناريوهات"
+            description="مقارنة السيناريوهات التشغيلية مقابل خط الأساس من بيانات حقيقية."
             period={organization.reportingPeriod}
-            actions={
-              <Button variant="secondary" disabled>
-                <Plus className="h-4 w-4" strokeWidth={1.75} />
-                سيناريو جديد
-              </Button>
-            }
           />
 
-          <section className={executiveSectionSpacingClassName}>
-            <DashboardSectionHeader
-              dense
-              title="اختيار السيناريو"
-              description="اختر سيناريو للمحاكاة — حتى 3 سيناريوهات متاحة"
-            />
-            <div
-              role="listbox"
-              aria-label="سيناريوهات المحاكاة"
-              className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-5"
-            >
-              {simulationScenarios.map((scenario) => (
+          <Button disabled={executing || !activeId} onClick={() => void runScenario()}>
+            {executing ? "جاري التنفيذ..." : "تشغيل السيناريو النشط"}
+          </Button>
+
+          {message ? <Alert variant="success" title="تم">{message}</Alert> : null}
+          {error ? <ErrorState title="خطأ" description={error} onRetry={() => setError(null)} /> : null}
+
+          {loading ? (
+            <LoadingSkeleton className="min-h-[240px] rounded-2xl" />
+          ) : (
+            <section className="grid gap-4 md:grid-cols-3">
+              {scenarios.map((scenario) => (
                 <SimulationScenarioCard
                   key={scenario.id}
-                  scenario={scenario}
-                  active={scenario.id === activeScenarioId}
-                  onSelect={() => handleScenarioSelect(scenario.id)}
+                  scenario={{
+                    id: scenario.id,
+                    name: scenario.name,
+                    description: scenario.description,
+                    status: mapSimulationStatus(scenario.status),
+                  }}
+                  active={scenario.id === activeId}
+                  onSelect={() => setActiveId(scenario.id)}
                 />
               ))}
-            </div>
+            </section>
+          )}
+
+          <section className="grid gap-5 sm:grid-cols-3">
+            <DashboardStatCard label="الأساس" value={forecast.baseline} hint="خط الأساس" dense />
+            <DashboardStatCard label="المتوقع" value={forecast.projected} hint="بعد المحاكاة" dense emphasis />
+            <DashboardStatCard label="التغير" value={forecast.delta} hint={forecast.confidence} dense />
           </section>
 
-          <section className={executiveSectionSpacingClassName}>
-            <SimulationAssumptions assumptions={assumptions} />
-          </section>
-
-          <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted">
-              {viewState === "ready"
-                ? "تمت المحاكاة — يمكنك إعادة التشغيل بعد تغيير السيناريو"
-                : "اضغط لتشغيل المحاكاة وعرض النتائج"}
-            </p>
-            <Button
-              onClick={runSimulation}
-              disabled={viewState === "loading" || !activeScenarioId}
-            >
-              {viewState === "loading" ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  جاري المحاكاة...
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4" strokeWidth={1.75} />
-                  تشغيل المحاكاة
-                </>
-              )}
-            </Button>
-          </section>
-
-          {viewState === "loading" ? (
-            <div className="space-y-8">
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <LoadingSkeleton key={index} className="min-h-[188px] rounded-2xl" />
-                ))}
-              </div>
-              <LoadingSkeleton className="min-h-[460px] rounded-2xl" />
-              <LoadingSkeleton className="min-h-[320px] rounded-2xl" />
-            </div>
+          {chartPoints.length > 0 ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="مقارنة الفترات" />
+              <SimulationComparisonChart data={chartPoints} />
+            </section>
           ) : null}
 
-          {viewState === "ready" && activeForecast && resultSummary ? (
-            <>
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="ملخص النتائج"
-                  description="مؤشرات التوقع للسيناريو النشط"
-                />
-                <SimulationResultsSummary
-                  forecast={activeForecast}
-                  summary={resultSummary}
-                />
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="مقارنة الأداء"
-                  description="مؤشرات رئيسية — الوضع الحالي مقابل المحاكاة"
-                />
-                <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
-                  {comparisonMetrics.map((metric) => (
-                    <article
-                      key={metric.metric}
-                      className="rounded-2xl border border-border/60 bg-surface px-5 py-5 md:px-6 md:py-5"
-                    >
-                      <h3 className="mb-4 text-sm font-semibold text-black-primary">
-                        {metric.metric}
-                      </h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                            الحالي
-                          </p>
-                          <p className="text-lg font-semibold tabular-nums text-black-primary">
-                            {metric.current}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                            المحاكاة
-                          </p>
-                          <p className="text-lg font-semibold tabular-nums text-black-primary">
-                            {metric.simulated}
-                          </p>
-                        </div>
-                      </div>
-                      <p
-                        className={cn(
-                          "mt-4 text-sm font-semibold tabular-nums",
-                          changeTone(metric.direction),
-                        )}
-                      >
-                        التغير: {metric.change}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="مخطط المقارنة"
-                  description="الأساس مقابل المتوقع عبر الأرباع"
-                />
-                <SimulationComparisonChart data={chartData} />
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="تفصيل الأثر المالي"
-                  description="توزيع الأثر حسب الفئات والإدارات"
-                />
-                <SimulationImpactBreakdown items={impactItems} />
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="توصيات الذكاء الاصطناعي"
-                  description="إجراءات مقترحة بناءً على نتائج المحاكاة"
-                />
-                <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
-                  {simulationRecommendations.map((item) => (
-                    <DashboardRecommendationCard
-                      key={item.id}
-                      id={item.id}
-                      title={item.title}
-                      description={item.description}
-                      badge={item.badge}
-                      confidence={item.confidence}
-                    />
-                  ))}
-                </div>
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="ملخص الإجراءات"
-                  description="الخطوات المقترحة بعد مراجعة نتائج المحاكاة"
-                />
-                <SimulationActionPanel items={simulationActionItems} />
-              </section>
-            </>
+          {comparisons.length > 0 ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="مؤشرات المقارنة" />
+              <div className="grid gap-4 md:grid-cols-3">
+                {comparisons.map((item) => (
+                  <DashboardStatCard
+                    key={item.name}
+                    label={item.name}
+                    value={item.simulated}
+                    hint={`${item.current} → ${item.change}`}
+                    dense
+                  />
+                ))}
+              </div>
+            </section>
           ) : null}
         </div>
       </PageContainer>

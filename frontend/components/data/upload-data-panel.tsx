@@ -10,6 +10,7 @@ export interface UploadDataPanelProps {
   disabled?: boolean;
   compact?: boolean;
   onUpload: (fileName: string) => void;
+  onFileUpload?: (file: File) => void;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export function UploadDataPanel({
   disabled = false,
   compact = false,
   onUpload,
+  onFileUpload,
   className,
 }: UploadDataPanelProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -37,7 +39,10 @@ export function UploadDataPanel({
           disabled={disabled}
           onChange={(event) => {
             const file = event.target.files?.[0];
-            onUpload(file?.name ?? "Dataset.xlsx");
+            if (file) {
+              onFileUpload?.(file);
+              onUpload(file.name);
+            }
           }}
         />
         <div className="space-y-1">
@@ -66,7 +71,10 @@ export function UploadDataPanel({
         disabled={disabled}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          onUpload(file?.name ?? "Dataset.xlsx");
+          if (file) {
+            onFileUpload?.(file);
+            onUpload(file.name);
+          }
         }}
       />
       <UploadArea
@@ -77,7 +85,11 @@ export function UploadDataPanel({
         actionLabel="اختيار ملف للرفع"
         disabled={disabled}
         onFilesSelected={(files) => {
-          onUpload(files[0]?.name ?? "Dataset.xlsx");
+          const file = files[0];
+          if (file) {
+            onFileUpload?.(file);
+            onUpload(file.name);
+          }
         }}
       />
     </section>

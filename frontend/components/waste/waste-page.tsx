@@ -5,85 +5,174 @@ import {
   BarChart3,
   FileSpreadsheet,
   PiggyBank,
-  RefreshCw,
+  Sparkles,
   TrendingDown,
 } from "lucide-react";
 import { AppLayout, PageContainer } from "@/components/layout";
 import { DashboardBrand } from "@/components/dashboard/dashboard-brand";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
-import { WasteAiFindingCard } from "@/components/waste/waste-ai-finding-card";
 import { WasteBreakdownTable } from "@/components/waste/waste-breakdown-table";
-import { WasteCharts } from "@/components/waste/waste-charts";
-import { WasteDepartmentBreakdown } from "@/components/waste/waste-department-breakdown";
 import { WasteIdleContent } from "@/components/waste/waste-idle-content";
-import { WasteSavingsCard } from "@/components/waste/waste-savings-card";
+import { DemoHeaderActions } from "@/components/notifications/notification-bell";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { PageHero } from "@/components/ui/page-hero";
-import { UploadArea } from "@/components/ui/upload-area";
+import { RecommendationCard } from "@/components/ui/recommendation-card";
 import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
   getAppNavItems,
 } from "@/lib/app-nav";
+import { organization } from "@/lib/placeholder-data";
+import type { WasteAnalysisRow } from "@/lib/placeholder-data";
+import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
 import {
-  organization,
-  wasteAnalysisResults,
-  wasteDepartmentFilterOptions,
-  wasteRecommendations,
-  wasteSummaryKpis,
-  wasteVendorDetails,
-} from "@/lib/placeholder-data";
-import { cn } from "@/lib/utils";
-
-type WasteViewState = "idle" | "loading" | "ready";
+  executeWasteDecision,
+  generateWasteAi,
+  getWasteResult,
+  listWasteBreakdowns,
+  uploadFinancialFile,
+} from "@/lib/api/khazina-api";
+import { readDemoArtifacts, writeDemoArtifacts } from "@/lib/demo/state";
+import { formatCurrency, formatPercent } from "@/lib/format";
+import type { RecommendationResponse } from "@/lib/api/types";
 
 const summaryIcons = [TrendingDown, BarChart3, FileSpreadsheet, PiggyBank];
 
-const LOADING_MS = 1400;
-
 export function WastePage() {
-  const uploadInputRef = React.useRef<HTMLInputElement>(null);
-  const [viewState, setViewState] = React.useState<WasteViewState>("idle");
-  const [departmentFilter, setDepartmentFilter] = React.useState<string>("الكل");
-  const [uploadedFileName, setUploadedFileName] = React.useState<string | null>(
-    null,
+  const auth = useRequireAuth();
+  const [loading, setLoading] = React.useState(false);
+  const [aiLoading, setAiLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [ready, setReady] = React.useState(false);
+  const [rows, setRows] = React.useState<WasteAnalysisRow[]>([]);
+  const [recommendations, setRecommendations] = React.useState<RecommendationResponse[]>([]);
+  const [summary, setSummary] = React.useState({
+    total: "—",
+    wastePct: "—",
+    savings: "—",
+    opportunities: "—",
+  });
+  const [message, setMessage] = React.useState<string | null>(null);
+
+  const loadResults = React.useCallback(
+    async (runId: string) => {
+      if (!auth.session) return;
+      const [result, breakdowns] = await Promise.all([
+        getWasteResult(auth.session.organizationId, auth.session.token, runId),
+        listWasteBreakdowns(auth.session.organizationId, auth.session.token, runId),
+      ]);
+      setSummary({
+        total: formatCurrency(result.total_waste_amount),
+        wastePct: formatPercent(result.waste_percentage),
+        savings: formatCurrency(result.potential_savings_amount ?? 0),
+        opportunities: String(result.active_savings_opportunities ?? 0),
+      });
+      setRows(
+        breakdowns.map((item, index) => ({
+          id: item.id,
+          category: item.category_name,
+          amount: item.amount,
+          percentage: formatPercent(item.percentage),
+          department: "المشتريات",
+        })),
+      );
+      setReady(true);
+    },
+    [auth.session],
   );
 
-  const runAnalysis = React.useCallback((fileName?: string) => {
-    setViewState("loading");
-    if (fileName) {
-      setUploadedFileName(fileName);
+  React.useEffect(() => {
+    const artifacts = readDemoArtifacts();
+    if (auth.session && artifacts.wasteRunId) {
+      setLoading(true);
+      void loadResults(artifacts.wasteRunId)
+        .catch((err) => setError(formatApiError(err)))
+        .finally(() => setLoading(false));
     }
-    window.setTimeout(() => {
-      setViewState("ready");
-    }, LOADING_MS);
-  }, []);
+  }, [auth.session, loadResults]);
 
-  const openUploadPicker = React.useCallback(() => {
-    uploadInputRef.current?.click();
-  }, []);
-
-  const filteredAnalysisRows = React.useMemo(() => {
-    if (departmentFilter === "الكل") {
-      return wasteAnalysisResults;
+  const runPipeline = async (file?: File) => {
+    if (!auth.session) return;
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      let artifacts = readDemoArtifacts();
+      if (file) {
+        const upload = await uploadFinancialFile(
+          auth.session.organizationId,
+          auth.session.token,
+          file,
+        );
+        if (!upload.financial_snapshot) {
+          throw new Error("فشل إنشاء اللقطة المالية");
+        }
+        artifacts = writeDemoArtifacts({
+          fileId: upload.financial_file.id,
+          snapshotId: upload.financial_snapshot.id,
+          snapshotVersion: upload.financial_snapshot.snapshot_version,
+        });
+      }
+      if (!artifacts.fileId || !artifacts.snapshotId || !artifacts.snapshotVersion) {
+        throw new Error("ارفع ملفاً من مستودع البيانات أولاً");
+      }
+      const decision = await executeWasteDecision(
+        auth.session.organizationId,
+        auth.session.token,
+        {
+          title: "تحليل هدر — Procurement_Q2",
+          source_file_id: artifacts.fileId,
+          source_snapshot_id: artifacts.snapshotId,
+          snapshot_version: artifacts.snapshotVersion,
+        },
+      );
+      writeDemoArtifacts({ wasteRunId: decision.analysis_run.id });
+      await loadResults(decision.analysis_run.id);
+      setMessage("اكتمل تحليل الهدر بنجاح");
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setLoading(false);
     }
-    return wasteAnalysisResults.filter(
-      (row) => row.department === departmentFilter,
-    );
-  }, [departmentFilter]);
+  };
 
-  const filteredVendorRows = React.useMemo(() => {
-    if (departmentFilter === "الكل") {
-      return wasteVendorDetails;
+  const runAi = async () => {
+    if (!auth.session) return;
+    const runId = readDemoArtifacts().wasteRunId;
+    if (!runId) {
+      setError("شغّل تحليل الهدر أولاً");
+      return;
     }
-    return wasteVendorDetails;
-  }, [departmentFilter]);
+    setAiLoading(true);
+    setError(null);
+    try {
+      const outcome = await generateWasteAi(
+        auth.session.organizationId,
+        auth.session.token,
+        runId,
+      );
+      setRecommendations(outcome.recommendations);
+      setMessage(`تم توليد ${outcome.recommendation_count} توصية بالذكاء الاصطناعي`);
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
-  const aiFindings = wasteRecommendations.filter((item) => item.badge === "عالية").slice(0, 2);
+  if (!auth.session) return null;
+
+  const kpis = [
+    { label: "إجمالي الهدر", value: summary.total, hint: "من محرك القرار" },
+    { label: "نسبة الهدر", value: summary.wastePct, hint: "من الإنفاق" },
+    { label: "التوفير المحتمل", value: summary.savings, hint: "فرص الادخار" },
+    { label: "فرص الادخار", value: summary.opportunities, hint: "نشطة" },
+  ];
 
   return (
     <AppLayout
@@ -93,86 +182,37 @@ export function WastePage() {
       activeItemId="waste"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
+      headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
-        <div
-          className={cn(
-            viewState === "ready"
-              ? executivePageSpacingClassName
-              : "space-y-4 md:space-y-5",
-          )}
-        >
+        <div className={executivePageSpacingClassName}>
           <PageHero
             title="كشف الهدر المالي"
-            description="رفع ملفات مالية وتحليل أنماط الهدر وفرص التوفير المؤسسية"
+            description="رفع البيانات وتشغيل محرك القرار وتوليد التوصيات التنفيذية."
             period={organization.reportingPeriod}
-            actions={
-              viewState === "ready" ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => runAnalysis(uploadedFileName ?? undefined)}
-                >
-                  <RefreshCw className="h-4 w-4" strokeWidth={1.75} />
-                  إعادة التحليل
-                </Button>
-              ) : null
-            }
           />
 
-          <section className="relative space-y-0">
-            <input
-              ref={uploadInputRef}
-              type="file"
-              className="hidden"
-              accept=".xlsx,.xls,.csv"
-              disabled={viewState === "loading"}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                runAnalysis(file?.name ?? "Procurement_Q2.xlsx");
-              }}
-            />
-            <UploadArea
-              variant="prominent"
-              title="اسحب ملف Excel أو CSV هنا"
-              description="يدعم .xlsx و .xls و .csv — حتى 10 ميغابايت · ابدأ من هنا"
-              accept=".xlsx,.xls,.csv"
-              actionLabel="اختيار ملف للتحليل"
-              disabled={viewState === "loading"}
-              onFilesSelected={(files) => {
-                runAnalysis(files[0]?.name ?? "Procurement_Q2.xlsx");
-              }}
-            />
-            {viewState === "loading" ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/85 backdrop-blur-sm">
-                <LoadingSpinner size="lg" label="جاري تحليل الملف..." />
-                <p className="text-sm font-medium text-muted">جاري تحليل الملف...</p>
-              </div>
-            ) : null}
-          </section>
+          <div className="flex flex-wrap gap-3">
+            <Button disabled={loading} onClick={() => void runPipeline()}>
+              تشغيل تحليل الهدر
+            </Button>
+            <Button variant="secondary" disabled={aiLoading || !ready} onClick={() => void runAi()}>
+              <Sparkles className="h-4 w-4" />
+              {aiLoading ? "جاري توليد التوصيات..." : "توليد توصيات الذكاء الاصطناعي"}
+            </Button>
+          </div>
 
-          {viewState === "idle" ? (
-            <WasteIdleContent onUploadClick={openUploadPicker} />
-          ) : null}
+          {message ? <Alert variant="success" title="تم">{message}</Alert> : null}
+          {error ? <ErrorState title="خطأ" description={error} onRetry={() => setError(null)} /> : null}
 
-          {viewState === "loading" ? (
-            <div className="space-y-8">
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <LoadingSkeleton key={index} className="min-h-[168px] rounded-2xl" />
-                ))}
-              </div>
-              <div className="grid gap-5 xl:grid-cols-2">
-                <LoadingSkeleton className="min-h-[460px] rounded-2xl" />
-                <LoadingSkeleton className="min-h-[460px] rounded-2xl" />
-              </div>
-              <LoadingSkeleton className="min-h-[320px] rounded-2xl" />
-            </div>
-          ) : null}
+          {!ready && !loading ? <WasteIdleContent onUploadClick={() => void runPipeline()} /> : null}
 
-          {viewState === "ready" ? (
+          {loading ? (
+            <LoadingSkeleton className="min-h-[320px] rounded-2xl" />
+          ) : ready ? (
             <>
-              <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
-                {wasteSummaryKpis.map((kpi, index) => {
+              <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                {kpis.map((kpi, index) => {
                   const Icon = summaryIcons[index];
                   return (
                     <DashboardStatCard
@@ -188,73 +228,26 @@ export function WastePage() {
                 })}
               </section>
 
-              <WasteCharts />
-
               <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="توزيع الهدر حسب الإدارات"
-                  description="مقارنة مساهمة كل إدارة في إجمالي الهدر المكتشف"
-                />
-                <WasteDepartmentBreakdown />
+                <DashboardSectionHeader dense title="تفصيل الفئات" />
+                <WasteBreakdownTable analysisRows={rows} vendorRows={[]} />
               </section>
 
-              <section className={executiveSectionSpacingClassName}>
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <DashboardSectionHeader
-                    dense
-                    title="تفاصيل الهدر المالي"
-                    description="تحليل الفئات والموردين مع إمكانية التصفية حسب الإدارة"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    {wasteDepartmentFilterOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setDepartmentFilter(option)}
-                        className={cn(
-                          "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                          departmentFilter === option
-                            ? "border-gold-primary bg-gold-primary text-white"
-                            : "border-border/70 bg-surface text-gray-medium hover:bg-bg-light",
-                        )}
-                      >
-                        {option}
-                      </button>
+              {recommendations.length > 0 ? (
+                <section className={executiveSectionSpacingClassName}>
+                  <DashboardSectionHeader dense title="توصيات الذكاء الاصطناعي" />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {recommendations.map((rec) => (
+                      <RecommendationCard
+                        key={rec.id}
+                        title={rec.title}
+                        description={rec.description}
+                        badge={rec.priority}
+                      />
                     ))}
                   </div>
-                </div>
-                <WasteBreakdownTable
-                  analysisRows={filteredAnalysisRows}
-                  vendorRows={filteredVendorRows}
-                />
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="نتائج الذكاء الاصطناعي"
-                  description="أهم الملاحظات المكتشفة آلياً من تحليل البيانات المرفوعة"
-                />
-                <div className="grid gap-5 lg:grid-cols-2 lg:gap-5">
-                  {aiFindings.map((item) => (
-                    <WasteAiFindingCard key={item.id} item={item} />
-                  ))}
-                </div>
-              </section>
-
-              <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader
-                  dense
-                  title="فرص التوفير"
-                  description="توصيات قابلة للتنفيذ مع تقدير التوفير المحتمل"
-                />
-                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
-                  {wasteRecommendations.map((item) => (
-                    <WasteSavingsCard key={item.id} item={item} />
-                  ))}
-                </div>
-              </section>
+                </section>
+              ) : null}
             </>
           ) : null}
         </div>

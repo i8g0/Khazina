@@ -10,13 +10,24 @@ import { RiskCharts } from "@/components/risk/risk-charts";
 import { RiskMitigationPlans } from "@/components/risk/risk-mitigation-plans";
 import { RiskPriorityMatrix } from "@/components/risk/risk-priority-matrix";
 import { RiskRecommendationCard } from "@/components/risk/risk-recommendation-card";
+import { DemoHeaderActions } from "@/components/notifications/notification-bell";
+import { Badge } from "@/components/ui/badge";
 import { PageHero } from "@/components/ui/page-hero";
-import { executivePageContainerClassName, executivePageSpacingClassName, executiveSectionSpacingClassName, getAppNavItems } from "@/lib/app-nav";
+import {
+  executivePageContainerClassName,
+  executivePageSpacingClassName,
+  executiveSectionSpacingClassName,
+  getAppNavItems,
+} from "@/lib/app-nav";
 import { organization, riskRecommendations, riskSummaryKpis } from "@/lib/placeholder-data";
+import { useRequireAuth } from "@/lib/auth/auth-context";
 
 const summaryIcons = [ShieldAlert, AlertTriangle, ShieldCheck, CheckCircle2];
 
 export function RiskPage() {
+  const auth = useRequireAuth();
+  if (!auth.session) return null;
+
   return (
     <AppLayout
       brand={<DashboardBrand />}
@@ -25,6 +36,7 @@ export function RiskPage() {
       activeItemId="risk"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
+      headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
         <div className={executivePageSpacingClassName}>
@@ -33,6 +45,10 @@ export function RiskPage() {
             description="متابعة وتحليل المخاطر التشغيلية والمالية للمؤسسة."
             period={organization.reportingPeriod}
           />
+
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">عرض توضيحي — لا يوجد محرك مخاطر في المرحلة 6</Badge>
+          </div>
 
           <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
             {riskSummaryKpis.map((kpi, index) => {

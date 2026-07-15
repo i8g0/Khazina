@@ -2026,6 +2026,37 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 
 ---
 
+### Hackathon Readiness Sprint — Integration & Demo Certification
+
+**Status:** Completed — frontend connected to frozen Phase 6 backend for live demonstration
+
+**Objective:** Integration-only sprint per `HACKATHON_READINESS_SPECIFICATION.md` — no new business capabilities.
+
+**Deliverables:**
+
+- Frontend API client (`lib/api/`), JWT auth context, `/login` route guards
+- CORS middleware for `localhost:3000` / `127.0.0.1:3000`
+- Live integration: Data Management, Financial Waste, Business Simulation, Reports, Notifications (header), Dashboard (partial)
+- Demo assets: `scripts/demo/Procurement_Q2.xlsx`, `bootstrap.py`, `verify_e2e.py`
+- `docs/HACKATHON_DEMO_SCRIPT.md`
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Backend tests (`pytest tests/ -q`) | ✅ 170 passed |
+| Frontend TypeScript (next build typecheck) | ✅ Pass |
+| Demo bootstrap (org/user/scenarios) | ✅ Pass (settings patch skipped if migrations pending — PDF enabled by default) |
+| E2E API script (`verify_e2e.py`) | ⏳ Requires running backend + Ollama (connection refused in CI-less local run) |
+| New business APIs | ✅ None introduced |
+| Freeze documents respected | ✅ Yes |
+
+**Smoke timings:** Record at rehearsal with `verify_e2e.py` when stack is up (see `HACKATHON_DEMO_SCRIPT.md` §6).
+
+**Next step:** Live hackathon rehearsal with full Docker stack; Phase 7 frontend features post-hackathon.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width

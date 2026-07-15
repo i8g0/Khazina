@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { SITE_DESCRIPTION, SITE_NAME } from "./site";
-import { TooltipProvider } from "@/components/providers/tooltip-provider";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
@@ -24,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={`${ibmPlexSansArabic.variable} font-sans antialiased`}>
-        <TooltipProvider>{children}</TooltipProvider>
+        {children}
       </body>
     </html>
   );
