@@ -24,14 +24,18 @@ from app.repositories import (
     NotificationRepository,
     OrganizationRepository,
     RecommendationRepository,
+    ReportExportRepository,
     ReportRepository,
     RiskRepository,
     SettingsRepository,
     SimulationRepository,
     TimelineRepository,
+    UserNotificationPreferencesRepository,
     UserRepository,
     WasteRepository,
 )
+from app.reports.export_service import ReportExportService
+from app.reports.export_storage import ReportExportStorage
 from app.reports.service import ReportBuilderService
 from app.decision.service import DecisionService
 from app.scenario.service import ScenarioService
@@ -39,6 +43,7 @@ from app.ai_recommendations.service import AiRecommendationService
 from app.settings.service import SettingsService
 from app.notifications.builder import NotificationBuilder
 from app.notifications.service import NotificationService
+from app.notifications.user_preferences_service import UserNotificationPreferencesService
 from app.services import (
     AnalysisService,
     AuthService,
@@ -257,6 +262,65 @@ def get_settings_service(
     return SettingsService(db, settings_repo, organization_repo)
 
 
+def get_report_export_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ReportExportRepository:
+    return ReportExportRepository(db)
+
+
+def get_user_notification_preferences_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> UserNotificationPreferencesRepository:
+    return UserNotificationPreferencesRepository(db)
+
+
+def get_report_export_storage() -> ReportExportStorage:
+    return ReportExportStorage(settings.report_export_storage_root)
+
+
+def get_report_export_service(
+    db: Annotated[Session, Depends(get_db)],
+    report_repo: Annotated[ReportRepository, Depends(get_report_repository)],
+    export_repo: Annotated[
+        ReportExportRepository, Depends(get_report_export_repository)
+    ],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    export_storage: Annotated[ReportExportStorage, Depends(get_report_export_storage)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+) -> ReportExportService:
+    return ReportExportService(
+        db,
+        report_repo,
+        export_repo,
+        organization_repo,
+        export_storage,
+        settings_service=settings_service,
+    )
+
+
+def get_user_notification_preferences_service(
+    db: Annotated[Session, Depends(get_db)],
+    preferences_repo: Annotated[
+        UserNotificationPreferencesRepository,
+        Depends(get_user_notification_preferences_repository),
+    ],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+) -> UserNotificationPreferencesService:
+    return UserNotificationPreferencesService(
+        db,
+        preferences_repo,
+        organization_repo,
+        user_repo,
+        settings_service,
+    )
+
+
 def get_notification_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> NotificationRepository:
@@ -279,6 +343,10 @@ def get_notification_builder(
     ],
     user_repo: Annotated[UserRepository, Depends(get_user_repository)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+    user_preferences_repo: Annotated[
+        UserNotificationPreferencesRepository,
+        Depends(get_user_notification_preferences_repository),
+    ],
 ) -> NotificationBuilder:
     return NotificationBuilder(
         db,
@@ -290,6 +358,7 @@ def get_notification_builder(
         organization_repo,
         user_repo,
         settings_service=settings_service,
+        user_preferences_repository=user_preferences_repo,
     )
 
 
@@ -571,6 +640,13 @@ SimulationServiceDep = Annotated[SimulationService, Depends(get_simulation_servi
 ReportServiceDep = Annotated[ReportService, Depends(get_report_service)]
 ReportBuilderServiceDep = Annotated[
     ReportBuilderService, Depends(get_report_builder_service)
+]
+ReportExportServiceDep = Annotated[
+    ReportExportService, Depends(get_report_export_service)
+]
+UserNotificationPreferencesServiceDep = Annotated[
+    UserNotificationPreferencesService,
+    Depends(get_user_notification_preferences_service),
 ]
 RecommendationServiceDep = Annotated[
     RecommendationService, Depends(get_recommendation_service)

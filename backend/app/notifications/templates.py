@@ -54,6 +54,28 @@ def report_published_message(*, report_title: str, report_type: str) -> tuple[st
     return title, body
 
 
+def analysis_failed_message(
+    *,
+    run_title: str,
+    error_code: str | None,
+) -> tuple[str, str]:
+    code = error_code or "unknown"
+    title = f"فشل التحليل: {run_title}"
+    body = f"تعذّر إكمال تحليل الهدر المالي «{run_title}» (رمز الخطأ: {code})."
+    return title, body
+
+
+def scenario_failed_message(
+    *,
+    run_title: str,
+    error_code: str | None,
+) -> tuple[str, str]:
+    code = error_code or "unknown"
+    title = f"فشلت المحاكاة: {run_title}"
+    body = f"تعذّر إكمال محاكاة السيناريو «{run_title}» (رمز الخطأ: {code})."
+    return title, body
+
+
 def build_payload_representation(
     *,
     platform_event_kind: str,

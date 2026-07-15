@@ -16,20 +16,31 @@ from app.db.models.notification import NotificationReadReceipt
 from app.notifications.constants import (
     KIND_AI_RECOMMENDATIONS_COMPLETED,
     KIND_ANALYSIS_COMPLETED,
+    KIND_ANALYSIS_FAILED,
     KIND_REPORT_GENERATED,
     KIND_REPORT_PUBLISHED,
     KIND_SCENARIO_COMPLETED,
+    KIND_SCENARIO_FAILED,
     NOTIFICATION_VERSION,
     STATUS_ACTIVE,
 )
+from app.notifications.effective_preferences import (
+    is_effective_notification_materialization_enabled,
+)
 from app.notifications.fingerprint import compute_event_fingerprint
+from app.notifications.models import PersistedUserNotificationPreferences
+from app.notifications.user_preferences_resolver import (
+    resolve_user_notification_preferences,
+)
 from app.notifications.templates import (
     ai_recommendations_completed_message,
     analysis_completed_message,
+    analysis_failed_message,
     build_payload_representation,
     report_generated_message,
     report_published_message,
     scenario_completed_message,
+    scenario_failed_message,
 )
 from app.repositories import (
     AnalysisRepository,
@@ -38,10 +49,10 @@ from app.repositories import (
     RecommendationRepository,
     ReportRepository,
     SimulationRepository,
+    UserNotificationPreferencesRepository,
     UserRepository,
 )
 from app.services.base import BaseService
-from app.settings.notification_gates import is_notification_materialization_enabled
 from app.settings.service import SettingsService
 
 logger = logging.getLogger(__name__)
@@ -68,6 +79,7 @@ class NotificationBuilder(BaseService):
         user_repository: UserRepository,
         *,
         settings_service: SettingsService | None = None,
+        user_preferences_repository: UserNotificationPreferencesRepository | None = None,
     ) -> None:
         super().__init__(session)
         self._notifications = notification_repository
@@ -78,6 +90,7 @@ class NotificationBuilder(BaseService):
         self._organizations = organization_repository
         self._users = user_repository
         self._settings = settings_service
+        self._user_preferences = user_preferences_repository
 
     def materialize_analysis_completion(
         self,
@@ -97,7 +110,7 @@ class NotificationBuilder(BaseService):
             kind = KIND_SCENARIO_COMPLETED
         else:
             return None
-        if not self._gate_allows(organization_id, kind):
+        if not self._gate_allows(organization_id, kind, initiating_user_id):
             return None
         period_label = self._period_label(run.reporting_period_id)
         if kind == KIND_SCENARIO_COMPLETED:
@@ -132,7 +145,9 @@ class NotificationBuilder(BaseService):
     ) -> MaterializedNotification | None:
         if initiating_user_id is None:
             return None
-        if not self._gate_allows(organization_id, KIND_AI_RECOMMENDATIONS_COMPLETED):
+        if not self._gate_allows(
+            organization_id, KIND_AI_RECOMMENDATIONS_COMPLETED, initiating_user_id
+        ):
             return None
         run = self._analyses.get(analysis_run_id)
         if run is None or run.organization_id != organization_id:
@@ -171,7 +186,9 @@ class NotificationBuilder(BaseService):
     ) -> MaterializedNotification | None:
         if initiating_user_id is None:
             return None
-        if not self._gate_allows(organization_id, KIND_REPORT_GENERATED):
+        if not self._gate_allows(
+            organization_id, KIND_REPORT_GENERATED, initiating_user_id
+        ):
             return None
         report = self._reports.get(report_id)
         if report is None or report.organization_id != organization_id:
@@ -202,7 +219,9 @@ class NotificationBuilder(BaseService):
     ) -> MaterializedNotification | None:
         if initiating_user_id is None:
             return None
-        if not self._gate_allows(organization_id, KIND_REPORT_PUBLISHED):
+        if not self._gate_allows(
+            organization_id, KIND_REPORT_PUBLISHED, initiating_user_id
+        ):
             return None
         report = self._reports.get(report_id)
         if report is None or report.organization_id != organization_id:
@@ -225,6 +244,55 @@ class NotificationBuilder(BaseService):
             reporting_period_id=report.reporting_period_id,
             source_marker=f"ready:{published_marker}",
             metadata={"report_type": report.report_type, "published_at": published_marker},
+        )
+
+    def materialize_analysis_failure(
+        self,
+        organization_id: uuid.UUID,
+        analysis_run_id: uuid.UUID,
+        *,
+        initiating_user_id: uuid.UUID | None,
+    ) -> MaterializedNotification | None:
+        if initiating_user_id is None:
+            return None
+        run = self._analyses.get(analysis_run_id)
+        if run is None or run.organization_id != organization_id:
+            return None
+        if run.analysis_type == AnalysisType.FINANCIAL_WASTE:
+            kind = KIND_ANALYSIS_FAILED
+        elif run.analysis_type == AnalysisType.SIMULATION:
+            kind = KIND_SCENARIO_FAILED
+        else:
+            return None
+        if not self._gate_allows(organization_id, kind, initiating_user_id):
+            return None
+        metadata = run.runtime_metadata or {}
+        failure = dict(metadata.get("failure") or {})
+        error_code = failure.get("error_code")
+        if kind == KIND_SCENARIO_FAILED:
+            title, body = scenario_failed_message(
+                run_title=run.title,
+                error_code=str(error_code) if error_code else None,
+            )
+        else:
+            title, body = analysis_failed_message(
+                run_title=run.title,
+                error_code=str(error_code) if error_code else None,
+            )
+        failed_marker = (
+            run.completed_at.isoformat() if run.completed_at else "unknown"
+        )
+        return self._persist(
+            organization_id=organization_id,
+            recipient_user_id=initiating_user_id,
+            platform_event_kind=kind,
+            title=title,
+            body=body,
+            source_entity_type=RelatedEntityType.ANALYSIS_RUN,
+            source_entity_id=run.id,
+            reporting_period_id=run.reporting_period_id,
+            source_marker=f"failed:{failed_marker}",
+            metadata={"analysis_type": run.analysis_type, "failure": failure},
         )
 
     def _persist(
@@ -293,11 +361,29 @@ class NotificationBuilder(BaseService):
             return False
         return True
 
-    def _gate_allows(self, organization_id: uuid.UUID, kind: str) -> bool:
+    def _gate_allows(
+        self,
+        organization_id: uuid.UUID,
+        kind: str,
+        recipient_user_id: uuid.UUID,
+    ) -> bool:
         if self._settings is None:
             return True
         resolved = self._settings.get_resolved_settings(organization_id)
-        return is_notification_materialization_enabled(resolved, kind)
+        user_prefs = None
+        if self._user_preferences is not None:
+            record = self._user_preferences.get_by_user(
+                organization_id, recipient_user_id
+            )
+            if record is not None:
+                user_prefs = resolve_user_notification_preferences(
+                    PersistedUserNotificationPreferences.from_dict(
+                        record.preferences_document
+                    )
+                )
+        return is_effective_notification_materialization_enabled(
+            resolved, user_prefs, kind
+        )
 
     def _period_label(self, reporting_period_id: uuid.UUID | None) -> str | None:
         if reporting_period_id is None:

@@ -14,6 +14,9 @@ from app.settings.constants import (
     DEFAULT_ENABLED_ANALYSIS_TYPES,
     DEFAULT_ENABLED_NOTIFICATION_KINDS,
     DEFAULT_LOCALE,
+    DEFAULT_PDF_EXPORT_ENABLED,
+    DEFAULT_PDF_INCLUDE_COVER_PAGE,
+    DEFAULT_PDF_INCLUDE_PROVENANCE_APPENDIX,
     DEFAULT_REPORT_TITLE_TEMPLATE,
     DOCUMENT_VERSION,
     FORBIDDEN_SETTINGS_KEYS,
@@ -192,6 +195,17 @@ def resolve_configuration(
         ),
         include_scenario_provenance_section=_coalesce_bool(
             report_overrides.get("include_scenario_provenance_section"), True
+        ),
+        pdf_export_enabled=_coalesce_bool(
+            report_overrides.get("pdf_export_enabled"), DEFAULT_PDF_EXPORT_ENABLED
+        ),
+        pdf_include_cover_page=_coalesce_bool(
+            report_overrides.get("pdf_include_cover_page"),
+            DEFAULT_PDF_INCLUDE_COVER_PAGE,
+        ),
+        pdf_include_provenance_appendix=_coalesce_bool(
+            report_overrides.get("pdf_include_provenance_appendix"),
+            DEFAULT_PDF_INCLUDE_PROVENANCE_APPENDIX,
         ),
     )
 

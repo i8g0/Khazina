@@ -11,6 +11,10 @@ from app.repositories.exceptions import EntityNotFoundError
 from app.repositories.financial import FinancialRepository
 from app.repositories.snapshot import FinancialSnapshotRepository
 from app.repositories.notification import NotificationRepository
+from app.repositories.report_export import ReportExportRepository
+from app.repositories.user_notification_preferences import (
+    UserNotificationPreferencesRepository,
+)
 from app.repositories.organization import OrganizationRepository
 from app.repositories.recommendation import RecommendationRepository
 from app.repositories.report import ReportRepository
@@ -31,11 +35,13 @@ __all__ = [
     "NotificationRepository",
     "OrganizationRepository",
     "RecommendationRepository",
+    "ReportExportRepository",
     "ReportRepository",
     "RiskRepository",
     "SettingsRepository",
     "SimulationRepository",
     "TimelineRepository",
+    "UserNotificationPreferencesRepository",
     "UserRepository",
     "WasteRepository",
 ]

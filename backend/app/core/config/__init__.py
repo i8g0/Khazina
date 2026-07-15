@@ -80,6 +80,10 @@ class Settings:
         return self.storage.bronze_storage_root
 
     @property
+    def report_export_storage_root(self) -> str:
+        return self.storage.report_export_storage_root
+
+    @property
     def max_upload_size_bytes(self) -> int:
         return self.storage.max_upload_size_bytes
 

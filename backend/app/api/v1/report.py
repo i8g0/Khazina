@@ -5,8 +5,15 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import Response
 
-from app.api.deps import PaginationDep, ReportBuilderServiceDep, ReportServiceDep, SettingsServiceDep
+from app.api.deps import (
+    PaginationDep,
+    ReportBuilderServiceDep,
+    ReportExportServiceDep,
+    ReportServiceDep,
+    SettingsServiceDep,
+)
 from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
 from app.db.models.enums import UserRole
 from app.reports.content import content_fingerprint
@@ -89,14 +96,26 @@ def get_report_content(
 
 @router.get(
     "/{report_id}/export",
-    response_model=ApiResponse[ReportExportResponse],
     summary="Export deterministic Report Content Representation serialization",
 )
 def export_report(
     organization_id: UUID,
     report_id: UUID,
     builder: ReportBuilderServiceDep,
-) -> ApiResponse[ReportExportResponse]:
+    export_service: ReportExportServiceDep,
+    format: str | None = Query(None, alias="format"),
+):
+    if format is not None and format.lower() == "pdf":
+        outcome = export_service.export_pdf(organization_id, report_id)
+        filename = f"report-{report_id}.pdf"
+        return Response(
+            content=outcome.pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "X-Export-Fingerprint": outcome.export_record.export_fingerprint,
+            },
+        )
     serialization = builder.export_report(organization_id, report_id)
     return success_response(
         data=ReportExportResponse(

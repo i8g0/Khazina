@@ -17,6 +17,9 @@ from app.api.v1.scenario import router as scenario_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.simulation import router as simulation_router
 from app.api.v1.timeline import router as timeline_router
+from app.api.v1.user_notification_preferences import (
+    router as user_notification_preferences_router,
+)
 from app.api.v1.user import router as user_router
 from app.api.v1.waste import router as waste_router
 
@@ -39,4 +42,5 @@ api_v1_router.include_router(settings_router)
 api_v1_router.include_router(notification_router)
 api_v1_router.include_router(recommendation_router)
 api_v1_router.include_router(timeline_router)
+api_v1_router.include_router(user_notification_preferences_router)
 api_v1_router.include_router(user_router)

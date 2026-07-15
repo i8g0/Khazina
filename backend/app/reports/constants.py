@@ -4,6 +4,8 @@ from __future__ import annotations
 
 BUILDER_VERSION = "1.0.0"
 REPORT_DOCUMENT_VERSION = "1.0"
+PDF_RENDERER_VERSION = "1.0"
+EXPORT_FORMAT_PDF = "pdf"
 
 PROFILE_WASTE_DECISION = "waste_decision"
 PROFILE_SCENARIO = "scenario"

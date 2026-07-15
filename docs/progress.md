@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 6 – Business Features                                     |
-| Current Sprint | 6.8 (Settings) — **Completed**                                    |
-| Overall Status | Phase 6 Sprint 6.8 complete — org-scoped settings live            |
+| Current Sprint | 6.9 (Advanced Features) — **Completed**                                    |
+| Overall Status | Phase 6 Sprint 6.9 complete — PDF export, user notification prefs, failure notifications |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -25,7 +25,7 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
-| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.8 complete) |
+| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.9 complete) |
 
 ---
 
@@ -99,6 +99,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 6.6    | Business   | Reports                              | Completed |             | 2026-07-15    |
 | 6.7    | Business   | Notifications                        | Completed |             | 2026-07-15    |
 | 6.8    | Business   | Settings                             | Completed |             | 2026-07-15    |
+| 6.9    | Business   | Advanced Features                    | Completed |             | 2026-07-15    |
 
 ---
 
@@ -1930,6 +1931,38 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | Full test suite | ✅ Pass (109 tests) |
 
 **Next step:** Frontend Organization Management and Settings page (Phase 7), user-level notification preferences (Sprint 6.7 E-12), or binary report export — separate sprint approval required.
+
+---
+
+### Phase 6 — Sprint 6.9: Advanced Features
+
+**Status:** Completed — PDF export, user notification preferences, report export preferences, analysis failure notifications
+
+**Objective:** Close Phase 6 business deferrals from Sprints 6.6–6.8 — deterministic PDF export from persisted Report Content Representation, user-level notification preference composition, and failure-path notification materialization — no AI, no Business Engines, no analytics APIs.
+
+**Deliverables:**
+
+- `app/reports/export_service.py`, `pdf_renderer.py`, `export_storage.py` — deterministic PDF from `content_representation` only
+- `report_exports` + `user_notification_preferences` tables + Alembic migration `b9d4e7f16a21`
+- Report Export Preferences extension on `ReportPreferencesSection` (`pdf_export_enabled`, cover page, provenance appendix)
+- `GET .../reports/{id}/export?format=pdf` — binary PDF; JSON preserved when `format` omitted
+- `GET/PATCH .../users/me/notification-preferences` — per-user prefs composing atop org Platform Default Notification Preferences
+- Failure kinds `analysis_failed` / `scenario_failed` + `fail_run()` notification hook with `initiating_user_id`
+- `tests/advanced_features/` — PDF determinism, export prefs, effective prefs, user prefs service, failure notifications, isolation
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| PDF from persisted content only; idempotent export fingerprint | ✅ Pass |
+| Report Export Preferences fail-closed when disabled | ✅ Pass |
+| User notification prefs compose over org defaults | ✅ Pass |
+| Failure notifications via existing Notification Builder | ✅ Pass |
+| No AI / no Business Engine execution | ✅ Pass |
+| No dashboard or repository summary endpoints | ✅ Pass |
+| Full test suite | ✅ Pass (170 tests) |
+
+**Next step:** Frontend Organization Management and Settings page (Phase 7), Notifications Center (Phase 7), or Phase 7 analytics (dashboard/repository summary) — separate sprint approval required.
 
 ---
 

@@ -49,6 +49,9 @@ class ReportPreferencesSection:
     include_ai_sections_when_available: bool
     include_recommendations_section: bool
     include_scenario_provenance_section: bool
+    pdf_export_enabled: bool
+    pdf_include_cover_page: bool
+    pdf_include_provenance_appendix: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,6 +129,13 @@ class ResolvedConfiguration:
                 ),
                 "include_scenario_provenance_section": (
                     self.report_preferences.include_scenario_provenance_section
+                ),
+                "pdf_export_enabled": self.report_preferences.pdf_export_enabled,
+                "pdf_include_cover_page": (
+                    self.report_preferences.pdf_include_cover_page
+                ),
+                "pdf_include_provenance_appendix": (
+                    self.report_preferences.pdf_include_provenance_appendix
                 ),
             },
             "platform_default_notification_preferences": {

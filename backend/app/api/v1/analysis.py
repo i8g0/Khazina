@@ -157,10 +157,13 @@ def fail_analysis_run(
     run_id: UUID,
     body: FailAnalysisRunRequest,
     service: AnalysisServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[AnalysisRunResponse]:
     run = service.fail_run(
-        organization_id, run_id, failure_details=body.failure_details
+        organization_id,
+        run_id,
+        failure_details=body.failure_details,
+        initiating_user_id=current_user.id,
     )
     return success_response(
         data=AnalysisRunResponse.model_validate(run),

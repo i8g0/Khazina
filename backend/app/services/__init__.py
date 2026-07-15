@@ -6,10 +6,7 @@ raise business-level exceptions (``app.services.exceptions``). They contain
 no HTTP concepts; translation to API responses belongs to upper layers.
 """
 
-from app.services.analysis import AnalysisService
-from app.services.auth import AuthService
 from app.services.base import BaseService
-from app.services.department import DepartmentService
 from app.services.exceptions import (
     AuthenticationError,
     BusinessRuleViolationError,
@@ -21,16 +18,6 @@ from app.services.exceptions import (
     ResourceNotFoundError,
     ServiceError,
 )
-from app.services.financial import FinancialService
-from app.services.ingestion import IngestionService, UploadIngestionOutcome
-from app.services.organization import OrganizationService
-from app.services.recommendation import RecommendationService
-from app.services.report import ReportService
-from app.services.risk import RiskService
-from app.services.simulation import SimulationService
-from app.services.timeline import TimelineService
-from app.services.user import UserService
-from app.services.waste import WasteService
 
 __all__ = [
     "AnalysisService",
@@ -58,3 +45,29 @@ __all__ = [
     "UploadIngestionOutcome",
     "WasteService",
 ]
+
+_SERVICE_EXPORTS = {
+    "AnalysisService": "app.services.analysis",
+    "AuthService": "app.services.auth",
+    "DepartmentService": "app.services.department",
+    "FinancialService": "app.services.financial",
+    "IngestionService": "app.services.ingestion",
+    "OrganizationService": "app.services.organization",
+    "RecommendationService": "app.services.recommendation",
+    "ReportService": "app.services.report",
+    "RiskService": "app.services.risk",
+    "SimulationService": "app.services.simulation",
+    "TimelineService": "app.services.timeline",
+    "UserService": "app.services.user",
+    "WasteService": "app.services.waste",
+    "UploadIngestionOutcome": "app.services.ingestion",
+}
+
+
+def __getattr__(name: str):
+    if name in _SERVICE_EXPORTS:
+        import importlib
+
+        module = importlib.import_module(_SERVICE_EXPORTS[name])
+        return getattr(module, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

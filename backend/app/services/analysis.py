@@ -250,6 +250,7 @@ class AnalysisService(BaseService):
         run_id: uuid.UUID,
         *,
         failure_details: dict[str, Any] | None = None,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> AnalysisRun:
         run = self._owned_run(organization_id, run_id)
         self._validate_transition(run, AnalysisRunStatus.FAILED)
@@ -265,6 +266,15 @@ class AnalysisService(BaseService):
             }
         with self._transaction():
             self._analyses.update(run, values)
+        try_materialize(
+            self._notifications,
+            initiating_user_id,
+            lambda: self._notifications.materialize_analysis_failure(
+                organization_id,
+                run_id,
+                initiating_user_id=initiating_user_id,
+            ),
+        )
         return run
 
     def delete_run(self, organization_id: uuid.UUID, run_id: uuid.UUID) -> None:

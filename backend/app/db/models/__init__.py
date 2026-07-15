@@ -5,6 +5,8 @@ from app.db.models.analysis import AnalysisRun
 from app.db.models.department import Department
 from app.db.models.organization import Organization, ReportingPeriod
 from app.db.models.notification import Notification, NotificationReadReceipt
+from app.db.models.report_export import ReportExport
+from app.db.models.user_notification_preferences import UserNotificationPreferences
 from app.db.models.settings import OrganizationSettings
 from app.db.models.recommendation import Recommendation
 from app.db.models.reporting import Report
@@ -46,6 +48,8 @@ __all__ = [
     "ImportRecord",
     "Notification",
     "NotificationReadReceipt",
+    "ReportExport",
+    "UserNotificationPreferences",
     "Organization",
     "OrganizationSettings",
     "Recommendation",

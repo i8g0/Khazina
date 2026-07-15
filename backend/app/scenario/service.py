@@ -203,6 +203,7 @@ class ScenarioService(BaseService):
                 organization_id,
                 run.id,
                 failure_details=exc.to_failure_details(),
+                initiating_user_id=initiating_user_id,
             )
             raise
         except EngineError as exc:
@@ -213,6 +214,7 @@ class ScenarioService(BaseService):
                     "error_code": "engine_execution_failed",
                     "message": str(exc),
                 },
+                initiating_user_id=initiating_user_id,
             )
             raise
 

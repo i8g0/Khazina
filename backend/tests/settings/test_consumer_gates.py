@@ -76,6 +76,9 @@ def _resolved_config(
             include_ai_sections_when_available=True,
             include_recommendations_section=True,
             include_scenario_provenance_section=True,
+            pdf_export_enabled=True,
+            pdf_include_cover_page=True,
+            pdf_include_provenance_appendix=True,
         ),
         platform_default_notification_preferences=PlatformDefaultNotificationPreferencesSection(
             notifications_enabled=True,
