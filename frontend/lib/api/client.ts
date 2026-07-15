@@ -26,9 +26,13 @@ function buildHeaders(token: string | null, body?: unknown): Headers {
 
 export async function apiRequest<T>(
   path: string,
-  options: RequestInit & { token?: string | null } = {},
+  options: RequestInit & {
+    token?: string | null;
+    /** When true, honor API contracts that return `data: null` on success. */
+    allowNull?: boolean;
+  } = {},
 ): Promise<T> {
-  const { token = null, ...init } = options;
+  const { token = null, allowNull = false, ...init } = options;
   const response = await fetch(`${API_BASE}/api/v1${path}`, {
     ...init,
     headers: buildHeaders(token, init.body),
@@ -62,6 +66,9 @@ export async function apiRequest<T>(
   }
 
   if (envelope.data === null) {
+    if (allowNull) {
+      return null as T;
+    }
     throw new ApiError(response.status, envelope.message || "لا توجد بيانات");
   }
 

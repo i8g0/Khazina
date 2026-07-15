@@ -22,9 +22,12 @@ import {
   executiveSectionSpacingClassName,
   getAppNavItems,
 } from "@/lib/app-nav";
-import { organization } from "@/lib/placeholder-data";
 import type { ReportItem } from "@/lib/placeholder-data";
-import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
+import {
+  useRequireAuth,
+  formatApiError,
+  useOrganizationDisplay,
+} from "@/lib/auth/auth-context";
 import {
   downloadReportPdf,
   generateReport,
@@ -55,6 +58,8 @@ function toReportItem(
     status: string;
     summary: string;
     created_at: string;
+    department_id?: string | null;
+    source_file_id?: string | null;
   },
   previewText: string,
 ): ReportItem {
@@ -62,8 +67,8 @@ function toReportItem(
     id: row.id,
     title: row.title,
     type: mapReportType(row.report_type),
-    department: "الشؤون المالية",
-    sourceFile: "Procurement_Q2.xlsx",
+    department: "—",
+    sourceFile: row.source_file_id ? "ملف مصدر" : "—",
     date: row.created_at,
     status: mapReportStatus(row.status),
     previewText,
@@ -72,6 +77,7 @@ function toReportItem(
 
 export function ReportsPage() {
   const auth = useRequireAuth();
+  const org = useOrganizationDisplay();
   const [loading, setLoading] = React.useState(true);
   const [generating, setGenerating] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
@@ -189,7 +195,7 @@ export function ReportsPage() {
     <AppLayout
       brand={<DashboardBrand />}
       title="التقارير"
-      subtitle={organization.reportingPeriod}
+      subtitle={org.reportingPeriod}
       activeItemId="reports"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
@@ -200,7 +206,7 @@ export function ReportsPage() {
           <PageHero
             title="التقارير"
             description="عرض وتصفية وتصدير التقارير المالية والتحليلية للمراجعة التنفيذية."
-            period={organization.reportingPeriod}
+            period={org.reportingPeriod}
           />
 
           <div className="flex flex-wrap gap-3">
@@ -272,7 +278,7 @@ export function ReportsPage() {
               />
               <FilterGroup
                 label="القسم"
-                options={["الكل", "الشؤون المالية"]}
+                options={["الكل"]}
                 value={departmentFilter}
                 onChange={setDepartmentFilter}
               />

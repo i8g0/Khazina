@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,17 +27,30 @@ export function NotificationBell() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const refresh = React.useCallback(async () => {
+  const refreshCount = React.useCallback(async () => {
+    if (!session) return;
+    try {
+      const count = await getUnreadCount(session.organizationId, session.token);
+      setUnread(count);
+    } catch {
+      /* keep last known count on poll failure */
+    }
+  }, [session]);
+
+  const refreshList = React.useCallback(async () => {
     if (!session) return;
     setLoading(true);
     setError(null);
     try {
       const [count, notifications] = await Promise.all([
         getUnreadCount(session.organizationId, session.token),
-        listNotifications(session.organizationId, session.token),
+        listNotifications(session.organizationId, session.token, {
+          limit: 8,
+          offset: 0,
+        }),
       ]);
       setUnread(count);
-      setItems(notifications.slice(0, 12));
+      setItems(notifications);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -45,20 +59,20 @@ export function NotificationBell() {
   }, [session]);
 
   React.useEffect(() => {
-    void refresh();
-    const timer = window.setInterval(() => void refresh(), 30_000);
+    void refreshCount();
+    const timer = window.setInterval(() => void refreshCount(), 30_000);
     return () => window.clearInterval(timer);
-  }, [refresh]);
+  }, [refreshCount]);
 
-  const handleOpen = () => {
-    setOpen(true);
-    void refresh();
+  const handleOpen = (next: boolean) => {
+    setOpen(next);
+    if (next) void refreshList();
   };
 
   const handleMarkRead = async (id: string) => {
     if (!session) return;
     await markNotificationRead(session.organizationId, session.token, id);
-    await refresh();
+    await refreshList();
   };
 
   return (
@@ -68,10 +82,10 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         className="relative"
-        onClick={handleOpen}
-        aria-label="الإشعارات"
+        onClick={() => handleOpen(true)}
+        aria-label={`الإشعارات${unread > 0 ? ` — ${unread} غير مقروء` : ""}`}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-5 w-5" aria-hidden />
         {unread > 0 ? (
           <span className="absolute -left-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[11px] font-semibold text-white">
             {unread > 9 ? "9+" : unread}
@@ -79,16 +93,20 @@ export function NotificationBell() {
         ) : null}
       </Button>
 
-      <Modal open={open} onOpenChange={setOpen}>
+      <Modal open={open} onOpenChange={handleOpen}>
         <ModalContent>
           <ModalHeader>
             <ModalTitle>الإشعارات</ModalTitle>
-            <ModalDescription>إشعارات المنصة للمستخدم الحالي</ModalDescription>
+            <ModalDescription>أحدث إشعارات المنصة</ModalDescription>
           </ModalHeader>
           {loading ? (
-            <p className="text-sm text-muted">جاري التحميل...</p>
+            <p className="text-sm text-muted" role="status">
+              جاري التحميل...
+            </p>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
           ) : items.length === 0 ? (
             <p className="text-sm text-muted">لا توجد إشعارات حالياً</p>
           ) : (
@@ -120,6 +138,13 @@ export function NotificationBell() {
               ))}
             </ul>
           )}
+          <div className="mt-4">
+            <Button asChild variant="secondary" size="sm">
+              <Link href="/notifications" onClick={() => setOpen(false)}>
+                فتح مركز الإشعارات
+              </Link>
+            </Button>
+          </div>
         </ModalContent>
       </Modal>
     </>
@@ -131,7 +156,13 @@ export function DemoHeaderActions() {
   return (
     <div className="flex items-center gap-2">
       <NotificationBell />
-      <Button type="button" variant="outline" size="sm" onClick={signOut}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={signOut}
+        aria-label="تسجيل الخروج"
+      >
         خروج
       </Button>
     </div>

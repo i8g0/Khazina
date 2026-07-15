@@ -19,20 +19,24 @@ import {
   executiveSectionSpacingClassName,
   getAppNavItems,
 } from "@/lib/app-nav";
-import { organization, riskRecommendations, riskSummaryKpis } from "@/lib/placeholder-data";
-import { useRequireAuth } from "@/lib/auth/auth-context";
+import { riskRecommendations, riskSummaryKpis } from "@/lib/placeholder-data";
+import {
+  useRequireAuth,
+  useOrganizationDisplay,
+} from "@/lib/auth/auth-context";
 
 const summaryIcons = [ShieldAlert, AlertTriangle, ShieldCheck, CheckCircle2];
 
 export function RiskPage() {
   const auth = useRequireAuth();
+  const org = useOrganizationDisplay();
   if (!auth.session) return null;
 
   return (
     <AppLayout
       brand={<DashboardBrand />}
       title="إدارة المخاطر"
-      subtitle={organization.reportingPeriod}
+      subtitle={org.reportingPeriod}
       activeItemId="risk"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
@@ -43,7 +47,7 @@ export function RiskPage() {
           <PageHero
             title="إدارة المخاطر"
             description="متابعة وتحليل المخاطر التشغيلية والمالية للمؤسسة."
-            period={organization.reportingPeriod}
+            period={org.reportingPeriod}
           />
 
           <div className="flex items-center gap-2">

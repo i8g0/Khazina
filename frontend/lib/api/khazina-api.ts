@@ -1,14 +1,22 @@
 import { apiRequest, downloadBinary } from "@/lib/api/client";
 import type {
   AnalysisRunResponse,
+  DataQualityCheckResponse,
+  DataQualitySnapshotResponse,
+  DepartmentResponse,
+  FinancialFileResponse,
   ImportRecordResponse,
+  ListQueryParams,
   NotificationResponse,
   OrganizationResponse,
   RecommendationResponse,
   ReportContentResponse,
   ReportGenerateResponse,
   ReportResponse,
+  ReportingPeriodResponse,
+  ResolvedSettingsResponse,
   ScenarioExecuteResponse,
+  SettingsPatchPayload,
   SimulationChartPointResponse,
   SimulationComparisonMetricResponse,
   SimulationForecastSummaryResponse,
@@ -16,12 +24,25 @@ import type {
   TimelineEventResponse,
   TokenResponse,
   UploadIngestionResponse,
+  UserNotificationPreferencesResponse,
+  UserResponse,
   WasteAiRecommendationsResponse,
   WasteAnalysisResultResponse,
   WasteCategoryBreakdownResponse,
   WasteDecisionExecuteResponse,
-  FinancialFileResponse,
 } from "@/lib/api/types";
+
+function toQuery(
+  params: object,
+): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    search.set(key, String(value));
+  }
+  const serialized = search.toString();
+  return serialized ? `?${serialized}` : "";
+}
 
 export async function login(
   email: string,
@@ -37,6 +58,195 @@ export async function getActiveOrganization(
   token: string,
 ): Promise<OrganizationResponse> {
   return apiRequest<OrganizationResponse>("/organizations/active", { token });
+}
+
+export async function getOrganization(
+  orgId: string,
+  token: string,
+): Promise<OrganizationResponse> {
+  return apiRequest<OrganizationResponse>(`/organizations/${orgId}`, { token });
+}
+
+export async function patchOrganization(
+  orgId: string,
+  token: string,
+  body: {
+    name?: string;
+    platform_name?: string;
+    executive_title?: string | null;
+  },
+): Promise<OrganizationResponse> {
+  return apiRequest<OrganizationResponse>(`/organizations/${orgId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(body),
+  });
+}
+
+export async function listDepartments(
+  orgId: string,
+  token: string,
+  options: ListQueryParams & { active_only?: boolean } = {},
+): Promise<DepartmentResponse[]> {
+  return apiRequest<DepartmentResponse[]>(
+    `/organizations/${orgId}/departments${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function createDepartment(
+  orgId: string,
+  token: string,
+  body: { name_ar: string; code?: string | null; display_order?: number },
+): Promise<DepartmentResponse> {
+  return apiRequest<DepartmentResponse>(`/organizations/${orgId}/departments`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(body),
+  });
+}
+
+export async function patchDepartment(
+  orgId: string,
+  token: string,
+  departmentId: string,
+  body: {
+    name_ar?: string;
+    code?: string | null;
+    display_order?: number;
+  },
+): Promise<DepartmentResponse> {
+  return apiRequest<DepartmentResponse>(
+    `/organizations/${orgId}/departments/${departmentId}`,
+    { method: "PATCH", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function deactivateDepartment(
+  orgId: string,
+  token: string,
+  departmentId: string,
+): Promise<DepartmentResponse> {
+  return apiRequest<DepartmentResponse>(
+    `/organizations/${orgId}/departments/${departmentId}/deactivate`,
+    { method: "POST", token },
+  );
+}
+
+export async function reactivateDepartment(
+  orgId: string,
+  token: string,
+  departmentId: string,
+): Promise<DepartmentResponse> {
+  return apiRequest<DepartmentResponse>(
+    `/organizations/${orgId}/departments/${departmentId}/reactivate`,
+    { method: "POST", token },
+  );
+}
+
+export async function listReportingPeriods(
+  orgId: string,
+  token: string,
+  options: ListQueryParams = {},
+): Promise<ReportingPeriodResponse[]> {
+  return apiRequest<ReportingPeriodResponse[]>(
+    `/organizations/${orgId}/reporting-periods${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function createReportingPeriod(
+  orgId: string,
+  token: string,
+  body: {
+    label: string;
+    start_date?: string | null;
+    end_date?: string | null;
+    activate?: boolean;
+  },
+): Promise<ReportingPeriodResponse> {
+  return apiRequest<ReportingPeriodResponse>(
+    `/organizations/${orgId}/reporting-periods`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function activateReportingPeriod(
+  orgId: string,
+  token: string,
+  periodId: string,
+): Promise<ReportingPeriodResponse> {
+  return apiRequest<ReportingPeriodResponse>(
+    `/organizations/${orgId}/reporting-periods/${periodId}/activate`,
+    { method: "POST", token },
+  );
+}
+
+export async function closeActiveReportingPeriod(
+  orgId: string,
+  token: string,
+): Promise<ReportingPeriodResponse> {
+  return apiRequest<ReportingPeriodResponse>(
+    `/organizations/${orgId}/reporting-periods/close-active`,
+    { method: "POST", token },
+  );
+}
+
+export async function listUsers(
+  orgId: string,
+  token: string,
+  options: ListQueryParams & { active_only?: boolean } = {},
+): Promise<UserResponse[]> {
+  return apiRequest<UserResponse[]>(
+    `/organizations/${orgId}/users${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function createUser(
+  orgId: string,
+  token: string,
+  body: {
+    full_name: string;
+    email: string;
+    password: string;
+    role?: UserResponse["role"];
+  },
+): Promise<UserResponse> {
+  return apiRequest<UserResponse>(`/organizations/${orgId}/users`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(body),
+  });
+}
+
+export async function patchUser(
+  orgId: string,
+  token: string,
+  userId: string,
+  body: {
+    full_name?: string;
+    email?: string;
+    password?: string;
+    role?: UserResponse["role"];
+  },
+): Promise<UserResponse> {
+  return apiRequest<UserResponse>(`/organizations/${orgId}/users/${userId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deactivateUser(
+  orgId: string,
+  token: string,
+  userId: string,
+): Promise<UserResponse> {
+  return apiRequest<UserResponse>(
+    `/organizations/${orgId}/users/${userId}/deactivate`,
+    { method: "POST", token },
+  );
 }
 
 export async function uploadFinancialFile(
@@ -65,10 +275,53 @@ export async function listFinancialFiles(
 export async function listImportRecords(
   orgId: string,
   token: string,
+  fileId: string,
 ): Promise<ImportRecordResponse[]> {
   return apiRequest<ImportRecordResponse[]>(
-    `/organizations/${orgId}/import-records`,
+    `/organizations/${orgId}/financial-files/${fileId}/import-records`,
     { token },
+  );
+}
+
+export async function getLatestQualitySnapshot(
+  orgId: string,
+  token: string,
+): Promise<DataQualitySnapshotResponse | null> {
+  return apiRequest<DataQualitySnapshotResponse | null>(
+    `/organizations/${orgId}/data-quality-snapshots/latest`,
+    { token, allowNull: true },
+  );
+}
+
+export async function listQualityChecks(
+  orgId: string,
+  token: string,
+  snapshotId: string,
+): Promise<DataQualityCheckResponse[]> {
+  return apiRequest<DataQualityCheckResponse[]>(
+    `/organizations/${orgId}/data-quality-snapshots/${snapshotId}/checks`,
+    { token },
+  );
+}
+
+export async function getOrganizationSettings(
+  orgId: string,
+  token: string,
+): Promise<ResolvedSettingsResponse> {
+  return apiRequest<ResolvedSettingsResponse>(
+    `/organizations/${orgId}/settings`,
+    { token },
+  );
+}
+
+export async function patchOrganizationSettings(
+  orgId: string,
+  token: string,
+  body: SettingsPatchPayload,
+): Promise<ResolvedSettingsResponse> {
+  return apiRequest<ResolvedSettingsResponse>(
+    `/organizations/${orgId}/settings`,
+    { method: "PATCH", token, body: JSON.stringify(body) },
   );
 }
 
@@ -145,6 +398,17 @@ export async function listScenarios(
   );
 }
 
+export async function createScenario(
+  orgId: string,
+  token: string,
+  body: { name: string; description: string },
+): Promise<SimulationScenarioResponse> {
+  return apiRequest<SimulationScenarioResponse>(
+    `/organizations/${orgId}/simulation/scenarios`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
 export async function executeScenario(
   orgId: string,
   token: string,
@@ -169,7 +433,7 @@ export async function getForecastSummary(
 ): Promise<SimulationForecastSummaryResponse | null> {
   return apiRequest<SimulationForecastSummaryResponse | null>(
     `/organizations/${orgId}/simulation/runs/${runId}/forecast-summary`,
-    { token },
+    { token, allowNull: true },
   );
 }
 
@@ -248,9 +512,10 @@ export async function downloadReportPdf(
 export async function listNotifications(
   orgId: string,
   token: string,
+  options: ListQueryParams & { unread_only?: boolean } = {},
 ): Promise<NotificationResponse[]> {
   return apiRequest<NotificationResponse[]>(
-    `/organizations/${orgId}/notifications`,
+    `/organizations/${orgId}/notifications${toQuery(options)}`,
     { token },
   );
 }
@@ -270,10 +535,45 @@ export async function markNotificationRead(
   orgId: string,
   token: string,
   notificationId: string,
-): Promise<void> {
-  await apiRequest<unknown>(
+): Promise<NotificationResponse> {
+  return apiRequest<NotificationResponse>(
     `/organizations/${orgId}/notifications/${notificationId}/read`,
     { method: "POST", token },
+  );
+}
+
+export async function markAllNotificationsRead(
+  orgId: string,
+  token: string,
+): Promise<number> {
+  const data = await apiRequest<{ marked_count: number }>(
+    `/organizations/${orgId}/notifications/read-all`,
+    { method: "POST", token },
+  );
+  return data.marked_count;
+}
+
+export async function getUserNotificationPreferences(
+  orgId: string,
+  token: string,
+): Promise<UserNotificationPreferencesResponse> {
+  return apiRequest<UserNotificationPreferencesResponse>(
+    `/organizations/${orgId}/users/me/notification-preferences`,
+    { token },
+  );
+}
+
+export async function patchUserNotificationPreferences(
+  orgId: string,
+  token: string,
+  body: {
+    notifications_enabled?: boolean;
+    muted_notification_kinds?: string[];
+  },
+): Promise<UserNotificationPreferencesResponse> {
+  return apiRequest<UserNotificationPreferencesResponse>(
+    `/organizations/${orgId}/users/me/notification-preferences`,
+    { method: "PATCH", token, body: JSON.stringify(body) },
   );
 }
 

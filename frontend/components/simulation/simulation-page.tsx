@@ -10,7 +10,9 @@ import { SimulationScenarioCard } from "@/components/simulation/simulation-scena
 import { DemoHeaderActions } from "@/components/notifications/notification-bell";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { Input } from "@/components/ui/input";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageHero } from "@/components/ui/page-hero";
 import {
@@ -19,9 +21,13 @@ import {
   executiveSectionSpacingClassName,
   getAppNavItems,
 } from "@/lib/app-nav";
-import { organization } from "@/lib/placeholder-data";
-import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
 import {
+  useRequireAuth,
+  formatApiError,
+  useOrganizationDisplay,
+} from "@/lib/auth/auth-context";
+import {
+  createScenario,
   executeScenario,
   getForecastSummary,
   listChartPoints,
@@ -33,10 +39,14 @@ import { mapSimulationStatus } from "@/lib/format";
 
 export function SimulationPage() {
   const auth = useRequireAuth();
+  const org = useOrganizationDisplay();
   const [loading, setLoading] = React.useState(true);
   const [executing, setExecuting] = React.useState(false);
+  const [creating, setCreating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
+  const [newName, setNewName] = React.useState("");
+  const [newDescription, setNewDescription] = React.useState("");
   const [scenarios, setScenarios] = React.useState<
     { id: string; name: string; description: string; status: string }[]
   >([]);
@@ -58,17 +68,23 @@ export function SimulationPage() {
     if (!auth.session) return;
     setLoading(true);
     try {
-      const rows = await listScenarios(auth.session.organizationId, auth.session.token);
+      const rows = await listScenarios(
+        auth.session.organizationId,
+        auth.session.token,
+      );
       setScenarios(rows);
-      if (!activeId && rows[0]) {
-        setActiveId(rows[0].id);
-      }
+      setActiveId((current) => {
+        if (current && rows.some((row) => row.id === current)) {
+          return current;
+        }
+        return rows[0]?.id ?? null;
+      });
     } catch (err) {
       setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
-  }, [auth.session, activeId]);
+  }, [auth.session]);
 
   React.useEffect(() => {
     if (auth.session) void loadScenarios();
@@ -79,7 +95,11 @@ export function SimulationPage() {
     const [summary, points, metrics] = await Promise.all([
       getForecastSummary(auth.session.organizationId, auth.session.token, runId),
       listChartPoints(auth.session.organizationId, auth.session.token, runId),
-      listComparisonMetrics(auth.session.organizationId, auth.session.token, runId),
+      listComparisonMetrics(
+        auth.session.organizationId,
+        auth.session.token,
+        runId,
+      ),
     ]);
     if (summary) {
       setForecast({
@@ -104,6 +124,34 @@ export function SimulationPage() {
         change: m.change_value,
       })),
     );
+  };
+
+  const handleCreate = async () => {
+    if (!auth.session) return;
+    const name = newName.trim();
+    const description = newDescription.trim();
+    if (!name || !description) {
+      setError("أدخل اسم السيناريو ووصفه");
+      return;
+    }
+    setCreating(true);
+    setError(null);
+    try {
+      const created = await createScenario(
+        auth.session.organizationId,
+        auth.session.token,
+        { name, description },
+      );
+      setNewName("");
+      setNewDescription("");
+      setActiveId(created.id);
+      setMessage("تم إنشاء السيناريو");
+      await loadScenarios();
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setCreating(false);
+    }
   };
 
   const runScenario = async () => {
@@ -159,7 +207,7 @@ export function SimulationPage() {
     <AppLayout
       brand={<DashboardBrand />}
       title="محاكاة الأعمال"
-      subtitle={organization.reportingPeriod}
+      subtitle={org.reportingPeriod}
       activeItemId="simulation"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
@@ -170,18 +218,57 @@ export function SimulationPage() {
           <PageHero
             title="محاكاة السيناريوهات"
             description="مقارنة السيناريوهات التشغيلية مقابل خط الأساس من بيانات حقيقية."
-            period={organization.reportingPeriod}
+            period={org.reportingPeriod}
           />
 
-          <Button disabled={executing || !activeId} onClick={() => void runScenario()}>
-            {executing ? "جاري التنفيذ..." : "تشغيل السيناريو النشط"}
-          </Button>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[200px] flex-1 space-y-1.5">
+              <label className="text-sm text-muted">اسم السيناريو</label>
+              <Input
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+                placeholder="مثال: خفض المشتريات 10%"
+              />
+            </div>
+            <div className="min-w-[260px] flex-[2] space-y-1.5">
+              <label className="text-sm text-muted">الوصف</label>
+              <Input
+                value={newDescription}
+                onChange={(event) => setNewDescription(event.target.value)}
+                placeholder="وصف مختصر للسيناريو"
+              />
+            </div>
+            <Button
+              variant="secondary"
+              disabled={creating}
+              onClick={() => void handleCreate()}
+            >
+              {creating ? "جاري الإنشاء..." : "إنشاء سيناريو"}
+            </Button>
+            <Button
+              disabled={executing || !activeId}
+              onClick={() => void runScenario()}
+            >
+              {executing ? "جاري التنفيذ..." : "تشغيل السيناريو النشط"}
+            </Button>
+          </div>
 
           {message ? <Alert variant="success" title="تم">{message}</Alert> : null}
-          {error ? <ErrorState title="خطأ" description={error} onRetry={() => setError(null)} /> : null}
+          {error ? (
+            <ErrorState
+              title="خطأ"
+              description={error}
+              onRetry={() => setError(null)}
+            />
+          ) : null}
 
           {loading ? (
             <LoadingSkeleton className="min-h-[240px] rounded-2xl" />
+          ) : scenarios.length === 0 ? (
+            <EmptyState
+              title="لا توجد سيناريوهات"
+              description="أنشئ سيناريوًا جديدًا للبدء."
+            />
           ) : (
             <section className="grid gap-4 md:grid-cols-3">
               {scenarios.map((scenario) => (
@@ -201,9 +288,25 @@ export function SimulationPage() {
           )}
 
           <section className="grid gap-5 sm:grid-cols-3">
-            <DashboardStatCard label="الأساس" value={forecast.baseline} hint="خط الأساس" dense />
-            <DashboardStatCard label="المتوقع" value={forecast.projected} hint="بعد المحاكاة" dense emphasis />
-            <DashboardStatCard label="التغير" value={forecast.delta} hint={forecast.confidence} dense />
+            <DashboardStatCard
+              label="الأساس"
+              value={forecast.baseline}
+              hint="خط الأساس"
+              dense
+            />
+            <DashboardStatCard
+              label="المتوقع"
+              value={forecast.projected}
+              hint="بعد المحاكاة"
+              dense
+              emphasis
+            />
+            <DashboardStatCard
+              label="التغير"
+              value={forecast.delta}
+              hint={forecast.confidence}
+              dense
+            />
           </section>
 
           {chartPoints.length > 0 ? (

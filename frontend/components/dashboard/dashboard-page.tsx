@@ -19,16 +19,20 @@ import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline";
 import { DemoHeaderActions } from "@/components/notifications/notification-bell";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
 import {
   dashboardKpis,
-  organization,
   type RecentAnalysis,
   type TimelineEvent,
 } from "@/lib/placeholder-data";
-import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
+import {
+  useRequireAuth,
+  formatApiError,
+  useOrganizationDisplay,
+} from "@/lib/auth/auth-context";
 import {
   listRecentAnalyses,
   listRecommendations,
@@ -55,6 +59,7 @@ const kpiIcons = [
 
 export function DashboardPage() {
   const auth = useRequireAuth();
+  const org = useOrganizationDisplay();
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [timeline, setTimeline] = React.useState<TimelineEvent[]>([]);
@@ -63,52 +68,53 @@ export function DashboardPage() {
     { id: string; title: string; description: string; badge: string; confidence: string }[]
   >([]);
 
-  React.useEffect(() => {
+  const load = React.useCallback(async () => {
     if (!auth.session) return;
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [events, runs, recs] = await Promise.all([
-          listTimeline(auth.session!.organizationId, auth.session!.token),
-          listRecentAnalyses(auth.session!.organizationId, auth.session!.token),
-          listRecommendations(auth.session!.organizationId, auth.session!.token),
-        ]);
-        setTimeline(
-          events.slice(0, 5).map((event) => ({
-            id: event.id,
-            date: event.event_date,
-            title: event.title,
-            type: mapTimelineType(event.event_type),
-          })),
-        );
-        setAnalyses(
-          runs.slice(0, 5).map((run) => ({
-            id: run.id,
-            title: run.title,
-            type: mapAnalysisType(run.analysis_type),
-            sourceFile: "Procurement_Q2.xlsx",
-            date: run.completed_at ? formatDate(run.completed_at) : "—",
-            status: mapRunStatus(run.status),
-          })),
-        );
-        setRecommendations(
-          recs.slice(0, 3).map((rec) => ({
-            id: rec.id,
-            title: rec.title,
-            description: rec.description,
-            badge: mapRecommendationPriority(rec.priority),
-            confidence: rec.confidence_label ?? "—",
-          })),
-        );
-      } catch (err) {
-        setError(formatApiError(err));
-      } finally {
-        setLoading(false);
-      }
-    };
-    void load();
+    setLoading(true);
+    setError(null);
+    try {
+      const [events, runs, recs] = await Promise.all([
+        listTimeline(auth.session.organizationId, auth.session.token),
+        listRecentAnalyses(auth.session.organizationId, auth.session.token),
+        listRecommendations(auth.session.organizationId, auth.session.token),
+      ]);
+      setTimeline(
+        events.slice(0, 5).map((event) => ({
+          id: event.id,
+          date: event.event_date,
+          title: event.title,
+          type: mapTimelineType(event.event_type),
+        })),
+      );
+      setAnalyses(
+        runs.slice(0, 5).map((run) => ({
+          id: run.id,
+          title: run.title,
+          type: mapAnalysisType(run.analysis_type),
+          sourceFile: run.source_file_id ? "ملف مصدر" : "—",
+          date: run.completed_at ? formatDate(run.completed_at) : "—",
+          status: mapRunStatus(run.status),
+        })),
+      );
+      setRecommendations(
+        recs.slice(0, 3).map((rec) => ({
+          id: rec.id,
+          title: rec.title,
+          description: rec.description,
+          badge: mapRecommendationPriority(rec.priority),
+          confidence: rec.confidence_label ?? "—",
+        })),
+      );
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setLoading(false);
+    }
   }, [auth.session]);
+
+  React.useEffect(() => {
+    void load();
+  }, [load]);
 
   if (!auth.session) return null;
 
@@ -116,7 +122,7 @@ export function DashboardPage() {
     <AppLayout
       brand={<DashboardBrand />}
       title="لوحة التحكم"
-      subtitle={organization.reportingPeriod}
+      subtitle={org.reportingPeriod}
       activeItemId="dashboard"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
@@ -126,12 +132,16 @@ export function DashboardPage() {
         <div className={dashboardPageSpacingClassName}>
           <DashboardHero
             title="نظرة تنفيذية"
-            description={`${organization.executiveTitle} — ${organization.name}`}
-            period={organization.reportingPeriod}
+            description={`${org.executiveTitle} — ${org.name}`}
+            period={org.reportingPeriod}
           />
 
           {error ? (
-            <ErrorState title="خطأ" description={error} onRetry={() => setError(null)} />
+            <ErrorState
+              title="خطأ"
+              description={error}
+              onRetry={() => void load()}
+            />
           ) : null}
 
           <section className="space-y-3">
@@ -139,7 +149,7 @@ export function DashboardPage() {
               <DashboardSectionHeader
                 dense
                 title="مؤشرات الأداء"
-                description="بيانات مرجعية للعرض — التكامل الكامل في مرحلة لاحقة"
+                description="لا توجد واجهة تجميع للمؤشرات بعد — مؤجلات التحليلات Phase 7"
               />
               <Badge variant="outline">عرض توضيحي</Badge>
             </div>
@@ -180,7 +190,10 @@ export function DashboardPage() {
             {loading ? (
               <LoadingSkeleton className="min-h-[180px] rounded-2xl" />
             ) : recommendations.length === 0 ? (
-              <p className="text-sm text-muted">لا توجد توصيات بعد — شغّل تحليل الهدر والذكاء الاصطناعي</p>
+              <EmptyState
+                title="لا توجد توصيات"
+                description="شغّل تحليل الهدر والذكاء الاصطناعي لعرض التوصيات"
+              />
             ) : (
               <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
                 {recommendations.map((item) => (
@@ -205,6 +218,11 @@ export function DashboardPage() {
             />
             {loading ? (
               <LoadingSkeleton className="min-h-[120px] rounded-2xl" />
+            ) : timeline.length === 0 ? (
+              <EmptyState
+                title="لا أحداث بعد"
+                description="ستظهر أحداث المنصة هنا بعد إكمال التحليلات"
+              />
             ) : (
               <div className="rounded-2xl border border-border/60 bg-surface px-4 py-4 md:px-5 md:py-4">
                 <DashboardTimeline events={timeline} maxVisible={5} />
@@ -220,6 +238,11 @@ export function DashboardPage() {
             />
             {loading ? (
               <LoadingSkeleton className="min-h-[200px] rounded-2xl" />
+            ) : analyses.length === 0 ? (
+              <EmptyState
+                title="لا توجد تحليلات مكتملة"
+                description="نفّذ كشف الهدر أو المحاكاة لملء هذه القائمة"
+              />
             ) : (
               <DashboardAnalysesTable data={analyses} />
             )}

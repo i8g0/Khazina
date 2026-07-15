@@ -1,11 +1,15 @@
 import {
   BarChart3,
+  Bell,
+  Building2,
   Database,
   FileBarChart,
   LayoutDashboard,
   LineChart,
   ScanSearch,
+  Settings,
   ShieldAlert,
+  Users,
 } from "lucide-react";
 import { dashboardNavItems } from "@/lib/placeholder-data";
 
@@ -16,6 +20,10 @@ export const navRouteMap: Record<string, string> = {
   simulation: "/business-simulation",
   reports: "/reports",
   data: "/data-management",
+  notifications: "/notifications",
+  organization: "/organization",
+  users: "/users",
+  settings: "/settings",
 };
 
 export const navIcons: Record<string, React.ReactNode> = {
@@ -25,6 +33,10 @@ export const navIcons: Record<string, React.ReactNode> = {
   simulation: <LineChart className="h-[18px] w-[18px]" strokeWidth={1.75} />,
   reports: <FileBarChart className="h-[18px] w-[18px]" strokeWidth={1.75} />,
   data: <Database className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  notifications: <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  organization: <Building2 className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  users: <Users className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  settings: <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />,
 };
 
 export function getAppNavItems() {

@@ -69,6 +69,7 @@ export interface WasteCategoryBreakdownResponse {
   category_name: string;
   amount: number;
   percentage: number;
+  department_id: string | null;
 }
 
 export interface RecommendationResponse {
@@ -131,6 +132,8 @@ export interface ReportResponse {
   summary: string;
   has_content: boolean;
   created_at: string;
+  department_id: string | null;
+  source_file_id: string | null;
 }
 
 export interface ReportContentResponse {
@@ -147,11 +150,64 @@ export interface ReportGenerateResponse {
 
 export interface NotificationResponse {
   id: string;
+  organization_id: string;
+  recipient_user_id: string;
+  platform_event_kind: string;
   title: string;
   body: string;
-  platform_event_kind: string;
-  is_read: boolean;
+  source_entity_type: string;
+  source_entity_id: string;
+  reporting_period_id: string | null;
   materialized_at: string;
+  status: string;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserNotificationPreferencesResponse {
+  notifications_enabled: boolean;
+  muted_notification_kinds: string[];
+  preferences_version: string;
+}
+
+export interface UserResponse {
+  id: string;
+  organization_id: string;
+  full_name: string;
+  email: string;
+  role: "admin" | "executive" | "analyst";
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DepartmentResponse {
+  id: string;
+  organization_id: string;
+  name_ar: string;
+  code: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReportingPeriodResponse {
+  id: string;
+  organization_id: string;
+  label: string;
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ListQueryParams {
+  limit?: number;
+  offset?: number;
 }
 
 export interface TimelineEventResponse {
@@ -163,8 +219,95 @@ export interface TimelineEventResponse {
 
 export interface ImportRecordResponse {
   id: string;
-  file_name: string;
-  status: string;
+  financial_file_id: string;
+  imported_at: string;
   record_count: number | null;
+  status: string;
+  error_message: string | null;
   created_at: string;
 }
+
+export interface DataQualityCheckResponse {
+  id: string;
+  snapshot_id: string;
+  check_name: string;
+  result_percent: number;
+  details: string | null;
+  display_order: number;
+}
+
+export interface DataQualitySnapshotResponse {
+  id: string;
+  organization_id: string;
+  reporting_period_id: string | null;
+  overall_score: number | null;
+  evaluated_at: string;
+}
+
+/**
+ * Mirrors `ResolvedSettingsResponse` API schema.
+ * NOTE: Domain model has pdf_export_* on report_preferences but the API
+ * response schema omits them — do not patch or display those fields until
+ * backend contract is fixed.
+ */
+export interface ResolvedSettingsResponse {
+  organization_id: string;
+  document_version: string;
+  organization_identity: {
+    name: string;
+    platform_name: string;
+    executive_title: string | null;
+  };
+  organization_settings: {
+    locale: string;
+    date_display_format: string;
+    currency_display_code: string;
+  };
+  localization: {
+    prompt_language: string;
+    report_language: string;
+    prompt_language_source: string;
+    report_language_source: string;
+  };
+  ai_configuration: {
+    ai_recommendations_enabled: boolean;
+    waste_recommendations_auto_suggest: boolean;
+  };
+  analysis_configuration: {
+    enabled_analysis_types: string[];
+    timeline_on_completion_enabled: boolean;
+    default_analysis_title_template: string;
+    require_ai_insights_before_report: boolean;
+  };
+  report_preferences: {
+    default_report_title_template: string;
+    auto_publish_on_generate: boolean;
+    include_ai_sections_when_available: boolean;
+    include_recommendations_section: boolean;
+    include_scenario_provenance_section: boolean;
+  };
+  platform_default_notification_preferences: {
+    notifications_enabled: boolean;
+    enabled_notification_kinds: string[];
+  };
+}
+
+export type SettingsPatchPayload = {
+  organization_settings?: Partial<
+    ResolvedSettingsResponse["organization_settings"]
+  >;
+  localization?: Partial<
+    Pick<
+      ResolvedSettingsResponse["localization"],
+      "prompt_language" | "report_language"
+    >
+  >;
+  ai_configuration?: Partial<ResolvedSettingsResponse["ai_configuration"]>;
+  analysis_configuration?: Partial<
+    ResolvedSettingsResponse["analysis_configuration"]
+  >;
+  report_preferences?: Partial<ResolvedSettingsResponse["report_preferences"]>;
+  platform_default_notification_preferences?: Partial<
+    ResolvedSettingsResponse["platform_default_notification_preferences"]
+  >;
+};

@@ -27,9 +27,12 @@ import {
   executiveSectionSpacingClassName,
   getAppNavItems,
 } from "@/lib/app-nav";
-import { organization } from "@/lib/placeholder-data";
 import type { WasteAnalysisRow } from "@/lib/placeholder-data";
-import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
+import {
+  useRequireAuth,
+  formatApiError,
+  useOrganizationDisplay,
+} from "@/lib/auth/auth-context";
 import {
   executeWasteDecision,
   generateWasteAi,
@@ -45,6 +48,7 @@ const summaryIcons = [TrendingDown, BarChart3, FileSpreadsheet, PiggyBank];
 
 export function WastePage() {
   const auth = useRequireAuth();
+  const org = useOrganizationDisplay();
   const [loading, setLoading] = React.useState(false);
   const [aiLoading, setAiLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -73,12 +77,13 @@ export function WastePage() {
         opportunities: String(result.active_savings_opportunities ?? 0),
       });
       setRows(
-        breakdowns.map((item, index) => ({
+        breakdowns.map((item) => ({
           id: item.id,
           category: item.category_name,
           amount: item.amount,
           percentage: formatPercent(item.percentage),
-          department: "المشتريات",
+          /** API exposes department_id only — no department name on this endpoint. */
+          department: "—",
         })),
       );
       setReady(true);
@@ -127,7 +132,7 @@ export function WastePage() {
         source_snapshot_id?: string;
         snapshot_version?: number;
       } = {
-        title: "تحليل هدر — Procurement_Q2",
+        title: "تحليل هدر مالي",
         source_file_id: artifacts.fileId,
       };
       if (artifacts.snapshotId) {
@@ -187,7 +192,7 @@ export function WastePage() {
     <AppLayout
       brand={<DashboardBrand />}
       title="كشف الهدر"
-      subtitle={organization.reportingPeriod}
+      subtitle={org.reportingPeriod}
       activeItemId="waste"
       sidebarVariant="executive"
       navItems={getAppNavItems()}
@@ -198,7 +203,7 @@ export function WastePage() {
           <PageHero
             title="كشف الهدر المالي"
             description="رفع البيانات وتشغيل محرك القرار وتوليد التوصيات التنفيذية."
-            period={organization.reportingPeriod}
+            period={org.reportingPeriod}
           />
 
           <div className="flex flex-wrap gap-3">

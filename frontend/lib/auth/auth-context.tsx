@@ -10,12 +10,14 @@ import {
   writeSession,
   type SessionSnapshot,
 } from "@/lib/auth/session";
+import { clearDemoArtifacts } from "@/lib/demo/state";
 
 interface AuthContextValue {
   session: SessionSnapshot | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
+  updateSession: (partial: Partial<SessionSnapshot>) => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -36,6 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       token: tokenResponse.access_token,
       organizationId: org.id,
       email: email.trim().toLowerCase(),
+      organizationName: org.name,
+      platformName: org.platform_name,
+      executiveTitle: org.executive_title,
     };
     writeSession(snapshot);
     setSession(snapshot);
@@ -43,11 +48,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = React.useCallback(() => {
     clearSession();
+    clearDemoArtifacts();
     setSession(null);
   }, []);
 
+  const updateSession = React.useCallback((partial: Partial<SessionSnapshot>) => {
+    setSession((current) => {
+      if (!current) return current;
+      const next = { ...current, ...partial };
+      writeSession(next);
+      return next;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ session, isLoading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ session, isLoading, signIn, signOut, updateSession }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -74,8 +91,23 @@ export function useRequireAuth(): AuthContextValue {
   return auth;
 }
 
+/** Display helpers from live session (falls back only for optional fields). */
+export function useOrganizationDisplay() {
+  const { session } = useAuth();
+  return {
+    name: session?.organizationName || "—",
+    platformName: session?.platformName || "خزينة",
+    executiveTitle: session?.executiveTitle || "المستخدم التنفيذي",
+    /** No backend field for reporting period label — UI period badge only. */
+    reportingPeriod: "الفترة النشطة",
+  };
+}
+
 export function formatApiError(error: unknown): string {
   if (error instanceof ApiError) {
+    if (error.status === 401) {
+      return "انتهت صلاحية الجلسة أو غير مصرح — سجّل الدخول مجدداً";
+    }
     if (error.status === 403) {
       return "ليس لديك صلاحية لتنفيذ هذا الإجراء";
     }

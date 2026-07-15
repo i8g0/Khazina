@@ -199,6 +199,10 @@ export const dashboardNavItems = [
   { id: "simulation", label: "محاكاة الأعمال" },
   { id: "reports", label: "التقارير" },
   { id: "data", label: "إدارة البيانات" },
+  { id: "notifications", label: "الإشعارات" },
+  { id: "organization", label: "المؤسسة" },
+  { id: "users", label: "المستخدمون" },
+  { id: "settings", label: "الإعدادات" },
 ] as const;
 
 // ---------------------------------------------------------------------------

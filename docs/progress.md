@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 7 – Frontend Features                                     |
-| Current Sprint | 6.10 (Business Features Freeze) — **Completed**                 |
-| Overall Status | Phase 6 **Completed and frozen** — ready for Phase 7 Frontend Features |
+| Current Sprint | 7.2 (Frontend Completion & UX) — **Completed**                    |
+| Overall Status | Phase 7 frontend capabilities wired for available Phase 6 APIs      |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -26,7 +26,7 @@ Official progress tracker for the Khazina project.
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
 | Phase 6 – Business Features   | ✅ Completed (frozen — Sprint 6.10) |
-| Phase 7 – Frontend Features   | 🔄 Next active phase |
+| Phase 7 – Frontend Features   | 🔄 In progress (Sprint 7.1 complete) |
 
 ---
 
@@ -102,6 +102,8 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 6.8    | Business   | Settings                             | Completed |             | 2026-07-15    |
 | 6.9    | Business   | Advanced Features                    | Completed |             | 2026-07-15    |
 | 6.10   | Business   | Business Features Freeze             | Completed |             | 2026-07-15    |
+| 7.1    | Frontend   | Frontend Integration (API wiring)    | Completed |             | 2026-07-15    |
+| 7.2    | Frontend   | Frontend Completion & UX             | Completed |             | 2026-07-15    |
 
 ---
 
@@ -2078,6 +2080,40 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 **Phase 6 exit:** Business Features layer **APPROVED — FROZEN** — ready for Phase 7 Frontend Features.
 
 **Next step:** Begin Phase 7 — Frontend Features (against frozen Phase 6 baseline; see `BUSINESS_FEATURES_FREEZE.md`).
+
+---
+
+## Sprint 7.1 — Frontend Integration
+
+**Goal:** Connect existing frontend pages to frozen Phase 6 production APIs without redesign.
+
+**Deliverables:**
+- Integration report: `docs/SPRINT_7.1_INTEGRATION_REPORT.md`
+- Live wiring: Auth, Data Management, Waste, Simulation (incl. create), Reports+PDF, Notifications bell, Settings (`/settings`)
+- Intentional mocks retained: Dashboard KPI/chart aggregation, Risk engine page
+- Contract STOP documented: Settings `pdf_export_*` omitted from API response schema
+
+**Definition of Done:** Met — mock remains only where no backend capability exists by freeze design.
+
+**Next step:** Address documented contract fixes on backend (separate approval), or continue Phase 7 UX features that do not require new aggregation APIs.
+
+---
+
+## Sprint 7.2 — Frontend Completion & UX
+
+**Goal:** Complete remaining frontend capabilities that already have Phase 6 API support; improve UX consistency without redesign.
+
+**Deliverables:**
+- Report: `docs/SPRINT_7.2_COMPLETION_REPORT.md`
+- `/notifications` — center with filters, pagination, mark-all, user prefs
+- `/organization` — identity, departments, reporting periods
+- `/users` — admin user management (create/edit/deactivate)
+- Settings completed for all API-exposed fields; PDF prefs STOP documented
+- Shared `PageFeedback`; bell poll reduced to unread-count
+
+**Definition of Done:** Met for available backend surface. Remaining blockers are backend contract / deferred features.
+
+**Next step:** Optional Sprint 7 wrap-up (polish only) or backend approvals for PDF prefs / invites / dashboard aggregation.
 
 ---
 
