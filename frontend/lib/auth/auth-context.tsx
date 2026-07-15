@@ -22,14 +22,13 @@ interface AuthContextValue {
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
+/** Local/dev auto-login — skip the login page when no session is stored. */
+const DEV_AUTO_LOGIN_EMAIL = "demo@khazina.sa";
+const DEV_AUTO_LOGIN_PASSWORD = "DemoExec2026!";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = React.useState<SessionSnapshot | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    setSession(readSession());
-    setIsLoading(false);
-  }, []);
 
   const signIn = React.useCallback(async (email: string, password: string) => {
     const tokenResponse = await login(email, password);
@@ -44,6 +43,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     writeSession(snapshot);
     setSession(snapshot);
+  }, []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function hydrateSession() {
+      const existing = readSession();
+      if (existing) {
+        try {
+          await getActiveOrganization(existing.token);
+          if (!cancelled) {
+            setSession(existing);
+            setIsLoading(false);
+          }
+          return;
+        } catch {
+          clearSession();
+        }
+      }
+
+      try {
+        const tokenResponse = await login(
+          DEV_AUTO_LOGIN_EMAIL,
+          DEV_AUTO_LOGIN_PASSWORD,
+        );
+        const org = await getActiveOrganization(tokenResponse.access_token);
+        const snapshot: SessionSnapshot = {
+          token: tokenResponse.access_token,
+          organizationId: org.id,
+          email: DEV_AUTO_LOGIN_EMAIL,
+          organizationName: org.name,
+          platformName: org.platform_name,
+          executiveTitle: org.executive_title,
+        };
+        writeSession(snapshot);
+        if (!cancelled) {
+          setSession(snapshot);
+        }
+      } catch {
+        if (!cancelled) {
+          setSession(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void hydrateSession();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const signOut = React.useCallback(() => {
