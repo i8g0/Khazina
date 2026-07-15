@@ -30,6 +30,8 @@ from app.services.exceptions import (
     InvalidStateTransitionError,
     ResourceNotFoundError,
 )
+from app.notifications.builder import NotificationBuilder
+from app.notifications.hooks import try_materialize
 from app.settings.service import SettingsService
 
 # Approved run lifecycle (design §4.5): pending → processing → completed/failed.
@@ -61,6 +63,7 @@ class AnalysisService(BaseService):
         timeline_repository: TimelineRepository,
         *,
         settings_service: SettingsService | None = None,
+        notification_builder: NotificationBuilder | None = None,
     ) -> None:
         super().__init__(session)
         self._analyses = analysis_repository
@@ -68,6 +71,7 @@ class AnalysisService(BaseService):
         self._financials = financial_repository
         self._timeline = timeline_repository
         self._settings = settings_service
+        self._notifications = notification_builder
 
     # -- run creation -----------------------------------------------------------
 
@@ -192,6 +196,7 @@ class AnalysisService(BaseService):
         run_id: uuid.UUID,
         *,
         success_metadata: dict[str, Any] | None = None,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> AnalysisRun:
         """Finalizes a run and appends the corresponding timeline event."""
         run = self._owned_run(organization_id, run_id)
@@ -228,6 +233,15 @@ class AnalysisService(BaseService):
                         related_entity_id=run.id,
                     )
                 )
+        try_materialize(
+            self._notifications,
+            initiating_user_id,
+            lambda: self._notifications.materialize_analysis_completion(
+                organization_id,
+                run_id,
+                initiating_user_id=initiating_user_id,
+            ),
+        )
         return run
 
     def fail_run(

@@ -136,9 +136,11 @@ def complete_analysis_run(
     organization_id: UUID,
     run_id: UUID,
     service: AnalysisServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[AnalysisRunResponse]:
-    run = service.complete_run(organization_id, run_id)
+    run = service.complete_run(
+        organization_id, run_id, initiating_user_id=current_user.id
+    )
     return success_response(
         data=AnalysisRunResponse.model_validate(run),
         message="Analysis run completed",

@@ -102,6 +102,7 @@ class ScenarioService(BaseService):
         snapshot_version: int | None = None,
         baseline_analysis_run_id: uuid.UUID | None = None,
         reporting_period_id: uuid.UUID | None = None,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> ScenarioExecutionOutcome:
         if snapshot_version is not None and source_snapshot_id is not None:
             raise BusinessValidationError(
@@ -190,6 +191,7 @@ class ScenarioService(BaseService):
                     "facts_contract": facts.to_dict(),
                     "scenario_provenance": provenance,
                 },
+                initiating_user_id=initiating_user_id,
             )
             if scenario.status != SimulationScenarioStatus.COMPLETED:
                 with self._transaction():

@@ -30,7 +30,7 @@ def execute_waste_decision(
     organization_id: UUID,
     body: WasteDecisionExecuteRequest,
     service: DecisionServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[WasteDecisionExecuteResponse]:
     outcome = service.execute_waste_analysis(
         organization_id,
@@ -39,6 +39,7 @@ def execute_waste_decision(
         source_snapshot_id=body.source_snapshot_id,
         snapshot_version=body.snapshot_version,
         reporting_period_id=body.reporting_period_id,
+        initiating_user_id=current_user.id,
     )
     return success_response(
         data=WasteDecisionExecuteResponse(

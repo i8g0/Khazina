@@ -1962,6 +1962,37 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 
 ---
 
+### Phase 6 — Sprint 6.7: Notifications
+
+**Status:** Completed — deterministic notification materialization from persisted Platform Events
+
+**Objective:** Deliver user-targeted notification history with read/unread state from five Platform Event kinds — no AI or Business Engine execution.
+
+**Deliverables:**
+
+- `app/notifications/` — Platform Event registry, deterministic templates, fingerprint idempotency, Notification Builder, hooks, Notification Service
+- `notifications` + `notification_read_receipts` tables + Alembic migration `a8c3e6f05d10`
+- Composition hooks in `AnalysisService`, `AiRecommendationService`, `ReportBuilderService`, `ReportService` (initiating user only)
+- `GET/POST .../organizations/{id}/notifications` — list, unread count, get, mark read, mark all read
+- Platform Default Notification Preferences gate integration (Sprint 6.8)
+- `tests/notifications/` — templates, fingerprint, builder, service, isolation tests
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Five Platform Event kinds materialize for initiating user | ✅ Pass |
+| Idempotent fingerprint deduplication | ✅ Pass |
+| Per-user read/unread state | ✅ Pass |
+| No AI / no Business Engine execution | ✅ Pass |
+| Settings notification gates respected | ✅ Pass |
+| Timeline hooks unchanged (parallel, not merged) | ✅ Pass |
+| Full test suite | ✅ Pass (151 tests) |
+
+**Next step:** Frontend Notifications Center (Phase 7), user-level notification preferences, email/push delivery, or binary report export — separate sprint approval required.
+
+---
+
 ## Open Items
 
 ### Open Decision — Frontend Content Max Width

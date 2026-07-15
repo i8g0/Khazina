@@ -29,6 +29,8 @@ from app.services.base import BaseService
 from app.services.exceptions import InvalidStateError, ResourceNotFoundError
 from app.settings.exceptions import AiRecommendationsDisabledError
 from app.settings.service import SettingsService
+from app.notifications.builder import NotificationBuilder
+from app.notifications.hooks import try_materialize
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +56,7 @@ class AiRecommendationService(BaseService):
         task_pipeline: AiTaskPipeline | None = None,
         ollama_client: OllamaClient | None = None,
         settings_service: SettingsService | None = None,
+        notification_builder: NotificationBuilder | None = None,
     ) -> None:
         super().__init__(session)
         self._analyses = analysis_repository
@@ -61,6 +64,7 @@ class AiRecommendationService(BaseService):
         self._recommendation_repo = recommendation_repository
         self._model_name = settings.ai.ollama_model
         self._settings = settings_service
+        self._notifications = notification_builder
         client = ollama_client or OllamaClient(settings.ai)
         self._pipeline = task_pipeline or AiTaskPipeline(
             ollama_client=client,
@@ -74,6 +78,7 @@ class AiRecommendationService(BaseService):
         analysis_run_id: uuid.UUID,
         *,
         regenerate: bool = False,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> AiRecommendationOutcome:
         run = self._analyses.get(analysis_run_id)
         if run is None:
@@ -122,6 +127,17 @@ class AiRecommendationService(BaseService):
             )
             metadata["ai_insights"] = ai_insights
             updated = self._analyses.update(run, {"runtime_metadata": metadata})
+
+        try_materialize(
+            self._notifications,
+            initiating_user_id,
+            lambda: self._notifications.materialize_ai_recommendations_completion(
+                organization_id,
+                analysis_run_id,
+                initiating_user_id=initiating_user_id,
+                recommendation_count=len(recommendations),
+            ),
+        )
 
         return AiRecommendationOutcome(
             analysis_run=updated,

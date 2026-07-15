@@ -32,7 +32,7 @@ def execute_scenario(
     scenario_id: UUID,
     body: ScenarioExecuteRequest,
     service: ScenarioServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[ScenarioExecuteResponse]:
     outcome = service.execute_scenario(
         organization_id,
@@ -42,6 +42,7 @@ def execute_scenario(
         snapshot_version=body.snapshot_version,
         baseline_analysis_run_id=body.baseline_analysis_run_id,
         reporting_period_id=body.reporting_period_id,
+        initiating_user_id=current_user.id,
     )
     provenance = (outcome.analysis_run.runtime_metadata or {}).get(
         "scenario_provenance", {}

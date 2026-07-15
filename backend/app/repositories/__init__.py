@@ -10,6 +10,7 @@ from app.repositories.department import DepartmentRepository
 from app.repositories.exceptions import EntityNotFoundError
 from app.repositories.financial import FinancialRepository
 from app.repositories.snapshot import FinancialSnapshotRepository
+from app.repositories.notification import NotificationRepository
 from app.repositories.organization import OrganizationRepository
 from app.repositories.recommendation import RecommendationRepository
 from app.repositories.report import ReportRepository
@@ -27,6 +28,7 @@ __all__ = [
     "EntityNotFoundError",
     "FinancialRepository",
     "FinancialSnapshotRepository",
+    "NotificationRepository",
     "OrganizationRepository",
     "RecommendationRepository",
     "ReportRepository",

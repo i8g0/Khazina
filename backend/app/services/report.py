@@ -28,6 +28,8 @@ from app.services.exceptions import (
     InvalidStateError,
     ResourceNotFoundError,
 )
+from app.notifications.builder import NotificationBuilder
+from app.notifications.hooks import try_materialize
 
 
 class ReportService(BaseService):
@@ -47,6 +49,8 @@ class ReportService(BaseService):
         analysis_repository: AnalysisRepository,
         financial_repository: FinancialRepository,
         timeline_repository: TimelineRepository,
+        *,
+        notification_builder: NotificationBuilder | None = None,
     ) -> None:
         super().__init__(session)
         self._reports = report_repository
@@ -55,6 +59,7 @@ class ReportService(BaseService):
         self._analyses = analysis_repository
         self._financials = financial_repository
         self._timeline = timeline_repository
+        self._notifications = notification_builder
 
     # -- drafting -----------------------------------------------------------------
 
@@ -176,7 +181,11 @@ class ReportService(BaseService):
         return report
 
     def publish_report(
-        self, organization_id: uuid.UUID, report_id: uuid.UUID
+        self,
+        organization_id: uuid.UUID,
+        report_id: uuid.UUID,
+        *,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> Report:
         """Publishes a draft: sets ready status, stamps the date, logs the event."""
         report = self._owned_report(organization_id, report_id)
@@ -200,6 +209,15 @@ class ReportService(BaseService):
                     related_entity_id=report.id,
                 )
             )
+        try_materialize(
+            self._notifications,
+            initiating_user_id,
+            lambda: self._notifications.materialize_report_published(
+                organization_id,
+                report_id,
+                initiating_user_id=initiating_user_id,
+            ),
+        )
         return report
 
     def delete_report(self, organization_id: uuid.UUID, report_id: uuid.UUID) -> None:

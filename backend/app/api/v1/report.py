@@ -40,18 +40,23 @@ def generate_report(
     builder: ReportBuilderServiceDep,
     report_service: ReportServiceDep,
     settings_service: SettingsServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportGenerateResponse]:
     outcome = builder.generate_report(
         organization_id,
         body.analysis_run_id,
         title=body.title,
         department_id=body.department_id,
+        initiating_user_id=current_user.id,
     )
     resolved = settings_service.get_resolved_settings(organization_id)
     report = outcome.report
     if resolved.report_preferences.auto_publish_on_generate:
-        report = report_service.publish_report(organization_id, report.id)
+        report = report_service.publish_report(
+            organization_id,
+            report.id,
+            initiating_user_id=current_user.id,
+        )
     content = report.content_representation or {}
     extended = content.get("extended_metadata") or {}
     return success_response(
@@ -210,9 +215,13 @@ def publish_report(
     organization_id: UUID,
     report_id: UUID,
     service: ReportServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportResponse]:
-    report = service.publish_report(organization_id, report_id)
+    report = service.publish_report(
+        organization_id,
+        report_id,
+        initiating_user_id=current_user.id,
+    )
     return success_response(
         data=ReportResponse.model_validate(report),
         message="Report published",

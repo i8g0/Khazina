@@ -75,6 +75,7 @@ class DecisionService(BaseService):
         source_snapshot_id: uuid.UUID | None = None,
         snapshot_version: int | None = None,
         reporting_period_id: uuid.UUID | None = None,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> DecisionExecutionOutcome:
         """End-to-end waste decision: snapshot → engine → Gold persistence."""
         if snapshot_version is not None and source_snapshot_id is not None:
@@ -128,6 +129,7 @@ class DecisionService(BaseService):
                 organization_id,
                 run.id,
                 success_metadata={"facts_contract": facts.to_dict()},
+                initiating_user_id=initiating_user_id,
             )
         except SnapshotAdapterError as exc:
             self._analysis.fail_run(

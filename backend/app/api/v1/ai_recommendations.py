@@ -34,12 +34,13 @@ def generate_waste_ai_recommendations(
     organization_id: UUID,
     body: WasteAiRecommendationsGenerateRequest,
     service: AiRecommendationServiceDep,
-    _current_user: RequireOrgExecutive,
+    current_user: RequireOrgExecutive,
 ) -> ApiResponse[WasteAiRecommendationsGenerateResponse]:
     outcome = service.generate_waste_recommendations(
         organization_id,
         body.analysis_run_id,
         regenerate=body.regenerate,
+        initiating_user_id=current_user.id,
     )
     return success_response(
         data=WasteAiRecommendationsGenerateResponse(

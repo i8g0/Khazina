@@ -21,6 +21,7 @@ from app.repositories import (
     DepartmentRepository,
     FinancialRepository,
     FinancialSnapshotRepository,
+    NotificationRepository,
     OrganizationRepository,
     RecommendationRepository,
     ReportRepository,
@@ -36,6 +37,8 @@ from app.decision.service import DecisionService
 from app.scenario.service import ScenarioService
 from app.ai_recommendations.service import AiRecommendationService
 from app.settings.service import SettingsService
+from app.notifications.builder import NotificationBuilder
+from app.notifications.service import NotificationService
 from app.services import (
     AnalysisService,
     AuthService,
@@ -223,6 +226,9 @@ def get_ai_recommendation_service(
     ],
     ollama_client: Annotated[OllamaClient, Depends(get_ollama_client)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+    notification_builder: Annotated[
+        NotificationBuilder, Depends(get_notification_builder)
+    ],
 ) -> AiRecommendationService:
     return AiRecommendationService(
         db,
@@ -231,6 +237,7 @@ def get_ai_recommendation_service(
         recommendation_repo,
         ollama_client=ollama_client,
         settings_service=settings_service,
+        notification_builder=notification_builder,
     )
 
 
@@ -248,6 +255,54 @@ def get_settings_service(
     ],
 ) -> SettingsService:
     return SettingsService(db, settings_repo, organization_repo)
+
+
+def get_notification_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> NotificationRepository:
+    return NotificationRepository(db)
+
+
+def get_notification_builder(
+    db: Annotated[Session, Depends(get_db)],
+    notification_repo: Annotated[
+        NotificationRepository, Depends(get_notification_repository)
+    ],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    report_repo: Annotated[ReportRepository, Depends(get_report_repository)],
+    recommendation_repo: Annotated[
+        RecommendationRepository, Depends(get_recommendation_repository)
+    ],
+    simulation_repo: Annotated[SimulationRepository, Depends(get_simulation_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+) -> NotificationBuilder:
+    return NotificationBuilder(
+        db,
+        notification_repo,
+        analysis_repo,
+        report_repo,
+        recommendation_repo,
+        simulation_repo,
+        organization_repo,
+        user_repo,
+        settings_service=settings_service,
+    )
+
+
+def get_notification_service(
+    db: Annotated[Session, Depends(get_db)],
+    notification_repo: Annotated[
+        NotificationRepository, Depends(get_notification_repository)
+    ],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+) -> NotificationService:
+    return NotificationService(db, notification_repo, organization_repo)
 
 
 def get_organization_service(
@@ -287,6 +342,9 @@ def get_analysis_service(
     financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
     timeline_repo: Annotated[TimelineRepository, Depends(get_timeline_repository)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+    notification_builder: Annotated[
+        NotificationBuilder, Depends(get_notification_builder)
+    ],
 ) -> AnalysisService:
     return AnalysisService(
         db,
@@ -295,6 +353,7 @@ def get_analysis_service(
         financial_repo,
         timeline_repo,
         settings_service=settings_service,
+        notification_builder=notification_builder,
     )
 
 
@@ -348,6 +407,9 @@ def get_report_builder_service(
     ],
     financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
+    notification_builder: Annotated[
+        NotificationBuilder, Depends(get_notification_builder)
+    ],
 ) -> ReportBuilderService:
     return ReportBuilderService(
         db,
@@ -359,6 +421,7 @@ def get_report_builder_service(
         organization_repo,
         financial_repo,
         settings_service=settings_service,
+        notification_builder=notification_builder,
     )
 
 
@@ -372,6 +435,9 @@ def get_report_service(
     analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
     financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
     timeline_repo: Annotated[TimelineRepository, Depends(get_timeline_repository)],
+    notification_builder: Annotated[
+        NotificationBuilder, Depends(get_notification_builder)
+    ],
 ) -> ReportService:
     return ReportService(
         db,
@@ -381,6 +447,7 @@ def get_report_service(
         analysis_repo,
         financial_repo,
         timeline_repo,
+        notification_builder=notification_builder,
     )
 
 
@@ -486,6 +553,8 @@ def get_current_user(
 
 
 SettingsServiceDep = Annotated[SettingsService, Depends(get_settings_service)]
+NotificationBuilderDep = Annotated[NotificationBuilder, Depends(get_notification_builder)]
+NotificationServiceDep = Annotated[NotificationService, Depends(get_notification_service)]
 OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization_service)]
 DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]

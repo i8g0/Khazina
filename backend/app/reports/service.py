@@ -50,6 +50,8 @@ from app.services.base import BaseService
 from app.services.exceptions import InvalidStateError, ResourceNotFoundError
 from app.settings.resolver import format_report_title
 from app.settings.service import SettingsService
+from app.notifications.builder import NotificationBuilder
+from app.notifications.hooks import try_materialize
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,12 +77,14 @@ class ReportBuilderService(BaseService):
         *,
         input_loader: ReportInputLoader | None = None,
         settings_service: SettingsService | None = None,
+        notification_builder: NotificationBuilder | None = None,
     ) -> None:
         super().__init__(session)
         self._reports = report_repository
         self._organizations = organization_repository
         self._analyses = analysis_repository
         self._settings = settings_service
+        self._notifications = notification_builder
         self._input_loader = input_loader or ReportInputLoader(
             analysis_repository,
             waste_repository,
@@ -98,6 +102,7 @@ class ReportBuilderService(BaseService):
         title: str | None = None,
         department_id: uuid.UUID | None = None,
         generated_at: datetime | None = None,
+        initiating_user_id: uuid.UUID | None = None,
     ) -> ReportGenerationOutcome:
         self._require_organization(organization_id)
         run = self._analyses.get(analysis_run_id)
@@ -242,6 +247,16 @@ class ReportBuilderService(BaseService):
                 {"content_representation": payload},
             )
             report.content_representation = payload
+
+        try_materialize(
+            self._notifications,
+            initiating_user_id,
+            lambda: self._notifications.materialize_report_generated(
+                organization_id,
+                report.id,
+                initiating_user_id=initiating_user_id,
+            ),
+        )
 
         export_serialization = canonical_serialize(payload)
         return ReportGenerationOutcome(
