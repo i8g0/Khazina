@@ -149,7 +149,7 @@ export function DashboardPage() {
               <DashboardSectionHeader
                 dense
                 title="مؤشرات الأداء"
-                description="لا توجد واجهة تجميع للمؤشرات بعد — مؤجلات التحليلات Phase 7"
+                description="لا توجد واجهة تجميع للمؤشرات — معلق حتى توفر API التجميع (Phase 8+)"
               />
               <Badge variant="outline">عرض توضيحي</Badge>
             </div>
