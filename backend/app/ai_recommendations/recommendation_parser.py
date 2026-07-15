@@ -14,10 +14,16 @@ from app.ai_recommendations.constants import (
 )
 from app.ai_recommendations.exceptions import AiRecommendationError
 
+# Standard Markdown wrappers before numbered recommendation labels.
+_MARKDOWN_OPEN = r"(?:(?:#{1,6}\s+)|(?:\*\*)|(?:__))?"
+_NUMBER = r"(?:\d+|[\u0660-\u0669]+)\."
+_MARKDOWN_CLOSE = r"(?:\*\*|__)?"
+_NUMBERED_ITEM_PREFIX = rf"{_MARKDOWN_OPEN}{_NUMBER}{_MARKDOWN_CLOSE}\s+"
 _NUMBERED_SPLIT = re.compile(
-    r"(?=(?:^\s*(?:\d+|[\u0660-\u0669]+)\.\s+))",
+    rf"(?=(?:^\s*{_NUMBERED_ITEM_PREFIX}))",
     re.MULTILINE,
 )
+_NUMBERED_PREFIX_STRIP = re.compile(rf"^\s*{_NUMBERED_ITEM_PREFIX}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,7 +52,7 @@ def parse_recommendations_text(text: str) -> tuple[ParsedRecommendationItem, ...
 
     items: list[ParsedRecommendationItem] = []
     for index, chunk in enumerate(chunks):
-        body = re.sub(r"^\s*(?:\d+|[\u0660-\u0669]+)\.\s+", "", chunk).strip()
+        body = _NUMBERED_PREFIX_STRIP.sub("", chunk).strip()
         if not body:
             raise AiRecommendationError(
                 "missing_recommendation_title",

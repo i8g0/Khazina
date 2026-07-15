@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.logging import get_logger
 from app.schemas.response import error_response
+from app.ai_recommendations.exceptions import AiRecommendationError
 from app.decision.exceptions import SnapshotAdapterError
 from app.reports.exceptions import ReportBuilderError
 from app.services.exceptions import (

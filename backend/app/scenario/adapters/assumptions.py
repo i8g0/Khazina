@@ -40,6 +40,12 @@ EXPANSION_COST_LABELS = frozenset({"تكلفة التوسع", "expansion_cost", 
 HORIZON_LABELS = frozenset({"الأفق الزمني", "horizon_quarters", "time_horizon", "horizon"})
 
 
+def _assumption_field(item: Any, field: str) -> str:
+    if isinstance(item, dict):
+        return str(item.get(field, ""))
+    return str(getattr(item, field, ""))
+
+
 @dataclass(frozen=True, slots=True)
 class _AssumptionIndex:
     by_normalized_label: dict[str, str]
@@ -98,8 +104,8 @@ class ScenarioAssumptionsAdapter:
     def _index_assumptions(assumptions: list[Any]) -> _AssumptionIndex:
         indexed: dict[str, str] = {}
         for item in assumptions:
-            label = str(getattr(item, "label", item.get("label", ""))).strip()
-            value = str(getattr(item, "value", item.get("value", ""))).strip()
+            label = _assumption_field(item, "label").strip()
+            value = _assumption_field(item, "value").strip()
             if not label or not value:
                 raise SnapshotAdapterError(
                     "invalid_assumption",

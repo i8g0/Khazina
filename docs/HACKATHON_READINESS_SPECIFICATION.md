@@ -440,7 +440,7 @@ Complete Demo
 | `HACKATHON_PLAN.md` | Team roles, Day 4 checklist |
 | `AI_BENCHMARK_REPORT.md` | Latency expectations for presenter |
 | `BUSINESS_DOMAIN_DISCOVERY.md` | Page/domain alignment |
-| Sprint 6.10 freeze doc (when complete) | Phase 6 baseline reference |
+| Sprint 6.10 freeze doc | ✅ Complete | `docs/BUSINESS_FEATURES_FREEZE.md` |
 
 ### Parallel work constraints
 

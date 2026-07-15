@@ -53,6 +53,7 @@ class OllamaClient:
         *,
         model: str | None = None,
         format_json: bool = False,
+        think: bool = False,
     ) -> str:
         """Send a chat completion request to Ollama and return assistant content."""
         if not messages:
@@ -62,6 +63,7 @@ class OllamaClient:
             "model": model or self.configured_model,
             "messages": messages,
             "stream": False,
+            "think": think,
         }
         if format_json:
             payload["format"] = "json"

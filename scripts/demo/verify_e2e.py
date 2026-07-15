@@ -15,6 +15,7 @@ DEMO_EMAIL = os.environ.get("DEMO_EMAIL", "demo@khazina.sa")
 DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "DemoExec2026!")
 WORKBOOK = Path(__file__).resolve().parent / "Procurement_Q2.xlsx"
 AI_TIMEOUT = int(os.environ.get("AI_TIMEOUT", "180"))
+TOTAL_AI_PIPELINE_TIMEOUT = AI_TIMEOUT * 3 + 30
 
 
 class StepResult:
@@ -102,6 +103,7 @@ def main() -> int:
             }
             if "snapshot_id" in state:
                 body["source_snapshot_id"] = state["snapshot_id"]
+            elif "snapshot_version" in state:
                 body["snapshot_version"] = int(state["snapshot_version"])
             data = _unwrap(
                 client.post(
@@ -124,7 +126,7 @@ def main() -> int:
                         "analysis_run_id": state["waste_run_id"],
                         "regenerate": False,
                     },
-                    timeout=AI_TIMEOUT + 10,
+                    timeout=TOTAL_AI_PIPELINE_TIMEOUT,
                 )
             )
             count = data.get("recommendation_count", 0)
@@ -150,6 +152,7 @@ def main() -> int:
             }
             if "snapshot_id" in state:
                 body["source_snapshot_id"] = state["snapshot_id"]
+            elif "snapshot_version" in state:
                 body["snapshot_version"] = int(state["snapshot_version"])
             data = _unwrap(
                 client.post(

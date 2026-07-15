@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 6 – Business Features                                     |
-| Current Sprint | 6.9 (Advanced Features) — **Completed**                                    |
-| Overall Status | Phase 6 Sprint 6.9 complete — PDF export, user notification prefs, failure notifications |
+| Current Phase  | Phase 7 – Frontend Features                                     |
+| Current Sprint | 6.10 (Business Features Freeze) — **Completed**                 |
+| Overall Status | Phase 6 **Completed and frozen** — ready for Phase 7 Frontend Features |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -25,7 +25,8 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
-| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.9 complete) |
+| Phase 6 – Business Features   | ✅ Completed (frozen — Sprint 6.10) |
+| Phase 7 – Frontend Features   | 🔄 Next active phase |
 
 ---
 
@@ -100,6 +101,7 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 6.7    | Business   | Notifications                        | Completed |             | 2026-07-15    |
 | 6.8    | Business   | Settings                             | Completed |             | 2026-07-15    |
 | 6.9    | Business   | Advanced Features                    | Completed |             | 2026-07-15    |
+| 6.10   | Business   | Business Features Freeze             | Completed |             | 2026-07-15    |
 
 ---
 
@@ -1930,11 +1932,7 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | Existing catalog workflow (draft/publish/list/delete) preserved | ✅ Pass |
 | Full test suite | ✅ Pass (109 tests) |
 
-**Next step:** Frontend Organization Management and Settings page (Phase 7), user-level notification preferences (Sprint 6.7 E-12), or binary report export — separate sprint approval required.
-
----
-
-### Phase 6 — Sprint 6.9: Advanced Features
+**Next step:** Sprint 6.9 closed binary PDF export and related deferrals; Frontend Organization Management and Settings page remain Phase 7.
 
 **Status:** Completed — PDF export, user notification preferences, report export preferences, analysis failure notifications
 
@@ -1962,11 +1960,7 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | No dashboard or repository summary endpoints | ✅ Pass |
 | Full test suite | ✅ Pass (170 tests) |
 
-**Next step:** Frontend Organization Management and Settings page (Phase 7), Notifications Center (Phase 7), or Phase 7 analytics (dashboard/repository summary) — separate sprint approval required.
-
----
-
-### Phase 6 — Sprint 6.8: Settings
+**Next step:** Phase 7 Frontend Features against the frozen baseline (`docs/BUSINESS_FEATURES_FREEZE.md`).
 
 **Status:** Completed — organization-scoped configuration with deterministic resolution
 
@@ -1991,11 +1985,7 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | Existing services consume settings read-only | ✅ Pass |
 | Full test suite | ✅ Pass (125 tests) |
 
-**Next step:** Frontend Organization Management and Settings page (Phase 7), user-level notification preferences (Sprint 6.7 E-12), or binary report export — separate sprint approval required.
-
----
-
-### Phase 6 — Sprint 6.7: Notifications
+**Next step:** Sprint 6.9 delivered PDF export, user notification preferences, and failure notifications. Phase 7 consumes Settings APIs via Organization Management UI.
 
 **Status:** Completed — deterministic notification materialization from persisted Platform Events
 
@@ -2022,11 +2012,7 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | Timeline hooks unchanged (parallel, not merged) | ✅ Pass |
 | Full test suite | ✅ Pass (151 tests) |
 
-**Next step:** Frontend Notifications Center (Phase 7), user-level notification preferences, email/push delivery, or binary report export — separate sprint approval required.
-
----
-
-### Hackathon Readiness Sprint — Integration & Demo Certification
+**Next step:** Frontend Notifications Center and Settings UI (Phase 7). User-level preferences and failure notifications closed in Sprint 6.9.
 
 **Status:** Completed — frontend connected to frozen Phase 6 backend for live demonstration
 
@@ -2044,16 +2030,54 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 
 | Check | Result |
 | ----- | ------ |
-| Backend tests (`pytest tests/ -q`) | ✅ 170 passed |
+| Backend tests (`pytest tests/ -q`) | ✅ 170 passed (Sprint 6.9 baseline) |
 | Frontend TypeScript (next build typecheck) | ✅ Pass |
-| Demo bootstrap (org/user/scenarios) | ✅ Pass (settings patch skipped if migrations pending — PDF enabled by default) |
-| E2E API script (`verify_e2e.py`) | ⏳ Requires running backend + Ollama (connection refused in CI-less local run) |
+| Demo bootstrap (org/user/scenarios) | ✅ Pass |
+| E2E API script / full demo path | ✅ Pass (2026-07-15 — Login → Upload → Waste → AI → Scenario → Report → PDF → Notifications) |
 | New business APIs | ✅ None introduced |
 | Freeze documents respected | ✅ Yes |
 
-**Smoke timings:** Record at rehearsal with `verify_e2e.py` when stack is up (see `HACKATHON_DEMO_SCRIPT.md` §6).
+**Smoke timings:** Full path verified 2026-07-15 (AI ~147s; remaining steps &lt; 1s each). See also `HACKATHON_DEMO_SCRIPT.md` §6.
 
-**Next step:** Live hackathon rehearsal with full Docker stack; Phase 7 frontend features post-hackathon.
+**Next step:** Begin Phase 7 — Frontend Features against frozen Phase 6 baseline (`docs/BUSINESS_FEATURES_FREEZE.md`).
+
+**Date:** 2026-07-15
+
+**Status:** Completed — **Phase 6 (Business Features) officially frozen**
+
+**Objective:** Formally freeze the Phase 6 business backend — documentation and verification only. No features, no runtime changes, no refactoring.
+
+**Deliverables:**
+
+- `docs/BUSINESS_FEATURES_FREEZE.md` — official Business Features freeze (executive summary, scope delivered/deferred, sprint certification, demo readiness, operational risks, TL certification, freeze declaration)
+- `docs/progress.md` — Sprint 6.10 and Phase 6 marked completed and frozen; Phase 7 set as next active phase
+- `docs/SPRINT_6.10_SPECIFICATION.md` — freeze sprint specification marked complete
+
+**Stabilization retained in Phase 6 baseline (not temporary):**
+
+| Item | Classification |
+| ---- | -------------- |
+| Scenario assumptions ORM-safe field access | Sprint 6.5 correctness |
+| `organization_settings.id` / notifications / report_exports id defaults | Schema aligned with `UUIDPrimaryKeyMixin` |
+| RECOMMENDATIONS prompt output-format instructions | Prompt formatting only |
+| Recommendation Markdown numbered-item wrappers | Parser Markdown compatibility only |
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Sprints 6.1–6.9 completed in progress.md | ✅ Pass |
+| Demo critical path verified on real APIs | ✅ Pass |
+| No unfinished Phase 6 feature TODOs in business modules | ✅ Pass |
+| No temporary debug code in Phase 6 packages | ✅ Pass |
+| `BUSINESS_FEATURES_FREEZE.md` created | ✅ Pass |
+| Phase 6 marked Completed and frozen | ✅ Pass |
+| Phase 7 identified as next phase | ✅ Pass |
+| Zero application source / migration / API changes in Sprint 6.10 | ✅ Pass |
+
+**Phase 6 exit:** Business Features layer **APPROVED — FROZEN** — ready for Phase 7 Frontend Features.
+
+**Next step:** Begin Phase 7 — Frontend Features (against frozen Phase 6 baseline; see `BUSINESS_FEATURES_FREEZE.md`).
 
 ---
 
@@ -2067,7 +2091,7 @@ Three-way inconsistency on content max width:
 - `frontend/components/layout/page-container.tsx`: `max-w-[1440px]` (matches spec)
 - `frontend/lib/app-nav.tsx` (line ~42): `max-w-[1760px]` (contradicts spec and `page-container.tsx`)
 
-The Tech Lead must decide the single correct max width. After that decision, both components and spec line 53 will be reconciled in a follow-up.
+The Tech Lead must decide the single correct max width. After that decision, both components and spec line 53 will be reconciled in Phase 7 / design follow-up.
 
 ---
 

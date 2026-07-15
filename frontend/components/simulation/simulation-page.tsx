@@ -116,16 +116,25 @@ export function SimulationPage() {
     setExecuting(true);
     setError(null);
     try {
+      const scenarioBody: {
+        source_file_id: string;
+        source_snapshot_id?: string;
+        snapshot_version?: number;
+        baseline_analysis_run_id?: string;
+      } = {
+        source_file_id: artifacts.fileId,
+        baseline_analysis_run_id: artifacts.wasteRunId ?? undefined,
+      };
+      if (artifacts.snapshotId) {
+        scenarioBody.source_snapshot_id = artifacts.snapshotId;
+      } else if (artifacts.snapshotVersion) {
+        scenarioBody.snapshot_version = artifacts.snapshotVersion;
+      }
       const outcome = await executeScenario(
         auth.session.organizationId,
         auth.session.token,
         activeId,
-        {
-          source_file_id: artifacts.fileId,
-          source_snapshot_id: artifacts.snapshotId,
-          snapshot_version: artifacts.snapshotVersion,
-          baseline_analysis_run_id: artifacts.wasteRunId ?? undefined,
-        },
+        scenarioBody,
       );
       writeDemoArtifacts({ simulationRunId: outcome.simulation_run.id });
       await loadRunResults(outcome.simulation_run.id);

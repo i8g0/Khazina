@@ -121,15 +121,24 @@ export function WastePage() {
       if (!artifacts.fileId || !artifacts.snapshotId || !artifacts.snapshotVersion) {
         throw new Error("ارفع ملفاً من مستودع البيانات أولاً");
       }
+      const decisionBody: {
+        title: string;
+        source_file_id: string;
+        source_snapshot_id?: string;
+        snapshot_version?: number;
+      } = {
+        title: "تحليل هدر — Procurement_Q2",
+        source_file_id: artifacts.fileId,
+      };
+      if (artifacts.snapshotId) {
+        decisionBody.source_snapshot_id = artifacts.snapshotId;
+      } else if (artifacts.snapshotVersion) {
+        decisionBody.snapshot_version = artifacts.snapshotVersion;
+      }
       const decision = await executeWasteDecision(
         auth.session.organizationId,
         auth.session.token,
-        {
-          title: "تحليل هدر — Procurement_Q2",
-          source_file_id: artifacts.fileId,
-          source_snapshot_id: artifacts.snapshotId,
-          snapshot_version: artifacts.snapshotVersion,
-        },
+        decisionBody,
       );
       writeDemoArtifacts({ wasteRunId: decision.analysis_run.id });
       await loadResults(decision.analysis_run.id);
