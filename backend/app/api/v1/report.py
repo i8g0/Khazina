@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from app.api.deps import PaginationDep, ReportBuilderServiceDep, ReportServiceDep
+from app.api.deps import PaginationDep, ReportBuilderServiceDep, ReportServiceDep, SettingsServiceDep
 from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
 from app.db.models.enums import UserRole
 from app.reports.content import content_fingerprint
@@ -38,6 +38,8 @@ def generate_report(
     organization_id: UUID,
     body: ReportGenerateRequest,
     builder: ReportBuilderServiceDep,
+    report_service: ReportServiceDep,
+    settings_service: SettingsServiceDep,
     _current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportGenerateResponse]:
     outcome = builder.generate_report(
@@ -46,11 +48,15 @@ def generate_report(
         title=body.title,
         department_id=body.department_id,
     )
-    content = outcome.report.content_representation or {}
+    resolved = settings_service.get_resolved_settings(organization_id)
+    report = outcome.report
+    if resolved.report_preferences.auto_publish_on_generate:
+        report = report_service.publish_report(organization_id, report.id)
+    content = report.content_representation or {}
     extended = content.get("extended_metadata") or {}
     return success_response(
         data=ReportGenerateResponse(
-            report=ReportResponse.model_validate(outcome.report),
+            report=ReportResponse.model_validate(report),
             profile=str(content.get("profile", outcome.content.profile)),
             sections_included=list(extended.get("sections_included") or []),
             export_fingerprint=str(content.get("export_fingerprint", "")),

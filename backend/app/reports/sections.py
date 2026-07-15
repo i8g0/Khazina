@@ -52,22 +52,33 @@ def build_cover_section(
     run_title: str,
     completed_at: datetime | None,
     source_file_id: uuid.UUID | None,
+    report_language: str | None = None,
+    date_display_format: str | None = None,
+    currency_display_code: str | None = None,
 ) -> ReportSection:
-    return ReportSection(
-        key="cover",
-        payload={
-            "organization_name": context.organization_name,
-            "period_label": context.period_label,
-            "run_title": run_title,
-            "completed_at": completed_at.isoformat() if completed_at else None,
-            "source_file_name": context.source_file_name,
-            "source_file_id": str(source_file_id) if source_file_id else None,
-        },
-    )
+    payload: dict[str, Any] = {
+        "organization_name": context.organization_name,
+        "period_label": context.period_label,
+        "run_title": run_title,
+        "completed_at": completed_at.isoformat() if completed_at else None,
+        "source_file_name": context.source_file_name,
+        "source_file_id": str(source_file_id) if source_file_id else None,
+    }
+    if report_language is not None:
+        payload["report_language"] = report_language
+    if date_display_format is not None:
+        payload["date_display_format"] = date_display_format
+    if currency_display_code is not None:
+        payload["currency_display_code"] = currency_display_code
+    return ReportSection(key="cover", payload=payload)
 
 
-def build_waste_executive_summary(inputs: WasteReportInputs) -> ReportSection:
-    if inputs.ai_insights and inputs.ai_insights.get("executive_summary"):
+def build_waste_executive_summary(
+    inputs: WasteReportInputs,
+    *,
+    allow_ai: bool = True,
+) -> ReportSection:
+    if allow_ai and inputs.ai_insights and inputs.ai_insights.get("executive_summary"):
         text = str(inputs.ai_insights["executive_summary"]).strip()
         source = "ai_insights"
     else:
@@ -194,9 +205,19 @@ def build_waste_provenance_section(
     )
 
 
-def assemble_waste_sections(inputs: WasteReportInputs) -> tuple[ReportSection, ...]:
+def assemble_waste_sections(
+    inputs: WasteReportInputs,
+    *,
+    include_ai_sections: bool = True,
+    include_recommendations: bool = True,
+    report_language: str | None = None,
+    date_display_format: str | None = None,
+    currency_display_code: str | None = None,
+) -> tuple[ReportSection, ...]:
     ai_consumed = bool(
-        inputs.ai_insights and inputs.ai_insights.get("executive_summary")
+        include_ai_sections
+        and inputs.ai_insights
+        and inputs.ai_insights.get("executive_summary")
     )
     headline = {
         "total_waste_amount": _safe_float(inputs.waste_result.total_waste_amount),
@@ -212,16 +233,21 @@ def assemble_waste_sections(inputs: WasteReportInputs) -> tuple[ReportSection, .
             run_title=inputs.run.title,
             completed_at=inputs.run.completed_at,
             source_file_id=inputs.run.source_file_id,
+            report_language=report_language,
+            date_display_format=date_display_format,
+            currency_display_code=currency_display_code,
         ),
-        build_waste_executive_summary(inputs),
+        build_waste_executive_summary(inputs, allow_ai=include_ai_sections),
         build_key_metrics_section(inputs.facts, headline=headline),
         build_waste_analysis_section(inputs.category_breakdowns, inputs.vendor_findings),
-        build_recommendations_section(inputs.recommendations),
-        build_waste_provenance_section(inputs, ai_insights_consumed=ai_consumed),
     ]
-    risk = build_risk_explanation_section(inputs.ai_insights)
-    if risk is not None:
-        sections.insert(4, risk)
+    if include_recommendations:
+        sections.append(build_recommendations_section(inputs.recommendations))
+    sections.append(build_waste_provenance_section(inputs, ai_insights_consumed=ai_consumed))
+    if include_ai_sections:
+        risk = build_risk_explanation_section(inputs.ai_insights)
+        if risk is not None:
+            sections.insert(4, risk)
     order = {key: index for index, key in enumerate(WASTE_SECTION_ORDER)}
     sections.sort(key=lambda s: order.get(s.key, 999))
     return tuple(sections)
@@ -380,7 +406,15 @@ def build_scenario_provenance_section(inputs: ScenarioReportInputs) -> ReportSec
     )
 
 
-def assemble_scenario_sections(inputs: ScenarioReportInputs) -> tuple[ReportSection, ...]:
+def assemble_scenario_sections(
+    inputs: ScenarioReportInputs,
+    *,
+    include_scenario_provenance: bool = True,
+    include_ai_sections: bool = True,
+    report_language: str | None = None,
+    date_display_format: str | None = None,
+    currency_display_code: str | None = None,
+) -> tuple[ReportSection, ...]:
     baseline_run_id = inputs.scenario_provenance.get("baseline_analysis_run_id")
     baseline_run_id_str = str(baseline_run_id) if baseline_run_id else None
     sections: list[ReportSection] = [
@@ -389,6 +423,9 @@ def assemble_scenario_sections(inputs: ScenarioReportInputs) -> tuple[ReportSect
             run_title=inputs.run.title,
             completed_at=inputs.run.completed_at,
             source_file_id=inputs.run.source_file_id,
+            report_language=report_language,
+            date_display_format=date_display_format,
+            currency_display_code=currency_display_code,
         ),
         build_scenario_executive_summary(inputs.simulation_run, inputs.forecast_summary),
         build_scenario_overview_section(inputs),
@@ -399,11 +436,14 @@ def assemble_scenario_sections(inputs: ScenarioReportInputs) -> tuple[ReportSect
         ),
         build_impact_and_actions_section(inputs.impact_items, inputs.action_items),
         build_key_metrics_section(inputs.facts),
-        build_scenario_provenance_section(inputs),
     ]
-    baseline_section = build_baseline_context_section(
-        inputs.baseline, baseline_run_id_str
-    )
+    if include_scenario_provenance:
+        sections.append(build_scenario_provenance_section(inputs))
+    baseline_section = None
+    if include_ai_sections:
+        baseline_section = build_baseline_context_section(
+            inputs.baseline, baseline_run_id_str
+        )
     if baseline_section is not None:
         sections.insert(6, baseline_section)
     order = {key: index for index, key in enumerate(SCENARIO_SECTION_ORDER)}

@@ -27,6 +27,8 @@ from app.db.models.enums import AnalysisRunStatus, AnalysisType, RecommendationD
 from app.repositories import AnalysisRepository, RecommendationRepository, WasteRepository
 from app.services.base import BaseService
 from app.services.exceptions import InvalidStateError, ResourceNotFoundError
+from app.settings.exceptions import AiRecommendationsDisabledError
+from app.settings.service import SettingsService
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,12 +53,14 @@ class AiRecommendationService(BaseService):
         *,
         task_pipeline: AiTaskPipeline | None = None,
         ollama_client: OllamaClient | None = None,
+        settings_service: SettingsService | None = None,
     ) -> None:
         super().__init__(session)
         self._analyses = analysis_repository
         self._waste = waste_repository
         self._recommendation_repo = recommendation_repository
         self._model_name = settings.ai.ollama_model
+        self._settings = settings_service
         client = ollama_client or OllamaClient(settings.ai)
         self._pipeline = task_pipeline or AiTaskPipeline(
             ollama_client=client,
@@ -76,6 +80,7 @@ class AiRecommendationService(BaseService):
             raise ResourceNotFoundError("AnalysisRun", analysis_run_id)
         self._check_ownership(run, "AnalysisRun", organization_id)
         self._validate_run_preconditions(run)
+        prompt_language = self._resolve_prompt_language(organization_id)
 
         metadata = dict(run.runtime_metadata or {})
         if metadata.get("ai_insights") and not regenerate:
@@ -86,7 +91,7 @@ class AiRecommendationService(BaseService):
             )
 
         facts = load_facts_contract(metadata)
-        task_results = self._execute_tasks(facts)
+        task_results = self._execute_tasks(facts, prompt_language=prompt_language)
         validate_task_results(task_results)
         generated_at = datetime.now(timezone.utc)
 
@@ -141,13 +146,29 @@ class AiRecommendationService(BaseService):
                 "Analysis run has no waste_analysis_results Gold record"
             )
 
+    def _resolve_prompt_language(self, organization_id: uuid.UUID) -> str:
+        if self._settings is None:
+            return settings.ai.default_prompt_language
+        resolved = self._settings.get_resolved_settings(organization_id)
+        if not resolved.ai_configuration.ai_recommendations_enabled:
+            raise AiRecommendationsDisabledError()
+        return resolved.localization.prompt_language
+
     def _execute_tasks(
-        self, facts_contract: FactsContract
+        self,
+        facts_contract: FactsContract,
+        *,
+        prompt_language: str,
     ) -> tuple[TaskExecutionResult, ...]:
         results: list[TaskExecutionResult] = []
         for task in TASK_EXECUTION_ORDER:
             results.append(
-                self._pipeline.execute_task(facts_contract, task, domain="waste")
+                self._pipeline.execute_task(
+                    facts_contract,
+                    task,
+                    domain="waste",
+                    prompt_language=prompt_language,
+                )
             )
         return tuple(results)
 

@@ -13,6 +13,7 @@ from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 if TYPE_CHECKING:
     from app.db.models.analysis import AnalysisRun
     from app.db.models.department import Department
+    from app.db.models.settings import OrganizationSettings
     from app.db.models.user import User
     from app.db.models.recommendation import Recommendation
     from app.db.models.repository import DataQualitySnapshot, FinancialFile
@@ -74,6 +75,10 @@ class Organization(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     financial_snapshots: Mapped[list[FinancialSnapshot]] = relationship(
         back_populates="organization",
+    )
+    settings_document: Mapped["OrganizationSettings | None"] = relationship(
+        back_populates="organization",
+        uselist=False,
     )
 
 

@@ -4,6 +4,7 @@ from app.db.base import Base
 from app.db.models.analysis import AnalysisRun
 from app.db.models.department import Department
 from app.db.models.organization import Organization, ReportingPeriod
+from app.db.models.settings import OrganizationSettings
 from app.db.models.recommendation import Recommendation
 from app.db.models.reporting import Report
 from app.db.models.repository import (
@@ -43,6 +44,7 @@ __all__ = [
     "FinancialSnapshot",
     "ImportRecord",
     "Organization",
+    "OrganizationSettings",
     "Recommendation",
     "Report",
     "ReportingPeriod",

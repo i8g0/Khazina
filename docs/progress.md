@@ -10,8 +10,8 @@ Official progress tracker for the Khazina project.
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
 | Current Phase  | Phase 6 – Business Features                                     |
-| Current Sprint | 6.5 (Scenario Analysis) — **Completed**                           |
-| Overall Status | Phase 6 Sprint 6.5 complete — deterministic scenario path live      |
+| Current Sprint | 6.8 (Settings) — **Completed**                                    |
+| Overall Status | Phase 6 Sprint 6.8 complete — org-scoped settings live            |
 | Last Updated   | 2026-07-15                                                      |
 
 ---
@@ -25,7 +25,7 @@ Official progress tracker for the Khazina project.
 | Phase 3 – Backend Core        | ✅ Completed (frozen — Sprint 3.7) |
 | Phase 4 – Authentication      | ✅ Completed (frozen — Sprint 4.5) |
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
-| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.5 complete) |
+| Phase 6 – Business Features   | 🔄 In progress (Sprint 6.8 complete) |
 
 ---
 
@@ -94,6 +94,11 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 6.1    | Business   | Financial Snapshot Architecture (ADR-010) | Completed |             | 2026-07-15    |
 | 6.2    | Business   | Financial Statements (Ingestion)     | Completed |             | 2026-07-15    |
 | 6.3    | Business   | Decision Engine                      | Completed |             | 2026-07-15    |
+| 6.4    | Business   | AI Recommendations                   | Completed |             | 2026-07-15    |
+| 6.5    | Business   | Scenario Analysis                    | Completed |             | 2026-07-15    |
+| 6.6    | Business   | Reports                              | Completed |             | 2026-07-15    |
+| 6.7    | Business   | Notifications                        | Completed |             | 2026-07-15    |
+| 6.8    | Business   | Settings                             | Completed |             | 2026-07-15    |
 
 ---
 
@@ -1924,7 +1929,36 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 | Existing catalog workflow (draft/publish/list/delete) preserved | ✅ Pass |
 | Full test suite | ✅ Pass (109 tests) |
 
-**Next step:** Frontend Reports page wiring (Phase 7), binary export (`report_exports`), or simulation-domain AI — separate sprint approval required.
+**Next step:** Frontend Organization Management and Settings page (Phase 7), user-level notification preferences (Sprint 6.7 E-12), or binary report export — separate sprint approval required.
+
+---
+
+### Phase 6 — Sprint 6.8: Settings
+
+**Status:** Completed — organization-scoped configuration with deterministic resolution
+
+**Objective:** Persist and resolve org-level settings (six sections) consumed read-only by existing services — no AI or Business Engine execution.
+
+**Deliverables:**
+
+- `app/settings/` — defaults registry, resolver, Settings Service, notification gate helpers
+- `organization_settings` table + Alembic migration `f7d2b5e94c09`
+- `GET/PATCH /organizations/{id}/settings` — resolved configuration API
+- Consumer integration: `AnalysisService`, `AiRecommendationService`, `ReportBuilderService`, report generate auto-publish composition
+- `tests/settings/` — resolver, service, isolation, notification gates, consumer gate tests
+
+**Validation:**
+
+| Check | Result |
+| ----- | ------ |
+| Six settings sections with deterministic resolution | ✅ Pass |
+| Localization vs AI Configuration boundary (AI Freeze) | ✅ Pass |
+| Platform Default Notification Preferences org-level gates | ✅ Pass |
+| Settings Service does not invoke AI or Business Engines | ✅ Pass |
+| Existing services consume settings read-only | ✅ Pass |
+| Full test suite | ✅ Pass (125 tests) |
+
+**Next step:** Frontend Organization Management and Settings page (Phase 7), user-level notification preferences (Sprint 6.7 E-12), or binary report export — separate sprint approval required.
 
 ---
 

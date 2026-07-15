@@ -60,6 +60,7 @@ class AiTaskPipeline:
         task: PromptTask,
         *,
         domain: str = "waste",
+        prompt_language: str | None = None,
     ) -> TaskExecutionResult:
         if self._ollama is None:
             raise AiRecommendationError(
@@ -74,7 +75,7 @@ class AiTaskPipeline:
         composed = self._prompt_composer.compose(
             task,
             prompt_context.facts,
-            prompt_language=self._prompt_language,
+            prompt_language=prompt_language or self._prompt_language,
         )
         messages = [
             {"role": "system", "content": composed.system_prompt},

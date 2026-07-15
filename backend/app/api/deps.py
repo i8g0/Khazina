@@ -25,6 +25,7 @@ from app.repositories import (
     RecommendationRepository,
     ReportRepository,
     RiskRepository,
+    SettingsRepository,
     SimulationRepository,
     TimelineRepository,
     UserRepository,
@@ -34,6 +35,7 @@ from app.reports.service import ReportBuilderService
 from app.decision.service import DecisionService
 from app.scenario.service import ScenarioService
 from app.ai_recommendations.service import AiRecommendationService
+from app.settings.service import SettingsService
 from app.services import (
     AnalysisService,
     AuthService,
@@ -220,6 +222,7 @@ def get_ai_recommendation_service(
         RecommendationRepository, Depends(get_recommendation_repository)
     ],
     ollama_client: Annotated[OllamaClient, Depends(get_ollama_client)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
 ) -> AiRecommendationService:
     return AiRecommendationService(
         db,
@@ -227,7 +230,24 @@ def get_ai_recommendation_service(
         waste_repo,
         recommendation_repo,
         ollama_client=ollama_client,
+        settings_service=settings_service,
     )
+
+
+def get_settings_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> SettingsRepository:
+    return SettingsRepository(db)
+
+
+def get_settings_service(
+    db: Annotated[Session, Depends(get_db)],
+    settings_repo: Annotated[SettingsRepository, Depends(get_settings_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+) -> SettingsService:
+    return SettingsService(db, settings_repo, organization_repo)
 
 
 def get_organization_service(
@@ -266,9 +286,15 @@ def get_analysis_service(
     ],
     financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
     timeline_repo: Annotated[TimelineRepository, Depends(get_timeline_repository)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
 ) -> AnalysisService:
     return AnalysisService(
-        db, analysis_repo, organization_repo, financial_repo, timeline_repo
+        db,
+        analysis_repo,
+        organization_repo,
+        financial_repo,
+        timeline_repo,
+        settings_service=settings_service,
     )
 
 
@@ -321,6 +347,7 @@ def get_report_builder_service(
         OrganizationRepository, Depends(get_organization_repository)
     ],
     financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
 ) -> ReportBuilderService:
     return ReportBuilderService(
         db,
@@ -331,6 +358,7 @@ def get_report_builder_service(
         recommendation_repo,
         organization_repo,
         financial_repo,
+        settings_service=settings_service,
     )
 
 
@@ -457,6 +485,7 @@ def get_current_user(
     return user
 
 
+SettingsServiceDep = Annotated[SettingsService, Depends(get_settings_service)]
 OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization_service)]
 DepartmentServiceDep = Annotated[DepartmentService, Depends(get_department_service)]
 FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)]

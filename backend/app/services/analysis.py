@@ -30,6 +30,7 @@ from app.services.exceptions import (
     InvalidStateTransitionError,
     ResourceNotFoundError,
 )
+from app.settings.service import SettingsService
 
 # Approved run lifecycle (design §4.5): pending → processing → completed/failed.
 _RUN_TRANSITIONS: dict[str, set[str]] = {
@@ -58,12 +59,15 @@ class AnalysisService(BaseService):
         organization_repository: OrganizationRepository,
         financial_repository: FinancialRepository,
         timeline_repository: TimelineRepository,
+        *,
+        settings_service: SettingsService | None = None,
     ) -> None:
         super().__init__(session)
         self._analyses = analysis_repository
         self._organizations = organization_repository
         self._financials = financial_repository
         self._timeline = timeline_repository
+        self._settings = settings_service
 
     # -- run creation -----------------------------------------------------------
 
@@ -85,6 +89,12 @@ class AnalysisService(BaseService):
             raise BusinessValidationError("Analysis title must not be empty")
         if analysis_type not in set(AnalysisType):
             raise BusinessValidationError(f"Unknown analysis type '{analysis_type}'")
+        if self._settings is not None:
+            resolved = self._settings.get_resolved_settings(organization_id)
+            if analysis_type not in resolved.analysis_configuration.enabled_analysis_types:
+                raise BusinessValidationError(
+                    f"Analysis type '{analysis_type}' is disabled for this organization"
+                )
 
         if source_file_id is not None:
             source_file = self._financials.get_file(source_file_id)
@@ -200,17 +210,24 @@ class AnalysisService(BaseService):
 
         with self._transaction():
             self._analyses.update(run, values)
-            self._timeline.create(
-                TimelineEvent(
-                    organization_id=organization_id,
-                    reporting_period_id=run.reporting_period_id,
-                    event_date=completed_at.date(),
-                    title=run.title,
-                    event_type=TimelineEventType.ANALYSIS,
-                    related_entity_type=RelatedEntityType.ANALYSIS_RUN,
-                    related_entity_id=run.id,
+            append_timeline = True
+            if self._settings is not None:
+                resolved = self._settings.get_resolved_settings(organization_id)
+                append_timeline = (
+                    resolved.analysis_configuration.timeline_on_completion_enabled
                 )
-            )
+            if append_timeline:
+                self._timeline.create(
+                    TimelineEvent(
+                        organization_id=organization_id,
+                        reporting_period_id=run.reporting_period_id,
+                        event_date=completed_at.date(),
+                        title=run.title,
+                        event_type=TimelineEventType.ANALYSIS,
+                        related_entity_type=RelatedEntityType.ANALYSIS_RUN,
+                        related_entity_id=run.id,
+                    )
+                )
         return run
 
     def fail_run(
