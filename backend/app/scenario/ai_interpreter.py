@@ -10,23 +10,30 @@ from app.ai.providers.factory import create_ai_provider
 from app.business.engines.scenario.input import ScenarioBaselineInput
 from app.scenario.ai_contract import InterpretedScenario, ScenarioAction
 from app.scenario.exceptions import ScenarioInterpretationError
+from app.scenario.risk_context import SimulationRiskContext
 
 
 _SYSTEM_PROMPT = """أنت محلل مالي تنفيذي في منصة خزينة.
-مهمتك: تحويل طلب المدير باللغة الطبيعية إلى سيناريo مالي منظم بصيغة JSON فقط.
+مهمتك: تحويل طلب المدير باللغة الطبيعية إلى سينario مالي منظم بصيغة JSON فقط.
 
-قواعد:
+قواعد صارمة (Sprint 6 — الواقع المالي):
 - افهم النية التجارية وليس الكلمات فقط.
-- استخرج النسب والمبالغ والعملة (SAR افتراضياً).
-- أنشئ actions متعددة عند الحاجة (mixed scenarios).
-- action_type يجب أن يكون أحد:
+- استخرج النسب والمبالغ والعملة (SAR افتراضياً) من طلب المستخدم فقط.
+- لا تخترع إيرادات أو أرباحاً غير مذكورة في الطلب.
+- فتح فرع/استثمار/ميزانية رأسمالية → action_type: investment أو increase_budget مع mode: absolute والمبلغ من الطلب.
+- زيادة رواتب/تكاليف → increase_payroll أو increase_budget مع النسبة المذكورة.
+- خفض تكاليف/موردين/نقل → reduce_expense أو reduce_transport أو reduce_suppliers.
+- لا تستخدم increase_revenue إلا عند طلب صريح لزيادة الإيرادات أو النمو.
+- target_amount = المبلغ الذي ذكره المستخدم (إن وُجد).
+- horizon_quarters: 1-12 (افتراضي 4)
+- confidence: 0-100 (خفّضها إذا الطلب غامض)
+
+action_type يجب أن يكون أحد:
   reduce_expense, increase_revenue, reduce_budget, increase_budget, reduce_waste,
   increase_profit, reduce_suppliers, close_branches, hire_employees, increase_payroll,
   increase_prices, reduce_transport, investment, operational_change, mixed
 - mode: percent | absolute | count
 - category/department عند التخصيص (finance, marketing, operations, procurement, it, hr, logistics, legal, travel, ...)
-- horizon_quarters: 1-12 (افتراضي 4)
-- confidence: 0-100
 
 أعد JSON فقط بهذا الشكل:
 {
@@ -51,19 +58,24 @@ class AIScenarioInterpreter:
         user_request: str,
         *,
         baseline: ScenarioBaselineInput,
+        risk_context: SimulationRiskContext | None = None,
     ) -> InterpretedScenario:
         cleaned = user_request.strip()
         if not cleaned:
             raise ScenarioInterpretationError("empty_request", "Scenario request must not be empty")
 
         baseline_context = self._baseline_context(baseline)
+        risk_block = ""
+        if risk_context is not None:
+            risk_block = f"\n\n{risk_context.to_prompt_block()}\n"
         messages = [
             {"role": "system", "content": _SYSTEM_PROMPT},
             {
                 "role": "user",
                 "content": (
                     f"طلب المدير:\n{cleaned}\n\n"
-                    f"خط الأساس المالي:\n{baseline_context}\n\n"
+                    f"خط الأساس المالي:\n{baseline_context}"
+                    f"{risk_block}\n"
                     "حوّل الطلب إلى JSON منظم."
                 ),
             },

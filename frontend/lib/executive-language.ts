@@ -65,6 +65,24 @@ export function stripTechnicalLanguage(text: string): string {
   return cleaned;
 }
 
+import { sanitizeExecutiveText } from "@/lib/format";
+
+const FORBIDDEN_VAGUE_WORDS = [
+  /\bقد\b/gu,
+  /\bربما\b/gu,
+  /\bيمكن\b/gu,
+  /\bمن الممكن\b/gu,
+];
+
+export function ensureExecutiveArabic(text: string): string {
+  let cleaned = stripTechnicalLanguage(sanitizeExecutiveText(text));
+  for (const pattern of FORBIDDEN_VAGUE_WORDS) {
+    cleaned = cleaned.replace(pattern, "");
+  }
+  cleaned = cleaned.replace(/\s{2,}/g, " ").trim();
+  return cleaned || "—";
+}
+
 export const EXECUTIVE_LABELS = {
   businessProblem: "المشكلة التجارية",
   evidence: "الأدلة المالية",

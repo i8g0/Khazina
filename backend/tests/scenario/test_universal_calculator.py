@@ -1,4 +1,4 @@
-"""Universal AI-native scenario calculator tests (Sprint 5)."""
+"""Universal AI-native scenario calculator tests (Sprint 5/6)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from app.business.engines.scenario.input import ScenarioBaselineInput, ScenarioC
 from app.business.engines.scenario.universal_calculator import (
     UniversalScenarioCalculator,
     UniversalScenarioInput,
+    UniversalScenarioResult,
 )
 from app.scenario.ai_contract import InterpretedScenario, ScenarioAction
 
@@ -28,15 +29,14 @@ def _baseline() -> ScenarioBaselineInput:
     )
 
 
-def _run(interpreted: InterpretedScenario) -> float:
-    result = UniversalScenarioCalculator().calculate(
+def _run(interpreted: InterpretedScenario) -> UniversalScenarioResult:
+    return UniversalScenarioCalculator().calculate(
         UniversalScenarioInput(
             interpreted=interpreted,
             baseline=_baseline(),
             user_request="test",
         )
     )
-    return result.projected_total
 
 
 def _scenario(
@@ -198,9 +198,9 @@ def test_universal_calculator_executes_distinct_scenarios(
     actions: list[ScenarioAction],
     target_amount: float | None,
 ) -> None:
-    projected = _run(_scenario(scenario_type, actions, target_amount=target_amount))
-    assert projected > 0
-    assert projected != 10_000_000.0
+    outcome = _run(_scenario(scenario_type, actions, target_amount=target_amount))
+    assert outcome.calculation.baseline_total > 0
+    assert outcome.financial_reality.confidence_level in {"high", "medium", "low"}
 
 
 def test_distinct_scenarios_produce_different_totals() -> None:
@@ -234,5 +234,5 @@ def test_distinct_scenarios_produce_different_totals() -> None:
             ],
         ),
     ]
-    totals = {_run(item) for item in cases}
+    totals = {_run(item).calculation.projected_total for item in cases}
     assert len(totals) == 3

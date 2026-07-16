@@ -16,6 +16,20 @@ class WasteCategoryMetric:
 
 
 @dataclass(frozen=True, slots=True)
+class DepartmentWasteMetric:
+    department_name: str
+    amount: Decimal
+    share_of_waste: Decimal
+
+
+@dataclass(frozen=True, slots=True)
+class SupplierWasteMetric:
+    supplier_name: str
+    amount: Decimal
+    share_of_waste: Decimal
+
+
+@dataclass(frozen=True, slots=True)
 class FinancialMetricsInput:
     """Normalized financial metrics derived from snapshot Silver payload."""
 
@@ -27,6 +41,8 @@ class FinancialMetricsInput:
     current_assets: Decimal | None = None
     current_liabilities: Decimal | None = None
     categories: tuple[WasteCategoryMetric, ...] = ()
+    departments: tuple[DepartmentWasteMetric, ...] = ()
+    suppliers: tuple[SupplierWasteMetric, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

@@ -44,6 +44,37 @@ DEPARTMENT_HINTS_AR: dict[str, str] = {
     "compliance": "الامتثال",
 }
 
+RISK_POSTURE_AR: dict[str, str] = {
+    "elevated": "مرتفع",
+    "critical": "حرج",
+    "moderate": "متوسط",
+    "low": "منخفض",
+}
+
+RISK_PRIORITY_AR: dict[str, str] = {
+    "high": "عالية",
+    "medium": "متوسطة",
+    "low": "منخفضة",
+}
+
+RISK_LEVEL_AR: dict[str, str] = {
+    "high": "مرتفع",
+    "medium": "متوسط",
+    "low": "منخفض",
+}
+
+RISK_CATEGORY_AR: dict[str, str] = {
+    "financial": "مخاطر مالية",
+    "liquidity": "مخاطر السيولة",
+    "operational": "مخاطر تشغيلية",
+    "compliance": "مخاطر امتثال",
+    "vendor": "مخاطر الموردين",
+    "fraud": "مخاطر احتيال",
+    "strategic": "مخاطر استراتيجية",
+    "budget": "مخاطر الميزانية",
+    "forecast": "مخاطر التوقعات",
+}
+
 EXECUTIVE_ANGLES_AR: tuple[str, ...] = (
     "الحوكمة المالية",
     "تحسين الموردين",
@@ -59,6 +90,28 @@ _ENGLISH_CATEGORY_TOKEN = re.compile(
     r")\b",
     re.IGNORECASE,
 )
+
+
+def risk_posture_ar(code: str) -> str:
+    normalized = code.strip().lower()
+    return RISK_POSTURE_AR.get(normalized, "متوسط")
+
+
+def risk_priority_ar(code: str) -> str:
+    normalized = code.strip().lower()
+    return RISK_PRIORITY_AR.get(normalized, "متوسطة")
+
+
+def risk_level_ar(code: str) -> str:
+    normalized = code.strip().lower()
+    return RISK_LEVEL_AR.get(normalized, "متوسط")
+
+
+def risk_category_ar(code: str) -> str:
+    normalized = code.strip().lower()
+    if normalized in RISK_CATEGORY_AR:
+        return RISK_CATEGORY_AR[normalized]
+    return category_label_ar(code)
 
 
 def category_label_ar(category_key: str) -> str:

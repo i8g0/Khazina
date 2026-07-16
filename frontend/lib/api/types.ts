@@ -172,6 +172,47 @@ export interface InterpretedScenarioPayload {
   confidence?: number;
 }
 
+export interface MetricRangePayload {
+  worst: number;
+  expected: number;
+  best: number;
+  label?: string;
+}
+
+export interface FinancialRealityPayload {
+  expense_baseline: number;
+  expense_projected: number;
+  expense_change: MetricRangePayload;
+  revenue_impact?: MetricRangePayload | null;
+  cash_impact: MetricRangePayload;
+  confidence_level: string;
+  confidence_score: number;
+  confidence_rationale: string;
+  action_reasonings?: string[];
+  validation_notes?: string[];
+  assumptions_used?: string[];
+}
+
+export interface ExecutiveJudgmentPayload {
+  materiality_analysis: string;
+  financial_realism: string;
+  scale_comparison: string;
+  strategic_advice: string;
+  recommendation: string;
+  recommendation_type: "approve" | "approve_with_modifications" | "postpone" | "reject";
+  recommendation_rationale: string;
+  financial_reasoning: string;
+  supporting_indicators: string[];
+  assumptions_used: string[];
+  remaining_risks: string;
+  executive_verdict: string;
+  financial_justification: string;
+  strategic_recommendation: string;
+  confidence_statement: string;
+  alternative_option: string;
+  next_step: string;
+}
+
 export interface SimulationExplanationPayload {
   executive_summary: string;
   expected_impact: string;
@@ -182,6 +223,8 @@ export interface SimulationExplanationPayload {
   assumptions: string;
   board_recommendation: string;
   next_actions?: string[];
+  forecast_ranges?: string;
+  executive_judgment?: ExecutiveJudgmentPayload | null;
 }
 
 export interface AISimulationExecuteResponse {
@@ -190,6 +233,7 @@ export interface AISimulationExecuteResponse {
   user_request: string;
   interpreted_scenario: InterpretedScenarioPayload;
   ai_explanation: SimulationExplanationPayload;
+  financial_reality?: FinancialRealityPayload | null;
   facts_contract_version: string;
   engine_id: string;
   engine_version: string;

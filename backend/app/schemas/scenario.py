@@ -37,6 +37,7 @@ class AISimulationExecuteRequest(SchemaBase):
     source_snapshot_id: UUID | None = None
     snapshot_version: int | None = Field(None, ge=1)
     baseline_analysis_run_id: UUID | None = None
+    risk_analysis_run_id: UUID | None = None
     reporting_period_id: UUID | None = None
 
 
@@ -46,6 +47,7 @@ class AISimulationExecuteResponse(SchemaBase):
     user_request: str
     interpreted_scenario: dict[str, Any]
     ai_explanation: dict[str, Any]
+    financial_reality: dict[str, Any] | None = None
     facts_contract_version: str
     engine_id: str
     engine_version: str

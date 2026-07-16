@@ -262,6 +262,12 @@ def get_ai_simulation_service(
         OrganizationRepository, Depends(get_organization_repository)
     ],
     waste_repo: Annotated[WasteRepository, Depends(get_waste_repository)],
+    risk_analysis_repo: Annotated[
+        RiskAnalysisRepository, Depends(get_risk_analysis_repository)
+    ],
+    recommendation_repo: Annotated[
+        RecommendationRepository, Depends(get_recommendation_repository)
+    ],
 ) -> AISimulationService:
     return AISimulationService(
         db,
@@ -272,6 +278,8 @@ def get_ai_simulation_service(
         financial_repo,
         organization_repo,
         waste_repo,
+        risk_analysis_repo,
+        recommendation_repo,
     )
 
 

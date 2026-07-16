@@ -21,6 +21,59 @@ export interface RiskMatrixItemView {
   likelihood: string;
   impact: string;
   priority: string;
+  department: string;
+  supplier: string;
+  amountExposed: string;
+  score: number;
+  tooltip: string;
+  whyTooltip: string;
+}
+
+export interface RiskExposureChartItem {
+  label: string;
+  amount: number;
+  formatted: string;
+}
+
+export interface RiskTopItemChart {
+  name: string;
+  score: number;
+  priority: string;
+  department: string;
+}
+
+export interface RiskExecutiveCardView {
+  id: string;
+  title: string;
+  executiveSummary: string;
+  detectionReason: string;
+  priority: string;
+  department: string;
+  supplier: string;
+  supplierCount: string;
+  affectedCategory: string;
+  amountExposed: string;
+  wasteValue: string;
+  probability: string;
+  financialImpact: string;
+  businessImpact: string;
+  executiveExplanation: string;
+  recommendedAction: string;
+  estimatedSavings: string;
+  targetOwner: string;
+  targetTimeline: string;
+  confidence: string;
+  evidenceSummary: string;
+  ifIgnored: string;
+  score: number;
+  likelihood: string;
+  impact: string;
+}
+
+export interface RiskTrendChartItem {
+  label: string;
+  findings: number;
+  posture: string;
 }
 
 export interface RiskSeverityChartItem {
@@ -70,6 +123,15 @@ export interface RiskFindingView {
   status: string;
   statusCode: string;
   department: string;
+  supplier: string;
+  amountExposed: string;
+  estimatedSavings: string;
+  recommendedAction: string;
+  targetOwner: string;
+  targetTimeline: string;
+  confidence: string;
+  businessImpact: string;
+  ifIgnored: string;
   promotedRiskId: string | null;
   detectionRuleId: string;
 }

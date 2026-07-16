@@ -6,7 +6,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
 
-from app.business.engines.risk.input import RiskEngineInput
+from app.business.engines.risk.input import (
+    DepartmentWasteMetric,
+    RiskEngineInput,
+    SupplierWasteMetric,
+    WasteCategoryMetric,
+)
 from app.business.exceptions import ValidationError
 
 
@@ -30,10 +35,16 @@ class RiskCalculationResult:
     top_category_name: str | None
     top_category_concentration: Decimal | None
     category_count: int
+    category_breakdown: tuple[WasteCategoryMetric, ...]
     organization_id: str
     snapshot_id: str
     reporting_period: str
     source_dataset: str
+    department_breakdown: tuple[DepartmentWasteMetric, ...] = ()
+    supplier_breakdown: tuple[SupplierWasteMetric, ...] = ()
+    top_supplier_name: str | None = None
+    top_supplier_amount: Decimal | None = None
+    top_supplier_concentration: Decimal | None = None
     generated_at: datetime | None = None
 
 
@@ -74,10 +85,22 @@ class RiskCalculator:
 
         top_name: str | None = None
         top_concentration: Decimal | None = None
+        category_breakdown = tuple(metrics.categories)
         if metrics.categories:
             top = max(metrics.categories, key=lambda row: row.share_of_waste)
             top_name = top.category_name
             top_concentration = top.share_of_waste
+
+        department_breakdown = tuple(metrics.departments)
+        supplier_breakdown = tuple(metrics.suppliers)
+        top_supplier_name: str | None = None
+        top_supplier_amount: Decimal | None = None
+        top_supplier_concentration: Decimal | None = None
+        if metrics.suppliers:
+            top_supplier = metrics.suppliers[0]
+            top_supplier_name = top_supplier.supplier_name
+            top_supplier_amount = top_supplier.amount
+            top_supplier_concentration = top_supplier.share_of_waste
 
         return RiskCalculationResult(
             total_spend=total_spend,
@@ -94,9 +117,15 @@ class RiskCalculator:
             top_category_name=top_name,
             top_category_concentration=top_concentration,
             category_count=len(metrics.categories),
+            category_breakdown=category_breakdown,
             organization_id=input_data.organization_id,
             snapshot_id=input_data.snapshot_id,
             reporting_period=input_data.reporting_period,
             source_dataset=input_data.source_dataset,
+            department_breakdown=department_breakdown,
+            supplier_breakdown=supplier_breakdown,
+            top_supplier_name=top_supplier_name,
+            top_supplier_amount=top_supplier_amount,
+            top_supplier_concentration=top_supplier_concentration,
             generated_at=input_data.generated_at,
         )

@@ -59,6 +59,51 @@ class InterpretedScenario(BaseModel):
         return self.model_dump(mode="json")
 
 
+class MetricRangePayload(BaseModel):
+    worst: float
+    expected: float
+    best: float
+    label: str = ""
+
+
+class FinancialRealityPayload(BaseModel):
+    expense_baseline: float
+    expense_projected: float
+    expense_change: MetricRangePayload
+    revenue_impact: MetricRangePayload | None = None
+    cash_impact: MetricRangePayload
+    confidence_level: str
+    confidence_score: int = Field(ge=0, le=100)
+    confidence_rationale: str
+    action_reasonings: list[str] = Field(default_factory=list)
+    validation_notes: list[str] = Field(default_factory=list)
+    assumptions_used: list[str] = Field(default_factory=list)
+
+
+class ExecutiveJudgmentPayload(BaseModel):
+    """Senior financial consultant judgment — materiality, realism, verdict."""
+
+    materiality_analysis: str
+    financial_realism: str
+    scale_comparison: str
+    strategic_advice: str
+    recommendation: str = Field(..., description="Arabic label: الموافقة / الموافقة مع تعديلات / التأجيل / الرفض")
+    recommendation_type: Literal[
+        "approve", "approve_with_modifications", "postpone", "reject"
+    ]
+    recommendation_rationale: str
+    financial_reasoning: str
+    supporting_indicators: list[str] = Field(default_factory=list)
+    assumptions_used: list[str] = Field(default_factory=list)
+    remaining_risks: str
+    executive_verdict: str
+    financial_justification: str
+    strategic_recommendation: str
+    confidence_statement: str
+    alternative_option: str
+    next_step: str
+
+
 class SimulationExplanation(BaseModel):
     executive_summary: str
     expected_impact: str
@@ -69,6 +114,8 @@ class SimulationExplanation(BaseModel):
     assumptions: str
     board_recommendation: str
     next_actions: list[str] = Field(default_factory=list)
+    forecast_ranges: str = ""
+    executive_judgment: ExecutiveJudgmentPayload | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return self.model_dump(mode="json")

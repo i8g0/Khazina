@@ -5,6 +5,7 @@ import { AppLayout, PageContainer } from "@/components/layout";
 import { DashboardBrand } from "@/components/dashboard/dashboard-brand";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
+import { SimulationExecutiveJudgment } from "@/components/simulation/simulation-executive-judgment";
 import { SimulationActionPanel } from "@/components/simulation/simulation-action-panel";
 import { SimulationAssumptions } from "@/components/simulation/simulation-assumptions";
 import { SimulationComparisonChart } from "@/components/simulation/simulation-comparison-chart";
@@ -44,10 +45,11 @@ import {
   listImpactItems,
 } from "@/lib/api/khazina-api";
 import type {
+  FinancialRealityPayload,
   InterpretedScenarioPayload,
   SimulationExplanationPayload,
 } from "@/lib/api/types";
-import { mapScenarioType } from "@/lib/executive-language";
+import { ensureExecutiveArabic, mapScenarioType } from "@/lib/executive-language";
 import { writeDemoArtifacts } from "@/lib/demo/state";
 import { useDemoArtifacts } from "@/lib/demo/hooks";
 
@@ -86,6 +88,29 @@ function parseExplanation(value: unknown): SimulationExplanationPayload | null {
   return value as SimulationExplanationPayload;
 }
 
+function parseFinancialReality(value: unknown): FinancialRealityPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.confidence_level !== "string" ||
+    typeof record.confidence_score !== "number"
+  ) {
+    return null;
+  }
+  return value as FinancialRealityPayload;
+}
+
+function formatSar(value: number): string {
+  return `${value.toLocaleString("ar-SA", { maximumFractionDigits: 0 })} ر.س`;
+}
+
+function confidenceLabel(level: string): string {
+  if (level === "high") return "عالية";
+  if (level === "medium") return "متوسطة";
+  if (level === "low") return "منخفضة";
+  return level;
+}
+
 export function SimulationPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
@@ -100,6 +125,8 @@ export function SimulationPage() {
     React.useState<InterpretedScenarioPayload | null>(null);
   const [explanation, setExplanation] =
     React.useState<SimulationExplanationPayload | null>(null);
+  const [financialReality, setFinancialReality] =
+    React.useState<FinancialRealityPayload | null>(null);
   const [hasRunResults, setHasRunResults] = React.useState(false);
   const [forecast, setForecast] = React.useState<{
     baseline: string;
@@ -206,6 +233,7 @@ export function SimulationPage() {
         );
         setInterpreted(parseInterpretedScenario(metadata.interpreted_scenario));
         setExplanation(parseExplanation(metadata.ai_explanation));
+        setFinancialReality(parseFinancialReality(metadata.financial_reality));
       } catch {
         /* keep partial UI */
       } finally {
@@ -224,6 +252,7 @@ export function SimulationPage() {
     setActionItems([]);
     setInterpreted(null);
     setExplanation(null);
+    setFinancialReality(null);
     setLastRequest(null);
   }, []);
 
@@ -247,10 +276,12 @@ export function SimulationPage() {
         source_snapshot_id?: string;
         snapshot_version?: number;
         baseline_analysis_run_id?: string;
+        risk_analysis_run_id?: string;
       } = {
         user_request: request,
         source_file_id: artifacts.fileId,
         baseline_analysis_run_id: artifacts.wasteRunId ?? undefined,
+        risk_analysis_run_id: artifacts.riskRunId ?? undefined,
       };
       if (artifacts.snapshotId) {
         body.source_snapshot_id = artifacts.snapshotId;
@@ -270,6 +301,7 @@ export function SimulationPage() {
       setLastRequest(outcome.user_request);
       setInterpreted(outcome.interpreted_scenario);
       setExplanation(outcome.ai_explanation);
+      setFinancialReality(outcome.financial_reality ?? null);
       await loadRunResults(outcome.simulation_run.id);
       setMessage("اكتملت المحاكاة بنجاح");
     } catch (err) {
@@ -322,6 +354,8 @@ export function SimulationPage() {
     })) ?? []),
   ];
 
+  const executiveJudgment = explanation?.executive_judgment ?? null;
+
   return (
     <AppLayout
       brand={<DashboardBrand />}
@@ -343,7 +377,9 @@ export function SimulationPage() {
           <WorkflowIndicator activeStageId="simulation" />
 
           <Alert variant="default" title="إرشاد">
-            {EXECUTIVE_MESSAGES.simulationDemoHint}
+            {artifacts.riskRunId
+              ? "سيتم ربط المحاكاة بتحليل المخاطر الحالي لتقدير أثر السيناريو على التعرّض المالي."
+              : "لربط المحاكاة بالمخاطر: أكمل تحليل المخاطر أولاً ثم عد لتشغيل السيناريو."}
           </Alert>
 
           <section className="space-y-3">
@@ -481,18 +517,101 @@ export function SimulationPage() {
             </section>
           ) : null}
 
+          {financialReality ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="تحليل الثقة والنطاقات" />
+              <div className="grid gap-4 md:grid-cols-2">
+                <InsightBlock
+                  title={`مستوى الثقة: ${confidenceLabel(financialReality.confidence_level)} (${financialReality.confidence_score}/100)`}
+                  body={financialReality.confidence_rationale}
+                />
+                {financialReality.revenue_impact ? (
+                  <InsightBlock
+                    title="تأثير الإيرادات (أسوأ / متوقع / أفضل)"
+                    body={`${formatSar(financialReality.revenue_impact.worst)} / ${formatSar(financialReality.revenue_impact.expected)} / ${formatSar(financialReality.revenue_impact.best)}`}
+                  />
+                ) : null}
+                <InsightBlock
+                  title="تغير الإنفاق (أسوأ / متوقع / أفضل)"
+                  body={`${formatSar(financialReality.expense_change.worst)} / ${formatSar(financialReality.expense_change.expected)} / ${formatSar(financialReality.expense_change.best)}`}
+                />
+                <InsightBlock
+                  title="الأثر على السيولة (أسوأ / متوقع / أفضل)"
+                  body={`${formatSar(financialReality.cash_impact.worst)} / ${formatSar(financialReality.cash_impact.expected)} / ${formatSar(financialReality.cash_impact.best)}`}
+                />
+              </div>
+              {financialReality.action_reasonings &&
+              financialReality.action_reasonings.length > 0 ? (
+                <div className="mt-4 space-y-2 rounded-2xl border border-border/60 bg-surface/40 p-4">
+                  <p className="text-sm font-medium">التبرير المالي</p>
+                  <ul className="list-inside list-disc space-y-1 text-sm text-muted">
+                    {financialReality.action_reasonings.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {financialReality.validation_notes &&
+              financialReality.validation_notes.length > 0 ? (
+                <Alert variant="default" title="تعديلات التحقق المالي">
+                  {financialReality.validation_notes.join(" — ")}
+                </Alert>
+              ) : null}
+            </section>
+          ) : null}
+
+          {executiveJudgment ? (
+            <section className={executiveSectionSpacingClassName}>
+              <SimulationExecutiveJudgment judgment={executiveJudgment} />
+            </section>
+          ) : null}
+
           {explanation ? (
             <section className={executiveSectionSpacingClassName}>
               <DashboardSectionHeader dense title="شرح النتائج" />
+              {artifacts.riskRunId && explanation.risks ? (
+                <div className="mb-4 rounded-2xl border border-warning/30 bg-warning/5 p-4">
+                  <p className="mb-2 text-sm font-semibold text-black-primary">
+                    كيف تؤثر المخاطر الحالية على هذا السيناريو؟
+                  </p>
+                  <p className="text-sm leading-relaxed text-black-primary/90">
+                    {ensureExecutiveArabic(explanation.risks)}
+                  </p>
+                </div>
+              ) : null}
               <div className="grid gap-4 md:grid-cols-2">
-                <InsightBlock title="الملخص التنفيذي" body={explanation.executive_summary} />
-                <InsightBlock title="الأثر المتوقع" body={explanation.expected_impact} />
-                <InsightBlock title="التغيرات المالية" body={explanation.financial_changes} />
-                <InsightBlock title="المخاطر" body={explanation.risks} />
-                <InsightBlock title="الفوائد" body={explanation.benefits} />
-                <InsightBlock title="التوصية للمجلس" body={explanation.board_recommendation} />
-                <InsightBlock title="الافتراضات" body={explanation.assumptions} />
-                <InsightBlock title="مستوى الثقة" body={explanation.confidence} />
+                <InsightBlock
+                  title="الملخص التنفيذي"
+                  body={ensureExecutiveArabic(explanation.executive_summary)}
+                />
+                <InsightBlock
+                  title="الأثر المتوقع"
+                  body={ensureExecutiveArabic(explanation.expected_impact)}
+                />
+                <InsightBlock
+                  title="التغيرات المالية"
+                  body={ensureExecutiveArabic(explanation.financial_changes)}
+                />
+                <InsightBlock
+                  title="المخاطر المرتبطة"
+                  body={ensureExecutiveArabic(explanation.risks)}
+                />
+                <InsightBlock title="الفوائد" body={ensureExecutiveArabic(explanation.benefits)} />
+                <InsightBlock
+                  title="التوصية للمجلس"
+                  body={ensureExecutiveArabic(explanation.board_recommendation)}
+                />
+                <InsightBlock
+                  title="الافتراضات"
+                  body={ensureExecutiveArabic(explanation.assumptions)}
+                />
+                <InsightBlock title="مستوى الثقة" body={ensureExecutiveArabic(explanation.confidence)} />
+                {explanation.forecast_ranges ? (
+                  <InsightBlock
+                    title="نطاقات التوقعات"
+                    body={ensureExecutiveArabic(explanation.forecast_ranges)}
+                  />
+                ) : null}
               </div>
             </section>
           ) : null}

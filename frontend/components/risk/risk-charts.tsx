@@ -5,7 +5,10 @@ import { ChartContainer, chartTheme } from "@/components/ui/chart-container";
 import type {
   RiskCategoryChartItem,
   RiskDepartmentChartItem,
+  RiskExposureChartItem,
   RiskSeverityChartItem,
+  RiskTopItemChart,
+  RiskTrendChartItem,
 } from "@/lib/risk/view-types";
 import { cn } from "@/lib/utils";
 
@@ -54,63 +57,74 @@ export interface RiskChartsProps {
   byDepartment: RiskDepartmentChartItem[];
   bySeverity: RiskSeverityChartItem[];
   byCategory?: RiskCategoryChartItem[];
+  exposureByDepartment?: RiskExposureChartItem[];
+  exposureBySupplier?: RiskExposureChartItem[];
+  wasteByDepartment?: RiskExposureChartItem[];
+  potentialSavings?: RiskExposureChartItem[];
+  topRisks?: RiskTopItemChart[];
+  riskTrend?: RiskTrendChartItem[];
 }
 
 export function RiskCharts({
   byDepartment,
   bySeverity,
   byCategory = [],
+  exposureByDepartment = [],
+  exposureBySupplier = [],
+  wasteByDepartment = [],
+  potentialSavings = [],
+  topRisks = [],
+  riskTrend = [],
 }: RiskChartsProps) {
   return (
     <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
-      <RiskChartCard
-        title="توزيع المخاطر حسب القسم"
-        description="متوسط درجة المخاطر المسجّلة لكل إدارة"
-        height={360}
-      >
-        <ChartContainer height={360}>
-          <BarChart
-            data={byDepartment}
-            layout="vertical"
-            margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
-          >
-            <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
-            <XAxis
-              type="number"
-              domain={[0, 100]}
-              tick={{ fill: chartTheme.text, fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="department"
-              width={130}
-              tick={{ fill: chartTheme.text, fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Bar
-              dataKey="score"
-              fill={chartTheme.primary}
-              radius={[0, 6, 6, 0]}
-              barSize={22}
-              name="مؤشر الخطورة"
-            />
-          </BarChart>
-        </ChartContainer>
-      </RiskChartCard>
+      {byDepartment.length > 0 ? (
+        <RiskChartCard
+          title="أخطر الإدارات"
+          description="متوسط درجة المخاطر حسب الإدارة من التحليل الحالي"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart
+              data={byDepartment}
+              layout="vertical"
+              margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
+              <XAxis
+                type="number"
+                domain={[0, 100]}
+                tick={{ fill: chartTheme.text, fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="department"
+                width={130}
+                tick={{ fill: chartTheme.text, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Bar
+                dataKey="score"
+                fill={chartTheme.primary}
+                radius={[0, 6, 6, 0]}
+                barSize={22}
+                name="مؤشر الخطورة"
+              />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
 
       <RiskChartCard
-        title="توزيع المخاطر حسب مستوى الخطورة"
-        description="عدد النتائج حسب الأولوية من آخر تحليل"
+        title="توزيع المخاطر حسب الأولوية"
+        description="عدد النتائج — أين يركز الانتباه التنفيذي"
         height={360}
       >
         <ChartContainer height={360}>
-          <BarChart
-            data={bySeverity}
-            margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
-          >
+          <BarChart data={bySeverity} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
             <CartesianGrid stroke={chartTheme.grid} vertical={false} />
             <XAxis
               dataKey="level"
@@ -136,17 +150,114 @@ export function RiskCharts({
         </ChartContainer>
       </RiskChartCard>
 
-      {byCategory.length > 0 ? (
+      {wasteByDepartment.length > 0 ? (
         <RiskChartCard
-          title="توزيع المخاطر حسب الفئة"
-          description="متوسط درجة النتائج لكل فئة مخاطر"
+          title="الهدر حسب الإدارة"
+          description="أين يتركّز الهدر المالي — من بيانات التحليل المرفوعة"
           height={360}
         >
           <ChartContainer height={360}>
             <BarChart
-              data={byCategory}
+              data={wasteByDepartment}
+              layout="vertical"
               margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
             >
+              <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: chartTheme.text, fontSize: 11 }} />
+              <YAxis
+                type="category"
+                dataKey="label"
+                width={120}
+                tick={{ fill: chartTheme.text, fontSize: 10 }}
+              />
+              <Bar dataKey="amount" fill="#5D4037" radius={[0, 6, 6, 0]} barSize={20} name="قيمة الهدر" />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
+
+      {riskTrend.length > 1 ? (
+        <RiskChartCard
+          title="اتجاه المخاطر"
+          description="تطوّر عدد المخاطر المكتشفة عبر التحليلات"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart data={riskTrend} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
+              <CartesianGrid stroke={chartTheme.grid} vertical={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: chartTheme.text, fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis allowDecimals={false} tick={{ fill: chartTheme.text, fontSize: 12 }} />
+              <Bar dataKey="findings" fill={chartTheme.primary} radius={[6, 6, 0, 0]} barSize={36} name="عدد المخاطر" />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
+
+      {exposureByDepartment.length > 0 ? (
+        <RiskChartCard
+          title="التعرّض المالي حسب الإدارة"
+          description="إجمالي المبالغ المعرّضة (ر.س) — من بيانات التحليل"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart
+              data={exposureByDepartment}
+              layout="vertical"
+              margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: chartTheme.text, fontSize: 11 }} />
+              <YAxis
+                type="category"
+                dataKey="label"
+                width={120}
+                tick={{ fill: chartTheme.text, fontSize: 10 }}
+              />
+              <Bar dataKey="amount" fill="#8B6914" radius={[0, 6, 6, 0]} barSize={20} />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
+
+      {exposureBySupplier.length > 0 ? (
+        <RiskChartCard
+          title="أخطر الموردين"
+          description="تركّز التعرّض المالي على الموردين"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart
+              data={exposureBySupplier}
+              layout="vertical"
+              margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: chartTheme.text, fontSize: 11 }} />
+              <YAxis
+                type="category"
+                dataKey="label"
+                width={120}
+                tick={{ fill: chartTheme.text, fontSize: 10 }}
+              />
+              <Bar dataKey="amount" fill="#C0392B" radius={[0, 6, 6, 0]} barSize={20} />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
+
+      {byCategory.length > 0 ? (
+        <RiskChartCard
+          title="المخاطر حسب الفئة"
+          description="متوسط درجة النتائج لكل فئة"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart data={byCategory} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
               <CartesianGrid stroke={chartTheme.grid} vertical={false} />
               <XAxis
                 dataKey="category"
@@ -154,19 +265,60 @@ export function RiskCharts({
                 axisLine={false}
                 tickLine={false}
               />
+              <YAxis domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 12 }} />
+              <Bar dataKey="score" fill={chartTheme.primary} radius={[6, 6, 0, 0]} barSize={40} />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
+
+      {potentialSavings.length > 0 ? (
+        <RiskChartCard
+          title="التوفير المحتمل"
+          description="أعلى فرص التوفير من المعالجة"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart
+              data={potentialSavings}
+              layout="vertical"
+              margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
+              <XAxis type="number" tick={{ fill: chartTheme.text, fontSize: 11 }} />
               <YAxis
-                domain={[0, 100]}
-                tick={{ fill: chartTheme.text, fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
+                type="category"
+                dataKey="label"
+                width={140}
+                tick={{ fill: chartTheme.text, fontSize: 9 }}
               />
-              <Bar
-                dataKey="score"
-                fill={chartTheme.primary}
-                radius={[6, 6, 0, 0]}
-                barSize={40}
-                name="متوسط الدرجة"
+              <Bar dataKey="amount" fill="#27AE60" radius={[0, 6, 6, 0]} barSize={18} />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
+
+      {topRisks.length > 0 ? (
+        <RiskChartCard
+          title="أهم 10 مخاطر"
+          description="أعلى درجات الخطورة — للمتابعة الفورية"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart
+              data={topRisks}
+              layout="vertical"
+              margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={chartTheme.grid} horizontal={false} />
+              <XAxis type="number" domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 11 }} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={140}
+                tick={{ fill: chartTheme.text, fontSize: 9 }}
               />
+              <Bar dataKey="score" fill={chartTheme.primary} radius={[0, 6, 6, 0]} barSize={18} />
             </BarChart>
           </ChartContainer>
         </RiskChartCard>

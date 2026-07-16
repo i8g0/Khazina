@@ -8,7 +8,14 @@ from decimal import Decimal
 from typing import Any
 
 from app.business.facts.contract import FactsContract
-from app.presentation.business_labels import business_area_ar, category_label_ar
+from app.presentation.business_labels import (
+    business_area_ar,
+    category_label_ar,
+    risk_category_ar,
+    risk_level_ar,
+    risk_posture_ar,
+    risk_priority_ar,
+)
 from app.presentation.executive_sanitize import sanitize_executive_text
 from app.db.models import (
     Recommendation,
@@ -522,8 +529,9 @@ def build_risk_executive_summary(
         source = "ai_insights"
     else:
         result = inputs.risk_result
+        posture = risk_posture_ar(result.overall_posture_level)
         text = (
-            f"تحليل المخاطر المالية: الوضع العام {result.overall_posture_level}. "
+            f"تحليل المخاطر المالية: الوضع العام {posture}. "
             f"إجمالي النتائج {result.total_findings} "
             f"(عالية: {result.high_priority_count}, "
             f"متوسطة: {result.medium_priority_count}, "
@@ -540,14 +548,152 @@ def build_risk_summary_section(result: RiskAnalysisResult) -> ReportSection:
     return ReportSection(
         key="risk_summary",
         payload={
-            "overall_posture_level": result.overall_posture_level,
+            "overall_posture_level": risk_posture_ar(result.overall_posture_level),
             "total_findings": result.total_findings,
             "high_priority_count": result.high_priority_count,
             "medium_priority_count": result.medium_priority_count,
             "low_priority_count": result.low_priority_count,
-            "top_category_code": result.top_category_code,
+            "top_category": risk_category_ar(result.top_category_code or ""),
         },
     )
+
+
+def _finding_evidence(finding: RiskFinding) -> dict[str, Any]:
+    return finding.evidence if isinstance(finding.evidence, dict) else {}
+
+
+def _finding_exposure_sar(finding: RiskFinding) -> Decimal:
+    evidence = _finding_evidence(finding)
+    raw = evidence.get("amount_exposed_sar")
+    if raw is None:
+        return Decimal("0")
+    try:
+        return Decimal(str(raw))
+    except Exception:
+        return Decimal("0")
+
+
+def build_current_situation_section(inputs: RiskReportInputs) -> ReportSection:
+    result = inputs.risk_result
+    posture = risk_posture_ar(result.overall_posture_level)
+    departments: list[str] = []
+    for finding in inputs.findings:
+        evidence = _finding_evidence(finding)
+        dept = str(evidence.get("department_ar") or "").strip()
+        if dept and dept != "—" and dept not in departments:
+            departments.append(dept)
+    dept_phrase = ""
+    if departments:
+        dept_phrase = f" الإدارات الأكثر تعرضاً: {', '.join(departments[:5])}."
+    text = sanitize_executive_text(
+        f"الوضع الحالي {posture}: {result.total_findings} مخاطر مكتشفة "
+        f"({result.high_priority_count} عالية الأولوية).{dept_phrase}"
+    )
+    return ReportSection(key="current_situation", payload={"text": text})
+
+
+def build_financial_impact_section(inputs: RiskReportInputs) -> ReportSection:
+    total_exposure = sum(_finding_exposure_sar(f) for f in inputs.findings)
+    from app.business.engines.risk.rules.ar import format_sar
+
+    items: list[dict[str, Any]] = []
+    for finding in sorted(inputs.findings, key=lambda f: -f.score)[:10]:
+        evidence = _finding_evidence(finding)
+        items.append(
+            {
+                "title": sanitize_executive_text(finding.name),
+                "exposure": str(evidence.get("amount_exposed_label") or "—"),
+                "savings": str(evidence.get("estimated_savings_label") or "—"),
+                "priority": risk_priority_ar(finding.priority),
+                "department": str(evidence.get("department_ar") or "—"),
+            }
+        )
+    summary = (
+        f"إجمالي التعرّض المالي المقدّر {format_sar(float(total_exposure))} "
+        f"عبر {len(inputs.findings)} مخاطر."
+        if total_exposure > 0
+        else "التعرّض المالي محسوب من بيانات التحليل الحالي."
+    )
+    return ReportSection(
+        key="financial_impact",
+        payload={"summary": summary, "items": items},
+    )
+
+
+def build_operational_impact_section(inputs: RiskReportInputs) -> ReportSection:
+    items: list[dict[str, str]] = []
+    for finding in sorted(inputs.findings, key=lambda f: -f.score)[:10]:
+        evidence = _finding_evidence(finding)
+        impact = str(
+            evidence.get("business_impact_ar")
+            or evidence.get("if_ignored_ar")
+            or finding.description
+        )
+        items.append(
+            {
+                "title": sanitize_executive_text(finding.name),
+                "department": str(evidence.get("department_ar") or "—"),
+                "supplier": str(evidence.get("supplier_ar") or "—"),
+                "impact": sanitize_executive_text(impact),
+            }
+        )
+    return ReportSection(key="operational_impact", payload={"items": items})
+
+
+def build_evidence_section(inputs: RiskReportInputs) -> ReportSection:
+    items: list[dict[str, str]] = []
+    for finding in sorted(inputs.findings, key=lambda f: -f.score)[:12]:
+        evidence = _finding_evidence(finding)
+        items.append(
+            {
+                "title": sanitize_executive_text(finding.name),
+                "detection_reason": sanitize_executive_text(
+                    str(evidence.get("detection_reason_ar") or finding.description)
+                ),
+                "data_source": str(evidence.get("data_source_ar") or "الملف المرفوع"),
+                "department": str(evidence.get("department_ar") or "—"),
+                "supplier": str(evidence.get("supplier_ar") or "—"),
+                "exposure": str(evidence.get("amount_exposed_label") or "—"),
+                "waste": str(evidence.get("waste_value_label") or "—"),
+                "confidence": str(evidence.get("confidence_score") or "—"),
+            }
+        )
+    return ReportSection(key="evidence", payload={"items": items})
+
+
+def build_proposed_decisions_section(
+    recommendations: tuple[Recommendation, ...],
+) -> ReportSection:
+    items: list[dict[str, str]] = []
+    for rec in recommendations[:10]:
+        items.append(
+            {
+                "title": sanitize_executive_text(rec.title),
+                "description": sanitize_executive_text(rec.description),
+                "priority": risk_priority_ar(rec.priority),
+            }
+        )
+    return ReportSection(key="proposed_decisions", payload={"items": items})
+
+
+def build_next_steps_section(inputs: RiskReportInputs) -> ReportSection:
+    steps: list[str] = []
+    for finding in sorted(inputs.findings, key=lambda f: -f.score)[:5]:
+        evidence = _finding_evidence(finding)
+        action = str(evidence.get("recommended_action_ar") or "").strip()
+        owner = str(evidence.get("owner_ar") or "").strip()
+        timeline = str(evidence.get("target_timeline_ar") or "").strip()
+        if action:
+            step = action
+            if owner and owner != "—":
+                step += f" — المسؤول: {owner}"
+            if timeline and timeline != "—":
+                step += f" — {timeline}"
+            steps.append(sanitize_executive_text(step))
+    if not steps and inputs.recommendations:
+        for rec in inputs.recommendations[:5]:
+            steps.append(sanitize_executive_text(rec.title))
+    return ReportSection(key="next_steps", payload={"items": steps})
 
 
 def build_top_risks_section(findings: tuple[RiskFinding, ...]) -> ReportSection:
@@ -560,13 +706,17 @@ def build_top_risks_section(findings: tuple[RiskFinding, ...]) -> ReportSection:
         payload={
             "items": [
                 {
-                    "name": f.name,
-                    "category_code": f.category_code,
+                    "name": sanitize_executive_text(f.name),
+                    "category": risk_category_ar(f.category_code),
                     "score": f.score,
-                    "priority": f.priority,
-                    "likelihood": f.likelihood,
-                    "impact": f.impact,
-                    "finding_status": f.finding_status,
+                    "priority": risk_priority_ar(f.priority),
+                    "likelihood": risk_level_ar(f.likelihood),
+                    "impact": risk_level_ar(f.impact),
+                    "status": f.finding_status,
+                    "department": str(_finding_evidence(f).get("department_ar") or "—"),
+                    "supplier": str(_finding_evidence(f).get("supplier_ar") or "—"),
+                    "exposure": str(_finding_evidence(f).get("amount_exposed_label") or "—"),
+                    "description": sanitize_executive_text(f.description),
                 }
                 for f in ordered
             ]
@@ -695,9 +845,13 @@ def assemble_risk_sections(
             currency_display_code=currency_display_code,
         ),
         build_risk_executive_summary(inputs, allow_ai=include_ai_sections),
+        build_current_situation_section(inputs),
         build_key_metrics_section(inputs.facts, headline=headline),
         build_risk_summary_section(inputs.risk_result),
         build_top_risks_section(inputs.findings),
+        build_financial_impact_section(inputs),
+        build_operational_impact_section(inputs),
+        build_evidence_section(inputs),
         build_mitigation_status_section(
             inputs.mitigation_plans, inputs.register_risks
         ),
@@ -705,6 +859,8 @@ def assemble_risk_sections(
     ]
     if include_recommendations and inputs.recommendations:
         sections.append(build_recommendations_section(inputs.recommendations))
+        sections.append(build_proposed_decisions_section(inputs.recommendations))
+    sections.append(build_next_steps_section(inputs))
     sections.append(
         build_risk_provenance_section(inputs, ai_insights_consumed=ai_consumed)
     )

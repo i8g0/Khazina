@@ -12,7 +12,7 @@ from app.business.engines.risk.constants import (
 )
 from app.business.engines.risk.findings import CandidateFinding, RiskFinding
 from app.business.engines.risk.input import RiskEngineInput
-from app.business.engines.risk.rules import CATEGORY_DETECTORS
+from app.business.engines.risk.rules import CATEGORY_DETECTORS, EXTENDED_DETECTORS
 from app.business.engines.risk.scoring import classify_posture, priority_from_score, score_risk
 
 _FINDING_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
@@ -63,6 +63,9 @@ class RiskDetector:
                 candidates.extend(detector(calculation, input_data))  # type: ignore[operator]
             else:
                 candidates.extend(detector(calculation))  # type: ignore[operator]
+
+        for extended in EXTENDED_DETECTORS:
+            candidates.extend(extended(calculation))  # type: ignore[operator]
 
         scored: list[RiskFinding] = []
         for candidate in candidates:

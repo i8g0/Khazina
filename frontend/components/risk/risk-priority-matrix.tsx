@@ -44,9 +44,16 @@ function getItemsInCell(
 export interface RiskPriorityMatrixProps {
   items: RiskMatrixItemView[];
   className?: string;
+  selectedId?: string | null;
+  onSelectItem?: (id: string) => void;
 }
 
-export function RiskPriorityMatrix({ items, className }: RiskPriorityMatrixProps) {
+export function RiskPriorityMatrix({
+  items,
+  className,
+  selectedId,
+  onSelectItem,
+}: RiskPriorityMatrixProps) {
   return (
     <article
       className={cn(
@@ -70,7 +77,7 @@ export function RiskPriorityMatrix({ items, className }: RiskPriorityMatrixProps
             {likelihoodLevels.map((level) => (
               <div
                 key={level}
-                className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+                className="text-center text-xs font-semibold tracking-wide text-muted"
               >
                 {level}
               </div>
@@ -94,6 +101,8 @@ export function RiskPriorityMatrix({ items, className }: RiskPriorityMatrixProps
                       likelihood={likelihood}
                       impact={impact}
                       items={cellItems}
+                      selectedId={selectedId}
+                      onSelectItem={onSelectItem}
                     />
                   );
                 })}
@@ -126,9 +135,17 @@ interface MatrixCellProps {
   likelihood: Likelihood;
   impact: Impact;
   items: RiskMatrixItemView[];
+  selectedId?: string | null;
+  onSelectItem?: (id: string) => void;
 }
 
-function MatrixCell({ likelihood, impact, items }: MatrixCellProps) {
+function MatrixCell({
+  likelihood,
+  impact,
+  items,
+  selectedId,
+  onSelectItem,
+}: MatrixCellProps) {
   return (
     <div
       className={cn(
@@ -138,16 +155,23 @@ function MatrixCell({ likelihood, impact, items }: MatrixCellProps) {
     >
       <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
-          <span
+          <button
             key={item.id}
+            type="button"
+            onClick={() => onSelectItem?.(item.id)}
             className={cn(
-              "rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-tight",
+              "rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-tight text-start transition-colors",
               priorityVariant(item.priority),
+              selectedId === item.id && "ring-2 ring-gold-primary/40",
             )}
-            title={item.name}
+            title={`${item.name}\n${item.whyTooltip}\n${item.department} · ${item.amountExposed}\nانقر للتفاصيل التنفيذية`}
           >
-            {item.name}
-          </span>
+            <span className="block truncate max-w-[140px]">{item.name}</span>
+            <span className="block text-[10px] font-normal opacity-80">{item.department}</span>
+            {item.amountExposed !== "—" ? (
+              <span className="block text-[10px] font-normal opacity-90">{item.amountExposed}</span>
+            ) : null}
+          </button>
         ))}
       </div>
     </div>

@@ -17,6 +17,7 @@ import { RiskActiveTable } from "@/components/risk/risk-active-table";
 import { RiskAiSummary } from "@/components/risk/risk-ai-summary";
 import { RiskAnalysesTable } from "@/components/risk/risk-analyses-table";
 import { RiskCharts } from "@/components/risk/risk-charts";
+import { RiskExecutiveCard } from "@/components/risk/risk-executive-card";
 import { RiskFindingsTable } from "@/components/risk/risk-findings-table";
 import { RiskIdleContent } from "@/components/risk/risk-idle-content";
 import { RiskMitigationPlans } from "@/components/risk/risk-mitigation-plans";
@@ -72,11 +73,19 @@ import {
 import {
   buildCategoryChart,
   buildDepartmentChart,
+  buildDepartmentChartFromFindings,
+  buildExposureByDepartment,
   buildMatrixItems,
+  buildRiskTrendFromHistory,
+  buildSavingsChart,
   buildSeverityChart,
+  buildSupplierExposureChart,
+  buildTopRisksChart,
+  buildWasteByDepartment,
   countActiveRisks,
   countCriticalRisks,
   mapAnalysisRunToHistory,
+  mapFindingToExecutiveCard,
   mapFindingToView,
   mapMitigationPlan,
   mapRecommendation,
@@ -118,6 +127,7 @@ export function RiskPage() {
   const [mitigationPlans, setMitigationPlans] = React.useState<RiskMitigationPlanView[]>([]);
   const [recommendations, setRecommendations] = React.useState<RiskRecommendationView[]>([]);
   const [aiInsights, setAiInsights] = React.useState<Record<string, unknown> | null>(null);
+  const [selectedFindingId, setSelectedFindingId] = React.useState<string | null>(null);
 
   const checkAiHealth = React.useCallback(async () => {
     try {
@@ -343,14 +353,35 @@ export function RiskPage() {
 
   const severityChart = result ? buildSeverityChart(result) : [];
   const categoryChart = rawFindings.length ? buildCategoryChart(rawFindings) : [];
-  const departmentChart = registerRisks.length
+  const departmentChartFromFindings = rawFindings.length
+    ? buildDepartmentChartFromFindings(rawFindings)
+    : [];
+  const departmentChartRegister = registerRisks.length
     ? buildDepartmentChart(registerRisks, departmentName)
     : [];
+  const departmentChart =
+    departmentChartFromFindings.length > 0
+      ? departmentChartFromFindings
+      : departmentChartRegister;
+  const exposureByDept = rawFindings.length ? buildExposureByDepartment(rawFindings) : [];
+  const exposureBySupplier = rawFindings.length ? buildSupplierExposureChart(rawFindings) : [];
+  const wasteByDept = rawFindings.length ? buildWasteByDepartment(rawFindings) : [];
+  const savingsChart = rawFindings.length ? buildSavingsChart(rawFindings) : [];
+  const topRisksChart = rawFindings.length ? buildTopRisksChart(rawFindings) : [];
+  const riskTrend = history.length > 1 ? buildRiskTrendFromHistory(history) : [];
   const matrixItems = rawFindings.length ? buildMatrixItems(rawFindings) : [];
+  const rawById = new Map(rawFindings.map((f) => [f.id, f]));
+  const executiveCards = findings.map((f) =>
+    mapFindingToExecutiveCard(f, rawById.get(f.id)),
+  );
+  const selectedCard =
+    executiveCards.find((c) => c.id === selectedFindingId) ?? executiveCards[0] ?? null;
 
   const aiBlocked = aiReady === false;
   const hasChartData =
-    severityChart.some((x) => x.count > 0) || departmentChart.length > 0;
+    severityChart.some((x) => x.count > 0) ||
+    departmentChart.length > 0 ||
+    rawFindings.length > 0;
 
   return (
     <AppLayout
@@ -471,6 +502,12 @@ export function RiskPage() {
               bySeverity={severityChart}
               byDepartment={departmentChart}
               byCategory={categoryChart}
+              exposureByDepartment={exposureByDept}
+              exposureBySupplier={exposureBySupplier}
+              wasteByDepartment={wasteByDept}
+              potentialSavings={savingsChart}
+              topRisks={topRisksChart}
+              riskTrend={riskTrend}
             />
           ) : (
             <EmptyState
@@ -480,7 +517,37 @@ export function RiskPage() {
           )}
 
           {matrixItems.length > 0 ? (
-            <RiskPriorityMatrix items={matrixItems} />
+            <RiskPriorityMatrix
+              items={matrixItems}
+              selectedId={selectedFindingId ?? selectedCard?.id}
+              onSelectItem={setSelectedFindingId}
+            />
+          ) : null}
+
+          {executiveCards.length > 0 ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="بطاقات المخاطر التنفيذية" />
+              <div className="grid gap-5 lg:grid-cols-2">
+                {selectedCard ? (
+                  <RiskExecutiveCard
+                    item={selectedCard}
+                    selected
+                    className="lg:col-span-2"
+                  />
+                ) : null}
+                {executiveCards
+                  .filter((c) => c.id !== selectedCard?.id)
+                  .slice(0, 4)
+                  .map((card) => (
+                    <RiskExecutiveCard
+                      key={card.id}
+                      item={card}
+                      onSelect={setSelectedFindingId}
+                      selected={selectedFindingId === card.id}
+                    />
+                  ))}
+              </div>
+            </section>
           ) : null}
 
           <section className={executiveSectionSpacingClassName}>

@@ -39,7 +39,31 @@ TOTAL_SPEND_FIXED_ALIASES: frozenset[str] = frozenset(
     }
 )
 
-BUDGET_SUM_ALIASES: frozenset[str] = frozenset({"budget"})
+DEPARTMENT_ALIASES: frozenset[str] = frozenset(
+    {
+        "department",
+        "dept",
+        "department_name",
+        "business_unit",
+        "إدارة",
+        "القسم",
+        "الإدارة",
+    }
+)
+
+SUPPLIER_ALIASES: frozenset[str] = frozenset(
+    {
+        "supplier",
+        "vendor",
+        "supplier_name",
+        "vendor_name",
+        "مورد",
+        "المورد",
+        "الموردون",
+    }
+)
+
+BUDGET_SUM_ALIASES: frozenset[str] = frozenset({"budget", "الميزانية"})
 
 ACTUAL_SUM_ALIASES: frozenset[str] = frozenset({"actual"})
 

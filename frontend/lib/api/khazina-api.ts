@@ -678,6 +678,7 @@ export async function executeAISimulation(
     source_snapshot_id?: string;
     snapshot_version?: number;
     baseline_analysis_run_id?: string;
+    risk_analysis_run_id?: string;
   },
 ): Promise<AISimulationExecuteResponse> {
   return apiRequest<AISimulationExecuteResponse>(

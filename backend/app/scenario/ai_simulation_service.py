@@ -10,10 +10,12 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.business.engines.scenario.financial_reality import RealisticFinancialOutcome
 from app.business.engines.scenario.universal_calculator import (
     UniversalScenarioCalculator,
     UniversalScenarioInput,
 )
+from app.scenario.ai_contract import FinancialRealityPayload, MetricRangePayload
 from app.business.facts.contract import CONTRACT_VERSION, Fact, FactsContract
 from app.core.logging import get_logger
 from app.db.models import AnalysisRun, FinancialSnapshot, SimulationRun
@@ -26,6 +28,8 @@ from app.repositories import (
     FinancialRepository,
     FinancialSnapshotRepository,
     OrganizationRepository,
+    RecommendationRepository,
+    RiskAnalysisRepository,
     SimulationRepository,
     WasteRepository,
 )
@@ -33,7 +37,9 @@ from app.scenario.adapters.snapshot_v1 import ScenarioSnapshotAdapterV1
 from app.scenario.ai_contract import InterpretedScenario, SimulationExplanation
 from app.scenario.ai_explainer import AISimulationExplainer
 from app.scenario.ai_interpreter import AIScenarioInterpreter
+from app.scenario.executive_judgment import build_executive_judgment
 from app.scenario.mappers.ai_gold_mapper import AISimulationGoldMapper
+from app.scenario.risk_context import SimulationRiskContext, load_simulation_risk_context
 from app.scenario.service import ScenarioService
 from app.services.analysis import AnalysisService
 from app.services.base import BaseService
@@ -51,6 +57,7 @@ class AISimulationOutcome:
     user_request: str
     interpreted_scenario: InterpretedScenario
     explanation: SimulationExplanation
+    financial_reality: FinancialRealityPayload
 
 
 class AISimulationService(BaseService):
@@ -66,6 +73,8 @@ class AISimulationService(BaseService):
         financial_repository: FinancialRepository,
         organization_repository: OrganizationRepository,
         waste_repository: WasteRepository,
+        risk_analysis_repository: RiskAnalysisRepository,
+        recommendation_repository: RecommendationRepository,
         *,
         snapshot_adapter: ScenarioSnapshotAdapterV1 | None = None,
         interpreter: AIScenarioInterpreter | None = None,
@@ -80,6 +89,8 @@ class AISimulationService(BaseService):
         self._financials = financial_repository
         self._organizations = organization_repository
         self._waste = waste_repository
+        self._risk_analyses = risk_analysis_repository
+        self._recommendations = recommendation_repository
         self._snapshot_adapter = snapshot_adapter or ScenarioSnapshotAdapterV1()
         self._interpreter = interpreter or AIScenarioInterpreter()
         self._calculator = calculator or UniversalScenarioCalculator()
@@ -111,6 +122,7 @@ class AISimulationService(BaseService):
         source_snapshot_id: uuid.UUID | None = None,
         snapshot_version: int | None = None,
         baseline_analysis_run_id: uuid.UUID | None = None,
+        risk_analysis_run_id: uuid.UUID | None = None,
         reporting_period_id: uuid.UUID | None = None,
         initiating_user_id: uuid.UUID | None = None,
     ) -> AISimulationOutcome:
@@ -144,18 +156,42 @@ class AISimulationService(BaseService):
                 organization_id, baseline_analysis_run_id, baseline.total_baseline
             )
 
-        interpreted = self._interpreter.interpret(cleaned, baseline=baseline)
-        calculation = self._calculator.calculate(
+        risk_context: SimulationRiskContext | None = None
+        if risk_analysis_run_id is not None:
+            risk_context = load_simulation_risk_context(
+                organization_id=organization_id,
+                risk_analysis_run_id=risk_analysis_run_id,
+                analysis_repository=self._analyses,
+                risk_analysis_repository=self._risk_analyses,
+                recommendation_repository=self._recommendations,
+            )
+
+        interpreted = self._interpreter.interpret(
+            cleaned, baseline=baseline, risk_context=risk_context
+        )
+        outcome = self._calculator.calculate(
             UniversalScenarioInput(
                 interpreted=interpreted,
                 baseline=baseline,
                 user_request=cleaned,
             )
         )
+        calculation = outcome.calculation
+        financial_payload = self._to_financial_payload(outcome.financial_reality)
+        executive_judgment = build_executive_judgment(
+            user_request=cleaned,
+            interpreted=interpreted,
+            baseline=baseline,
+            calculation=calculation,
+            financial_reality=financial_payload,
+        )
         explanation = self._explainer.explain(
             user_request=cleaned,
             interpreted=interpreted,
             calculation=calculation,
+            financial_reality=financial_payload,
+            risk_context=risk_context,
+            executive_judgment=executive_judgment,
         )
 
         scenario = self._simulation.create_scenario(
@@ -173,10 +209,13 @@ class AISimulationService(BaseService):
             source_snapshot_id=snapshot.id,
             reporting_period_id=reporting_period_id or snapshot.reporting_period_id,
             runtime_metadata={
-                "simulation_engine": "ai_native_v1",
+                "simulation_engine": "financial_reality_v1",
                 "user_request": cleaned,
                 "interpreted_scenario": interpreted.to_dict(),
                 "ai_explanation": explanation.to_dict(),
+                "financial_reality": financial_payload.model_dump(mode="json"),
+                "executive_judgment": executive_judgment.model_dump(mode="json"),
+                "risk_context": risk_context.to_metadata() if risk_context else None,
             },
         )
         self._analysis.start_run(organization_id, run.id)
@@ -210,6 +249,7 @@ class AISimulationService(BaseService):
             interpreted=interpreted,
             explanation=explanation,
             user_request=cleaned,
+            financial_reality=financial_payload,
         )
 
         timeline = PipelineTimeline(
@@ -243,10 +283,16 @@ class AISimulationService(BaseService):
                     "baseline_analysis_run_id": (
                         str(baseline_analysis_run_id) if baseline_analysis_run_id else None
                     ),
+                    "risk_analysis_run_id": (
+                        str(risk_analysis_run_id) if risk_analysis_run_id else None
+                    ),
                 },
                 "user_request": cleaned,
                 "interpreted_scenario": interpreted.to_dict(),
                 "ai_explanation": explanation.to_dict(),
+                "financial_reality": financial_payload.model_dump(mode="json"),
+                "executive_judgment": executive_judgment.model_dump(mode="json"),
+                "risk_context": risk_context.to_metadata() if risk_context else None,
                 "pipeline_timeline": timeline.to_list(),
             },
             initiating_user_id=initiating_user_id,
@@ -274,6 +320,32 @@ class AISimulationService(BaseService):
             user_request=cleaned,
             interpreted_scenario=interpreted,
             explanation=explanation,
+            financial_reality=financial_payload,
+        )
+
+    @staticmethod
+    def _to_financial_payload(financial: RealisticFinancialOutcome) -> FinancialRealityPayload:
+        def _range(data: dict) -> MetricRangePayload:
+            return MetricRangePayload(
+                worst=float(data["worst"]),
+                expected=float(data["expected"]),
+                best=float(data["best"]),
+                label=str(data.get("label", "")),
+            )
+
+        raw = financial.to_dict()
+        return FinancialRealityPayload(
+            expense_baseline=float(raw["expense_baseline"]),
+            expense_projected=float(raw["expense_projected"]),
+            expense_change=_range(raw["expense_change"]),
+            revenue_impact=_range(raw["revenue_impact"]) if raw.get("revenue_impact") else None,
+            cash_impact=_range(raw["cash_impact"]),
+            confidence_level=str(raw["confidence_level"]),
+            confidence_score=int(raw["confidence_score"]),
+            confidence_rationale=str(raw["confidence_rationale"]),
+            action_reasonings=list(raw.get("action_reasonings", [])),
+            validation_notes=list(raw.get("validation_notes", [])),
+            assumptions_used=list(raw.get("assumptions_used", [])),
         )
 
     def _persist_assumptions_from_interpretation(

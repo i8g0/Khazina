@@ -78,17 +78,19 @@ export function mapRunStatus(status: string): string {
 }
 
 export function mapRecommendationPriority(priority: string): string {
-  if (priority === "high") return "عالية";
-  if (priority === "medium") return "متوسطة";
-  if (priority === "low") return "منخفضة";
-  return priority;
+  const normalized = priority.trim().toLowerCase();
+  if (normalized === "high") return "عالية";
+  if (normalized === "medium") return "متوسطة";
+  if (normalized === "low") return "منخفضة";
+  return "غير محددة";
 }
 
 export function mapRiskLevel(level: string): string {
-  if (level === "high") return "مرتفع";
-  if (level === "medium") return "متوسط";
-  if (level === "low") return "منخفض";
-  return level;
+  const normalized = level.trim().toLowerCase();
+  if (normalized === "high") return "مرتفع";
+  if (normalized === "medium") return "متوسط";
+  if (normalized === "low") return "منخفض";
+  return "غير محدد";
 }
 
 export function mapRiskPriority(priority: string): string {
@@ -96,10 +98,13 @@ export function mapRiskPriority(priority: string): string {
 }
 
 export function mapRiskPosture(level: string): string {
-  if (level === "elevated") return "مرتفع";
-  if (level === "moderate") return "متوسط";
-  if (level === "low") return "منخفض";
-  return level;
+  const normalized = level.trim().toLowerCase();
+  if (normalized === "elevated" || normalized === "critical") return "مرتفع";
+  if (normalized === "moderate") return "متوسط";
+  if (normalized === "low") return "منخفض";
+  if (normalized === "high") return "مرتفع";
+  if (normalized === "medium") return "متوسط";
+  return "غير محدد";
 }
 
 const RISK_CATEGORY_LABELS: Record<string, string> = {
@@ -116,16 +121,34 @@ const RISK_CATEGORY_LABELS: Record<string, string> = {
 
 export function mapRiskCategoryCode(code: string | null | undefined): string {
   if (!code) return "غير مصنّف";
-  return RISK_CATEGORY_LABELS[code] ?? code.replace(/_/g, " ");
+  const normalized = code.trim().toLowerCase();
+  return RISK_CATEGORY_LABELS[normalized] ?? "غير مصنّف";
+}
+
+export function mapRecommendationCategory(category: string | null | undefined): string {
+  if (!category) return "—";
+  const normalized = category.trim().toLowerCase();
+  const labels: Record<string, string> = {
+    cost_reduction: "خفض التكلفة",
+    governance: "حوكمة",
+    procurement: "مشتريات",
+    operational: "تشغيل",
+    compliance: "امتثال",
+    vendor: "موردين",
+    financial: "مالية",
+    risk: "مخاطر",
+  };
+  return labels[normalized] ?? mapRiskCategoryCode(normalized);
 }
 
 export function mapFindingStatus(status: string): string {
-  if (status === "detected") return "مكتشف";
-  if (status === "under_review") return "قيد المراجعة";
-  if (status === "reviewed") return "تمت المراجعة";
-  if (status === "promoted") return "مُضاف إلى سجل المخاطر";
-  if (status === "dismissed") return "مرفوض";
-  return status;
+  const normalized = status.trim().toLowerCase();
+  if (normalized === "detected") return "مكتشف";
+  if (normalized === "under_review") return "قيد المراجعة";
+  if (normalized === "reviewed") return "تمت المراجعة";
+  if (normalized === "promoted") return "مُضاف إلى سجل المخاطر";
+  if (normalized === "dismissed") return "مرفوض";
+  return "غير محدد";
 }
 
 export function mapLifecycleStatus(status: string | null | undefined): string {

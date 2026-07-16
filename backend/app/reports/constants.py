@@ -36,11 +36,17 @@ SCENARIO_SECTION_ORDER: tuple[str, ...] = (
 RISK_SECTION_ORDER: tuple[str, ...] = (
     "cover",
     "executive_summary",
+    "current_situation",
     "risk_summary",
     "top_risks",
+    "financial_impact",
+    "operational_impact",
+    "evidence",
     "mitigation_status",
     "register_statistics",
     "recommendations",
+    "proposed_decisions",
+    "next_steps",
     "provenance",
 )
 

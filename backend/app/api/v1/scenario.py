@@ -46,6 +46,7 @@ def execute_ai_simulation(
         source_snapshot_id=body.source_snapshot_id,
         snapshot_version=body.snapshot_version,
         baseline_analysis_run_id=body.baseline_analysis_run_id,
+        risk_analysis_run_id=body.risk_analysis_run_id,
         reporting_period_id=body.reporting_period_id,
         initiating_user_id=current_user.id,
     )
@@ -60,6 +61,9 @@ def execute_ai_simulation(
             ),
             ai_explanation=metadata.get(
                 "ai_explanation", outcome.explanation.to_dict()
+            ),
+            financial_reality=metadata.get(
+                "financial_reality", outcome.financial_reality.model_dump(mode="json")
             ),
             facts_contract_version=CONTRACT_VERSION,
             engine_id="scenario_ai_v1",

@@ -6,7 +6,7 @@ from typing import Any
 
 from app.business.engines.scenario.calculator import ScenarioCalculationResult
 from app.db.models.enums import SimulationActionStatus
-from app.scenario.ai_contract import InterpretedScenario, SimulationExplanation
+from app.scenario.ai_contract import FinancialRealityPayload, InterpretedScenario, SimulationExplanation
 from app.scenario.mappers.scenario_gold import ScenarioGoldMapper
 
 
@@ -18,6 +18,7 @@ class AISimulationGoldMapper:
         interpreted: InterpretedScenario,
         explanation: SimulationExplanation,
         user_request: str,
+        financial_reality: FinancialRealityPayload | None = None,
     ) -> dict[str, Any]:
         base = ScenarioGoldMapper.to_record_payload(calculation, facts=_FactsStub())
         sign = "+" if calculation.delta_percent > 0 else ""
@@ -44,6 +45,14 @@ class AISimulationGoldMapper:
             "user_request": user_request,
             "interpreted_scenario": interpreted.to_dict(),
             "explanation": explanation.to_dict(),
+            "executive_judgment": (
+                explanation.executive_judgment.model_dump(mode="json")
+                if explanation.executive_judgment
+                else None
+            ),
+            "financial_reality": (
+                financial_reality.model_dump(mode="json") if financial_reality else None
+            ),
         }
         return base
 
