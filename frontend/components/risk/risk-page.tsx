@@ -492,6 +492,11 @@ export function RiskPage() {
                   ? aiInsights.risk_board_report
                   : null
               }
+              narrativeStatus={
+                typeof aiInsights.narrative_status === "string"
+                  ? aiInsights.narrative_status
+                  : null
+              }
             />
           ) : null}
 

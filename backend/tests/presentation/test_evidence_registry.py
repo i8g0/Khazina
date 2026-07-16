@@ -36,3 +36,26 @@ def test_registry_rejects_unsupported_amount() -> None:
     )
     errors = registry.validate_text(text)
     assert any(err.startswith("unsupported_number") for err in errors)
+
+
+def test_registry_rejects_arabic_indic_invented_amount() -> None:
+    contract = WasteEngine().run(sample_waste_engine_input())
+    registry = EvidenceRegistry.from_contract(contract)
+    text = "قيمة غير مدعومة ٤٥٠٬٠٠٠ ريال"
+    errors = registry.validate_numbers_only(text)
+    assert any(err.startswith("unsupported_number") for err in errors)
+
+
+def test_validate_numbers_only_allows_target_percent() -> None:
+    contract = WasteEngine().run(sample_waste_engine_input())
+    registry = EvidenceRegistry.from_contract(contract)
+    text = "هدف التوفير 10% خلال الفترة."
+    assert registry.validate_numbers_only(text) == []
+
+
+def test_small_riyal_amount_must_match_facts() -> None:
+    contract = WasteEngine().run(sample_waste_engine_input())
+    registry = EvidenceRegistry.from_contract(contract)
+    text = "تكلفة 999 ريال غير مدعومة."
+    errors = registry.validate_numbers_only(text)
+    assert any(err.startswith("unsupported_number") for err in errors)

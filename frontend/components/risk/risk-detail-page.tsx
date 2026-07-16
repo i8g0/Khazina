@@ -182,6 +182,11 @@ export function RiskDetailPage({ riskId }: RiskDetailPageProps) {
                       ? aiInsights.risk_explanation
                       : null
                   }
+                  narrativeStatus={
+                    typeof aiInsights.narrative_status === "string"
+                      ? aiInsights.narrative_status
+                      : null
+                  }
                 />
               ) : (
                 <EmptyState

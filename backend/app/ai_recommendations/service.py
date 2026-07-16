@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.ai.client import OllamaClient
 from app.ai.providers.base import AIProvider
 from app.ai.providers.factory import create_ai_provider
+from app.ai.exceptions import AIConnectionError, AITimeoutError
 from app.ai.prompts.tasks import PromptTask
 from app.ai_recommendations.constants import TASK_EXECUTION_ORDER
 from app.ai_recommendations.exceptions import AiRecommendationError
@@ -56,6 +57,15 @@ from app.notifications.builder import NotificationBuilder
 from app.notifications.hooks import try_materialize
 from app.observability.errors import classify_exception
 from app.observability.pipeline import PipelineStage, PipelineTimeline, load_pipeline_timeline
+from app.presentation.narrative_guard import (
+    NARRATIVE_LLM_UNAVAILABLE,
+    NARRATIVE_REJECTED,
+    facts_only_insights_payload,
+    guard_executive_summary_task,
+    is_llm_transport_error,
+    merge_task_results,
+)
+
 from app.observability.structured_log import log_pipeline_event
 
 logger = get_logger(__name__)
@@ -160,31 +170,72 @@ class AiRecommendationService(BaseService):
                 "settings_resolved",
                 detail=f"lang={prompt_language} parallel={settings.ai.parallel_tasks_enabled} provider={settings.ai.ai_provider}",
             )
-            task_results = self._execute_tasks(
-                facts,
-                prompt_language=prompt_language,
-                prompt_supplement=supplement,
-            )
+            try:
+                task_results = self._execute_tasks(
+                    facts,
+                    prompt_language=prompt_language,
+                    prompt_supplement=supplement,
+                )
+            except (AIConnectionError, AITimeoutError):
+                generated_at = datetime.now(timezone.utc)
+                ai_insights = facts_only_insights_payload(
+                    facts=facts,
+                    model_name=self._model_name,
+                    domain="waste",
+                    narrative_status=NARRATIVE_LLM_UNAVAILABLE,
+                    generated_at_iso=generated_at.isoformat(),
+                )
+                timeline.complete_stage(PipelineStage.AI_COMPLETED)
+                with self._transaction():
+                    metadata["ai_insights"] = ai_insights
+                    metadata["pipeline_timeline"] = timeline.to_list()
+                    updated = self._analyses.update(run, {"runtime_metadata": metadata})
+                trace.mark("persistence_completed")
+                return AiRecommendationOutcome(
+                    analysis_run=updated,
+                    facts_contract=facts,
+                    recommendations=(),
+                    ai_insights=ai_insights,
+                )
+
             trace.mark("llm_tasks_completed", detail=f"count={len(task_results)}")
             validate_task_results(task_results)
             generated_at = datetime.now(timezone.utc)
 
+            exec_task = next(
+                r for r in task_results if r.task == PromptTask.EXECUTIVE_SUMMARY
+            )
+            guarded_exec, exec_status = guard_executive_summary_task(
+                exec_task,
+                facts,
+                self._pipeline,
+                prompt_language=prompt_language,
+                prompt_supplement=supplement,
+            )
+            task_results = merge_task_results(task_results, guarded_exec)
+
             rec_task = next(
                 r for r in task_results if r.task == PromptTask.RECOMMENDATIONS
             )
-            rec_payloads = parse_and_map_recommendations(
+            rec_payloads, rec_status = parse_and_map_recommendations(
                 rec_task,
                 facts,
                 analysis_run_id,
                 self._model_name,
+                pipeline=self._pipeline,
+                prompt_language=prompt_language,
+                prompt_supplement=supplement,
             )
             snapshot_id = str(run.source_snapshot_id) if run.source_snapshot_id else None
+            narrative_status = exec_status or rec_status
             ai_insights = build_ai_insights_payload(
                 task_results=task_results,
                 facts_contract=facts,
                 model_name=self._model_name,
                 source_snapshot_id=snapshot_id,
                 generated_at=generated_at,
+                narrative_status=narrative_status,
+                omit_executive_summary=exec_status is not None,
             )
 
             timeline.complete_stage(PipelineStage.AI_COMPLETED)
@@ -304,27 +355,66 @@ class AiRecommendationService(BaseService):
                 "preflight_completed",
                 detail=f"parallel={settings.ai.parallel_tasks_enabled} provider={settings.ai.ai_provider}",
             )
-            task_results = self._execute_risk_tasks(
-                facts,
-                prompt_language=prompt_language,
-                prompt_supplement=supplement,
-            )
+            try:
+                task_results = self._execute_risk_tasks(
+                    facts,
+                    prompt_language=prompt_language,
+                    prompt_supplement=supplement,
+                )
+            except (AIConnectionError, AITimeoutError):
+                generated_at = datetime.now(timezone.utc)
+                ai_insights = facts_only_insights_payload(
+                    facts=facts,
+                    model_name=self._model_name,
+                    domain="risk",
+                    narrative_status=NARRATIVE_LLM_UNAVAILABLE,
+                    generated_at_iso=generated_at.isoformat(),
+                )
+                timeline.complete_stage(PipelineStage.AI_COMPLETED)
+                with self._transaction():
+                    metadata["ai_insights"] = ai_insights
+                    metadata["pipeline_timeline"] = timeline.to_list()
+                    updated = self._analyses.update(run, {"runtime_metadata": metadata})
+                return AiRecommendationOutcome(
+                    analysis_run=updated,
+                    facts_contract=facts,
+                    recommendations=(),
+                    ai_insights=ai_insights,
+                )
+
             trace.mark("llm_tasks_completed", detail=f"count={len(task_results)}")
             validate_risk_task_results(task_results)
             generated_at = datetime.now(timezone.utc)
+
+            exec_task = next(
+                r for r in task_results if r.task == PromptTask.RISK_EXECUTIVE_SUMMARY
+            )
+            guarded_exec, exec_status = guard_executive_summary_task(
+                exec_task,
+                facts,
+                self._pipeline,
+                domain="risk",
+                prompt_language=prompt_language,
+                prompt_supplement=supplement,
+            )
+            task_results = merge_task_results(task_results, guarded_exec)
 
             rec_task = next(
                 r for r in task_results if r.task == RISK_RECOMMENDATION_TASK
             )
             traceability = self._build_risk_traceability(run, metadata)
-            rec_payloads = parse_and_map_risk_recommendations(
+            rec_payloads, rec_status = parse_and_map_risk_recommendations(
                 rec_task,
                 facts,
                 analysis_run_id,
                 self._model_name,
                 traceability,
+                pipeline=self._pipeline,
+                prompt_language=prompt_language,
+                prompt_supplement=supplement,
             )
             snapshot_id = str(run.source_snapshot_id) if run.source_snapshot_id else None
+            narrative_status = exec_status or rec_status
             ai_insights = build_risk_ai_insights_payload(
                 task_results=task_results,
                 facts_contract=facts,
@@ -332,6 +422,8 @@ class AiRecommendationService(BaseService):
                 traceability=traceability,
                 source_snapshot_id=snapshot_id,
                 generated_at=generated_at,
+                narrative_status=narrative_status,
+                omit_executive_summary=exec_status is not None,
             )
 
             timeline.complete_stage(PipelineStage.AI_COMPLETED)

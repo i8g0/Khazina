@@ -52,6 +52,20 @@ _NUMBER_TOKEN = re.compile(
     r"(?<!\w)(?:\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(?!\w)"
 )
 
+_ARABIC_INDIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+_PERSIAN_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
+_ALLOWED_TARGET_PERCENTS: frozenset[Decimal] = frozenset(
+    Decimal(str(v)) for v in (5, 8, 10, 15, 20)
+)
+
+
+def normalize_text(text: str) -> str:
+    """Normalize Arabic numerals and punctuation before number extraction."""
+    normalized = text.translate(_ARABIC_INDIC_DIGITS).translate(_PERSIAN_DIGITS)
+    normalized = normalized.replace("٬", ",").replace("،", ",")
+    normalized = normalized.replace("٫", ".").replace("٪", "%")
+    return normalized
+
 
 @dataclass
 class EvidenceRegistry:
@@ -119,33 +133,50 @@ class EvidenceRegistry:
 
     def validate_text(self, text: str) -> list[str]:
         """Return validation errors; empty list means acceptable."""
+        return self._validate_core(text, require_structure=True)
+
+    def validate_numbers_only(self, text: str) -> list[str]:
+        """Lean guard: forbidden phrases + unsupported numbers only."""
+        return self._validate_core(text, require_structure=False)
+
+    def validate_risk_text(self, text: str) -> list[str]:
+        """Risk recommendations: numbers + forbidden phrases, no waste structure."""
+        return self._validate_core(text, require_structure=False)
+
+    def _validate_core(self, text: str, *, require_structure: bool) -> list[str]:
+        normalized = normalize_text(text)
         errors: list[str] = []
-        lowered = text.lower()
+        lowered = normalized.lower()
 
         for phrase in _FORBIDDEN_PHRASES:
-            if phrase.lower() in lowered or phrase in text:
+            if phrase.lower() in lowered or phrase in normalized:
                 errors.append(f"forbidden_phrase:{phrase}")
 
-        if not self._has_category_reference(text):
-            errors.append("missing_category_reference")
+        if require_structure:
+            if not self._has_category_reference(normalized):
+                errors.append("missing_category_reference")
 
-        if self._has_generic_category_wording(text):
-            errors.append("generic_category_wording")
+            if self._has_generic_category_wording(normalized):
+                errors.append("generic_category_wording")
 
-        if contains_english_category_leakage(text):
-            errors.append("english_category_leakage")
+            if contains_english_category_leakage(normalized):
+                errors.append("english_category_leakage")
 
-        if not self._has_structured_evidence(text):
-            errors.append("missing_structured_evidence")
+            if not self._has_structured_evidence(normalized):
+                errors.append("missing_structured_evidence")
 
-        if not self._has_numeric_evidence(text):
-            errors.append("missing_numeric_evidence")
+            if not self._has_numeric_evidence(normalized):
+                errors.append("missing_numeric_evidence")
 
-        for number, is_percent in _extract_significant_numbers(text):
-            if not self._number_is_supported(number, is_percent=is_percent):
+        for number, is_percent, followed_by_riyal in _extract_significant_numbers(
+            normalized
+        ):
+            if not self._number_is_supported(
+                number, is_percent=is_percent, followed_by_riyal=followed_by_riyal
+            ):
                 errors.append(f"unsupported_number:{number}")
 
-        if len(text.strip()) < 80:
+        if require_structure and len(normalized.strip()) < 80:
             errors.append("recommendation_too_short")
 
         return errors
@@ -172,23 +203,35 @@ class EvidenceRegistry:
     def _has_numeric_evidence(self, text: str) -> bool:
         return bool(_extract_significant_numbers(text))
 
-    def _number_is_supported(self, number: Decimal, *, is_percent: bool) -> bool:
+    def _number_is_supported(
+        self,
+        number: Decimal,
+        *,
+        is_percent: bool,
+        followed_by_riyal: bool = False,
+    ) -> bool:
         if Decimal("1900") <= number <= Decimal("2100"):
             return True
         if is_percent:
             for pct in self.percentages:
                 if _numbers_close(number, pct):
                     return True
-            # KPI target percentages (e.g. 8%, 10%) are allowed — not waste facts.
-            if number <= Decimal("20"):
+            if number in _ALLOWED_TARGET_PERCENTS:
                 return True
             return False
         if number < Decimal("1000"):
+            if followed_by_riyal:
+                return self._amount_matches_facts(number)
             return True
+        return self._amount_matches_facts(number)
+
+    def _amount_matches_facts(self, number: Decimal) -> bool:
         for amount in self.amounts:
             if _numbers_close(number, amount):
                 return True
-            if amount >= 1_000_000 and _numbers_close(number, amount / Decimal("1000000")):
+            if amount >= 1_000_000 and _numbers_close(
+                number, amount / Decimal("1000000")
+            ):
                 return True
             if amount >= 1_000 and _numbers_close(number, amount / Decimal("1000")):
                 return True
@@ -198,20 +241,24 @@ class EvidenceRegistry:
         return False
 
 
-def _extract_significant_numbers(text: str) -> list[tuple[Decimal, bool]]:
-    values: list[tuple[Decimal, bool]] = []
-    for match in _NUMBER_TOKEN.finditer(text):
+def _extract_significant_numbers(
+    text: str,
+) -> list[tuple[Decimal, bool, bool]]:
+    normalized = normalize_text(text)
+    values: list[tuple[Decimal, bool, bool]] = []
+    for match in _NUMBER_TOKEN.finditer(normalized):
         token = match.group(0).replace(",", "")
         try:
             number = Decimal(token)
         except InvalidOperation:
             continue
-        tail = text[match.end() : match.end() + 3]
-        is_percent = "%" in tail or "٪" in tail
-        if number >= Decimal("1000") or is_percent:
+        tail = normalized[match.end() : match.end() + 12]
+        is_percent = "%" in tail[:3]
+        followed_by_riyal = tail.lstrip().startswith("ريال")
+        if number >= Decimal("1000") or is_percent or followed_by_riyal:
             if Decimal("1900") <= number <= Decimal("2100") and not is_percent:
                 continue
-            values.append((number, is_percent))
+            values.append((number, is_percent, followed_by_riyal))
     return values
 
 

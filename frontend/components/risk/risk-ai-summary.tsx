@@ -2,6 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import { sanitizeExecutiveText } from "@/lib/format";
+import { NarrativeUnavailableNotice } from "@/lib/narrative-status";
 import { cn } from "@/lib/utils";
 
 export interface RiskAiSummaryProps {
@@ -9,6 +10,7 @@ export interface RiskAiSummaryProps {
   executiveBrief?: string | null;
   explanation?: string | null;
   boardReport?: string | null;
+  narrativeStatus?: string | null;
   className?: string;
 }
 
@@ -17,6 +19,7 @@ export function RiskAiSummary({
   executiveBrief,
   explanation,
   boardReport,
+  narrativeStatus,
   className,
 }: RiskAiSummaryProps) {
   const sections = [
@@ -31,7 +34,7 @@ export function RiskAiSummary({
     }))
     .filter((section) => Boolean(section.body?.trim()));
 
-  if (sections.length === 0) {
+  if (sections.length === 0 && !narrativeStatus) {
     return null;
   }
 
@@ -42,6 +45,7 @@ export function RiskAiSummary({
         className,
       )}
     >
+      <NarrativeUnavailableNotice narrativeStatus={narrativeStatus} className="mb-4" />
       <div className="mb-5 flex items-center gap-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold-primary/10 text-gold-dark">
           <Sparkles className="h-[18px] w-[18px]" strokeWidth={1.75} />

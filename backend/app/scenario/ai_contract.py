@@ -116,6 +116,10 @@ class SimulationExplanation(BaseModel):
     next_actions: list[str] = Field(default_factory=list)
     forecast_ranges: str = ""
     executive_judgment: ExecutiveJudgmentPayload | None = None
+    narrative_status: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
+        data = self.model_dump(mode="json")
+        if self.narrative_status:
+            data["narrative_status"] = self.narrative_status
+        return data

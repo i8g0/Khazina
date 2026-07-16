@@ -6,8 +6,15 @@ import json
 import re
 from typing import Any
 
+from app.ai.exceptions import AIConnectionError, AITimeoutError
 from app.ai.providers.factory import create_ai_provider
 from app.business.engines.scenario.calculator import ScenarioCalculationResult
+from app.business.facts.contract import CONTRACT_VERSION, Fact, FactsContract
+from app.presentation.evidence_registry import EvidenceRegistry
+from app.presentation.narrative_guard import (
+    NARRATIVE_LLM_UNAVAILABLE,
+    apply_numbers_only_guard,
+)
 from app.scenario.ai_contract import (
     ExecutiveJudgmentPayload,
     FinancialRealityPayload,
@@ -73,50 +80,103 @@ class AISimulationExplainer:
             {"role": "user", "content": context},
         ]
         provider = create_ai_provider()
+        registry = _build_scenario_registry(calculation, financial_reality)
         try:
-            raw = provider.chat(messages, format_json=True)
+            try:
+                raw = provider.chat(messages, format_json=True)
+            except (AIConnectionError, AITimeoutError):
+                if executive_judgment is None:
+                    raise
+                return _judgment_fallback_explanation(
+                    executive_judgment, narrative_status=NARRATIVE_LLM_UNAVAILABLE
+                )
+
+            payload = self._parse_json(raw)
+            if executive_judgment is not None:
+                payload = merge_payload_judgment(payload, executive_judgment)
+
+            def retry_narrative(addendum: str) -> str:
+                extended = [*messages, {"role": "system", "content": addendum}]
+                retry_raw = provider.chat(extended, format_json=True)
+                retry_payload = self._parse_json(retry_raw)
+                if executive_judgment is not None:
+                    retry_payload = merge_payload_judgment(
+                        retry_payload, executive_judgment
+                    )
+                return _combine_explanation_narrative(retry_payload)
+
+            _, guard_status = apply_numbers_only_guard(
+                registry,
+                _combine_explanation_narrative(payload),
+                retry=retry_narrative,
+            )
+            if guard_status and executive_judgment is not None:
+                return _judgment_fallback_explanation(
+                    executive_judgment, narrative_status=guard_status
+                )
+            if guard_status:
+                raise ScenarioInterpretationError(
+                    "narrative_guard_rejected",
+                    "Scenario AI narrative rejected by number guard",
+                )
+
+            try:
+                return SimulationExplanation.model_validate(payload)
+            except Exception as exc:
+                if executive_judgment is not None:
+                    return SimulationExplanation(
+                        executive_summary=payload.get(
+                            "executive_summary",
+                            executive_judgment.executive_verdict,
+                        ),
+                        expected_impact=str(
+                            payload.get(
+                                "expected_impact",
+                                executive_judgment.materiality_analysis,
+                            )
+                        ),
+                        financial_changes=str(
+                            payload.get(
+                                "financial_changes",
+                                executive_judgment.scale_comparison,
+                            )
+                        ),
+                        risks=str(
+                            payload.get("risks", executive_judgment.remaining_risks)
+                        ),
+                        benefits=str(
+                            payload.get("benefits", executive_judgment.strategic_advice)
+                        ),
+                        confidence=str(
+                            payload.get(
+                                "confidence",
+                                executive_judgment.confidence_statement,
+                            )
+                        ),
+                        assumptions=str(
+                            payload.get(
+                                "assumptions",
+                                "؛ ".join(executive_judgment.assumptions_used),
+                            )
+                        ),
+                        board_recommendation=str(
+                            payload.get(
+                                "board_recommendation",
+                                executive_judgment.strategic_recommendation,
+                            )
+                        ),
+                        next_actions=payload.get("next_actions")
+                        or [executive_judgment.next_step],
+                        forecast_ranges=str(payload.get("forecast_ranges", "")),
+                        executive_judgment=executive_judgment,
+                    )
+                raise ScenarioInterpretationError(
+                    "invalid_explanation",
+                    f"AI explanation invalid: {exc}",
+                    {"raw": payload},
+                ) from exc
         finally:
             provider.close()
-
-        payload = self._parse_json(raw)
-        if executive_judgment is not None:
-            payload = merge_payload_judgment(payload, executive_judgment)
-        try:
-            return SimulationExplanation.model_validate(payload)
-        except Exception as exc:
-            if executive_judgment is not None:
-                return SimulationExplanation(
-                    executive_summary=payload.get(
-                        "executive_summary",
-                        executive_judgment.executive_verdict,
-                    ),
-                    expected_impact=str(payload.get("expected_impact", executive_judgment.materiality_analysis)),
-                    financial_changes=str(
-                        payload.get("financial_changes", executive_judgment.scale_comparison)
-                    ),
-                    risks=str(payload.get("risks", executive_judgment.remaining_risks)),
-                    benefits=str(payload.get("benefits", executive_judgment.strategic_advice)),
-                    confidence=str(
-                        payload.get("confidence", executive_judgment.confidence_statement)
-                    ),
-                    assumptions=str(
-                        payload.get("assumptions", "؛ ".join(executive_judgment.assumptions_used))
-                    ),
-                    board_recommendation=str(
-                        payload.get(
-                            "board_recommendation",
-                            executive_judgment.strategic_recommendation,
-                        )
-                    ),
-                    next_actions=payload.get("next_actions") or [executive_judgment.next_step],
-                    forecast_ranges=str(payload.get("forecast_ranges", "")),
-                    executive_judgment=executive_judgment,
-                )
-            raise ScenarioInterpretationError(
-                "invalid_explanation",
-                f"AI explanation invalid: {exc}",
-                {"raw": payload},
-            ) from exc
 
     @staticmethod
     def _results_context(
@@ -209,3 +269,106 @@ def merge_payload_judgment(
     if not merged.get("executive_summary"):
         merged["executive_summary"] = judgment.executive_verdict
     return merged
+
+
+def _combine_explanation_narrative(payload: dict[str, Any]) -> str:
+    parts = [
+        str(payload.get("executive_summary", "")),
+        str(payload.get("expected_impact", "")),
+        str(payload.get("financial_changes", "")),
+        str(payload.get("risks", "")),
+        str(payload.get("benefits", "")),
+        str(payload.get("board_recommendation", "")),
+        str(payload.get("forecast_ranges", "")),
+    ]
+    return "\n".join(p for p in parts if p.strip())
+
+
+def _build_scenario_registry(
+    calculation: ScenarioCalculationResult,
+    financial_reality: FinancialRealityPayload | None,
+) -> EvidenceRegistry:
+    facts: list[Fact] = [
+        Fact(
+            domain="simulation",
+            metric="baseline_total",
+            value=f"{calculation.baseline_total:.2f}",
+            source="scenario_engine",
+            unit="currency",
+        ),
+        Fact(
+            domain="simulation",
+            metric="projected_total",
+            value=f"{calculation.projected_total:.2f}",
+            source="scenario_engine",
+            unit="currency",
+        ),
+        Fact(
+            domain="simulation",
+            metric="delta_percent",
+            value=f"{calculation.delta_percent:.2f}",
+            source="scenario_engine",
+            unit="percent",
+        ),
+        Fact(
+            domain="simulation",
+            metric="confidence_percent",
+            value=f"{calculation.confidence_percent:.2f}",
+            source="scenario_engine",
+            unit="percent",
+        ),
+    ]
+    if financial_reality is not None:
+        ec = financial_reality.expense_change
+        for label, amount in (
+            ("expense_worst", ec.worst),
+            ("expense_expected", ec.expected),
+            ("expense_best", ec.best),
+        ):
+            facts.append(
+                Fact(
+                    domain="simulation",
+                    metric=label,
+                    value=f"{amount:.2f}",
+                    source="financial_reality",
+                    unit="currency",
+                )
+            )
+        facts.append(
+            Fact(
+                domain="simulation",
+                metric="confidence_score",
+                value=str(financial_reality.confidence_score),
+                source="financial_reality",
+                unit="percent",
+            )
+        )
+    contract = FactsContract(
+        contract_version=CONTRACT_VERSION,
+        engine_id="scenario_ai_v1",
+        engine_version="1.0.0",
+        generated_at=calculation.generated_at,
+        facts=tuple(facts),
+    )
+    return EvidenceRegistry.from_contract(contract)
+
+
+def _judgment_fallback_explanation(
+    judgment: ExecutiveJudgmentPayload,
+    *,
+    narrative_status: str,
+) -> SimulationExplanation:
+    return SimulationExplanation(
+        executive_summary=judgment.executive_verdict,
+        expected_impact=judgment.materiality_analysis,
+        financial_changes=judgment.scale_comparison,
+        risks=judgment.remaining_risks,
+        benefits=judgment.strategic_advice,
+        confidence=judgment.confidence_statement,
+        assumptions="؛ ".join(judgment.assumptions_used),
+        board_recommendation=judgment.strategic_recommendation,
+        next_actions=[judgment.next_step],
+        forecast_ranges="",
+        executive_judgment=judgment,
+        narrative_status=narrative_status,
+    )

@@ -46,10 +46,19 @@ class AiSettings(BaseSettings):
         description="HTTP timeout in seconds for AI provider requests (AI_TIMEOUT)",
     )
     ai_temperature: float = Field(
-        default=0.7,
+        default=0.2,
         ge=0.0,
         le=2.0,
-        description="Sampling temperature for cloud completions (AI_TEMPERATURE)",
+        description=(
+            "Sampling temperature for cloud completions (AI_TEMPERATURE) — "
+            "interpretation layer must be near-deterministic"
+        ),
+    )
+    guard_max_retries: int = Field(
+        default=1,
+        ge=0,
+        le=3,
+        description="Corrective retries when number guard rejects narrative (GUARD_MAX_RETRIES)",
     )
     default_prompt_language: str = Field(
         default="ar",
