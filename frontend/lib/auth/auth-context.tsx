@@ -24,9 +24,11 @@ interface AuthContextValue {
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
-/** Local/dev auto-login — skip the login page when no session is stored. */
-const DEV_AUTO_LOGIN_EMAIL = "demo@khazina.sa";
-const DEV_AUTO_LOGIN_PASSWORD = "DemoExec2026!";
+const DEMO_AUTOLOGIN_ENABLED =
+  process.env.NEXT_PUBLIC_DEMO_AUTOLOGIN === "true";
+const DEMO_AUTOLOGIN_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL?.trim() ?? "";
+const DEMO_AUTOLOGIN_PASSWORD =
+  process.env.NEXT_PUBLIC_DEMO_PASSWORD?.trim() ?? "";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = React.useState<SessionSnapshot | null>(null);
@@ -65,16 +67,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      if (
+        !DEMO_AUTOLOGIN_ENABLED ||
+        !DEMO_AUTOLOGIN_EMAIL ||
+        !DEMO_AUTOLOGIN_PASSWORD
+      ) {
+        if (!cancelled) {
+          setSession(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
         const tokenResponse = await login(
-          DEV_AUTO_LOGIN_EMAIL,
-          DEV_AUTO_LOGIN_PASSWORD,
+          DEMO_AUTOLOGIN_EMAIL,
+          DEMO_AUTOLOGIN_PASSWORD,
         );
         const org = await getActiveOrganization(tokenResponse.access_token);
         const snapshot: SessionSnapshot = {
           token: tokenResponse.access_token,
           organizationId: org.id,
-          email: DEV_AUTO_LOGIN_EMAIL,
+          email: DEMO_AUTOLOGIN_EMAIL,
           organizationName: org.name,
           platformName: org.platform_name,
           executiveTitle: org.executive_title,
