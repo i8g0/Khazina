@@ -13,26 +13,29 @@ import { DashboardAnalysesTable } from "@/components/dashboard/dashboard-analyse
 import { DashboardBrand } from "@/components/dashboard/dashboard-brand";
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
+import { DashboardGuidanceHero } from "@/components/workflow/dashboard-guidance-hero";
+import { SystemStatusBanner } from "@/components/workflow/system-status-banner";
+import { WorkflowIndicator } from "@/components/workflow/workflow-indicator";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
+import { EXECUTIVE_MESSAGES } from "@/lib/workflow/messages";
 import { DashboardRecommendationCard } from "@/components/dashboard/dashboard-recommendation-card";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline";
 import { DemoHeaderActions } from "@/components/notifications/notification-bell";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
-import { executivePageContainerClassName, getAppNavItems } from "@/lib/app-nav";
+import { executivePageContainerClassName, getAppNavGroups } from "@/lib/app-nav";
 import {
-  dashboardKpis,
   type RecentAnalysis,
   type TimelineEvent,
 } from "@/lib/placeholder-data";
 import {
   useRequireAuth,
   formatApiError,
-  useOrganizationDisplay,
 } from "@/lib/auth/auth-context";
+import { useOrganizationDisplay, useOrgLookups } from "@/lib/org-lookups";
 import {
   listRecentAnalyses,
   listRecommendations,
@@ -40,6 +43,7 @@ import {
 } from "@/lib/api/khazina-api";
 import {
   formatDate,
+  formatRecommendationDisplay,
   mapAnalysisType,
   mapRecommendationPriority,
   mapRunStatus,
@@ -57,9 +61,20 @@ const kpiIcons = [
   ClipboardCheck,
 ];
 
+const dashboardKpiLabels = [
+  "إجمالي الهدر المالي المكتشف",
+  "عدد المخاطر الحرجة",
+  "التوفير المتوقع",
+  "آخر توصية من الذكاء الاصطناعي",
+  "حالة آخر تحليل",
+];
+
+const dashboardKpiEmptyMessage = EXECUTIVE_MESSAGES.dashboardKpiEmpty;
+
 export function DashboardPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
+  const { fileName } = useOrgLookups();
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [timeline, setTimeline] = React.useState<TimelineEvent[]>([]);
@@ -91,8 +106,10 @@ export function DashboardPage() {
           id: run.id,
           title: run.title,
           type: mapAnalysisType(run.analysis_type),
-          sourceFile: run.source_file_id ? "ملف مصدر" : "—",
-          date: run.completed_at ? formatDate(run.completed_at) : "—",
+          sourceFile: run.source_file_id
+            ? fileName(run.source_file_id) ?? "ملف غير معروف"
+            : "لا يوجد ملف مصدر",
+          date: run.completed_at ? formatDate(run.completed_at) : "لم يكتمل بعد",
           status: mapRunStatus(run.status),
         })),
       );
@@ -102,7 +119,7 @@ export function DashboardPage() {
           title: rec.title,
           description: rec.description,
           badge: mapRecommendationPriority(rec.priority),
-          confidence: rec.confidence_label ?? "—",
+          confidence: rec.confidence_label ?? "بدون تصنيف ثقة",
         })),
       );
     } catch (err) {
@@ -110,26 +127,37 @@ export function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [auth.session]);
+  }, [auth.session, fileName]);
 
   React.useEffect(() => {
     void load();
   }, [load]);
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
   return (
     <AppLayout
       brand={<DashboardBrand />}
       title="لوحة التحكم"
-      subtitle={org.reportingPeriod}
+      subtitle={org.reportingPeriod ?? undefined}
       activeItemId="dashboard"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
         <div className={dashboardPageSpacingClassName}>
+          <DashboardGuidanceHero
+            orgName={org.name}
+            executiveTitle={org.executiveTitle}
+            period={org.reportingPeriod}
+          />
+
+          <SystemStatusBanner />
+
+          <WorkflowIndicator />
+
           <DashboardHero
             title="نظرة تنفيذية"
             description={`${org.executiveTitle} — ${org.name}`}
@@ -138,32 +166,31 @@ export function DashboardPage() {
 
           {error ? (
             <ErrorState
-              title="خطأ"
+              title="تعذّر تحميل لوحة التحكم"
               description={error}
               onRetry={() => void load()}
             />
           ) : null}
 
           <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <DashboardSectionHeader
-                dense
-                title="مؤشرات الأداء"
-                description="لا توجد واجهة تجميع للمؤشرات — معلق حتى توفر API التجميع (Phase 8+)"
-              />
-              <Badge variant="outline">عرض توضيحي</Badge>
-            </div>
+            <DashboardSectionHeader
+              dense
+              title="مؤشرات الأداء"
+              description={EXECUTIVE_MESSAGES.dashboardKpiSection}
+            />
             <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
-              {dashboardKpis.map((kpi, index) => {
+              {dashboardKpiLabels.map((label, index) => {
                 const Icon = kpiIcons[index];
                 return (
                   <DashboardStatCard
-                    key={kpi.label}
-                    label={kpi.label}
-                    value={kpi.value}
-                    hint={kpi.hint}
-                    departmentBadge={kpi.departmentBadge}
-                    trend={kpi.trend}
+                    key={label}
+                    label={label}
+                    value={
+                      <span className="text-sm font-normal leading-relaxed text-muted">
+                        {dashboardKpiEmptyMessage}
+                      </span>
+                    }
+                    hint={EXECUTIVE_MESSAGES.dashboardKpiHint}
                     emphasis
                     dense
                     icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
@@ -174,10 +201,7 @@ export function DashboardPage() {
           </section>
 
           <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <DashboardSectionHeader dense title="الرسوم البيانية" />
-              <Badge variant="outline">عرض توضيحي</Badge>
-            </div>
+            <DashboardSectionHeader dense title="الرسوم البيانية" />
             <DashboardCharts />
           </section>
 
@@ -196,16 +220,22 @@ export function DashboardPage() {
               />
             ) : (
               <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
-                {recommendations.map((item) => (
-                  <DashboardRecommendationCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    description={item.description}
-                    badge={item.badge}
-                    confidence={item.confidence}
-                  />
-                ))}
+                {recommendations.map((item) => {
+                  const display = formatRecommendationDisplay({
+                    title: item.title,
+                    description: item.description,
+                  });
+                  return (
+                    <DashboardRecommendationCard
+                      key={item.id}
+                      id={item.id}
+                      title={display.title}
+                      description={display.description}
+                      badge={item.badge}
+                      confidence={item.confidence}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>

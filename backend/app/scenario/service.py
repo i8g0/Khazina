@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -45,12 +47,18 @@ from app.scenario.baseline import validate_waste_baseline_alignment
 from app.scenario.mappers.scenario_gold import ScenarioGoldMapper
 from app.services.analysis import AnalysisService
 from app.services.base import BaseService
+from app.core.logging import get_logger
+from app.observability.persistence import load_file_timeline, merge_run_timeline
+from app.observability.pipeline import PipelineStage, PipelineTimeline, load_pipeline_timeline
+from app.observability.structured_log import log_pipeline_event
 from app.services.exceptions import (
     BusinessValidationError,
     InvalidStateError,
     ResourceNotFoundError,
 )
 from app.services.simulation import SimulationService
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,6 +158,24 @@ class ScenarioService(BaseService):
         simulation_run = self._simulations.create_run(
             SimulationRun(scenario_id=scenario.id, analysis_run_id=run.id)
         )
+        sim_timeline = PipelineTimeline(
+            organization_id=str(organization_id),
+            file_id=str(source_file_id),
+            snapshot_id=str(snapshot.id),
+            analysis_run_id=str(run.id),
+            inherited=load_file_timeline(source_file),
+        )
+        sim_started = time.perf_counter()
+        sim_timeline.start_stage(PipelineStage.SIMULATION_STARTED)
+        log_pipeline_event(
+            logger,
+            "pipeline_stage",
+            stage=PipelineStage.SIMULATION_STARTED.value,
+            status="started",
+            organization_id=str(organization_id),
+            analysis_run_id=str(run.id),
+            snapshot_id=str(snapshot.id),
+        )
 
         try:
             baseline = self._snapshot_adapter.adapt(
@@ -184,14 +210,31 @@ class ScenarioService(BaseService):
 
             with self._transaction():
                 self._persist_gold(simulation_run.id, gold_payload)
+            sim_timeline.complete_stage(PipelineStage.SIMULATION_COMPLETED)
             completed = self._analysis.complete_run(
                 organization_id,
                 run.id,
                 success_metadata={
                     "facts_contract": facts.to_dict(),
                     "scenario_provenance": provenance,
+                    "pipeline_timeline": sim_timeline.to_list(),
                 },
                 initiating_user_id=initiating_user_id,
+            )
+            if baseline_analysis_run_id is not None:
+                self._append_simulation_to_baseline(
+                    organization_id,
+                    baseline_analysis_run_id,
+                    sim_timeline,
+                )
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                stage=PipelineStage.SIMULATION_COMPLETED.value,
+                status="completed",
+                organization_id=str(organization_id),
+                analysis_run_id=str(run.id),
+                duration_ms=round((time.perf_counter() - sim_started) * 1000, 2),
             )
             if scenario.status != SimulationScenarioStatus.COMPLETED:
                 with self._transaction():
@@ -199,20 +242,26 @@ class ScenarioService(BaseService):
                         scenario, {"status": SimulationScenarioStatus.COMPLETED}
                     )
         except SnapshotAdapterError as exc:
+            sim_timeline.fail_stage(PipelineStage.SIMULATION_COMPLETED, exc)
             self._analysis.fail_run(
                 organization_id,
                 run.id,
-                failure_details=exc.to_failure_details(),
+                failure_details={
+                    **exc.to_failure_details(),
+                    "pipeline_timeline": sim_timeline.to_list(),
+                },
                 initiating_user_id=initiating_user_id,
             )
             raise
         except EngineError as exc:
+            sim_timeline.fail_stage(PipelineStage.SIMULATION_COMPLETED, exc)
             self._analysis.fail_run(
                 organization_id,
                 run.id,
                 failure_details={
                     "error_code": "engine_execution_failed",
                     "message": str(exc),
+                    "pipeline_timeline": sim_timeline.to_list(),
                 },
                 initiating_user_id=initiating_user_id,
             )
@@ -298,6 +347,32 @@ class ScenarioService(BaseService):
         ]
         if action_rows:
             self._simulations.add_action_items(action_rows)
+
+    def _append_simulation_to_baseline(
+        self,
+        organization_id: uuid.UUID,
+        baseline_analysis_run_id: uuid.UUID,
+        sim_timeline: PipelineTimeline,
+    ) -> None:
+        baseline = self._analyses.get(baseline_analysis_run_id)
+        if baseline is None or baseline.organization_id != organization_id:
+            return
+        baseline_timeline = PipelineTimeline(
+            organization_id=str(organization_id),
+            analysis_run_id=str(baseline_analysis_run_id),
+            inherited=load_pipeline_timeline(baseline.runtime_metadata),
+        )
+        for entry in sim_timeline.to_list():
+            if entry.get("stage") in {
+                PipelineStage.SIMULATION_STARTED.value,
+                PipelineStage.SIMULATION_COMPLETED.value,
+                PipelineStage.FAILED.value,
+            }:
+                baseline_timeline.append_entries([entry])
+        self._analyses.update(
+            baseline,
+            {"runtime_metadata": merge_run_timeline(baseline, baseline_timeline)},
+        )
 
     def _resolve_snapshot(
         self,

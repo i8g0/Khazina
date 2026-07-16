@@ -16,18 +16,25 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageHero } from "@/components/ui/page-hero";
+import Link from "next/link";
 import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
-  getAppNavItems,
+  getAppNavGroups,
+  navRouteMap,
 } from "@/lib/app-nav";
+import { WorkflowIndicator } from "@/components/workflow/workflow-indicator";
+import { OperationLoadingPanel } from "@/components/workflow/operation-loading-panel";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
+import { EXECUTIVE_MESSAGES } from "@/lib/workflow/messages";
+import { Button } from "@/components/ui/button";
 import type { UploadedFileItem, DataValidationItem, ImportHistoryItem } from "@/lib/placeholder-data";
 import {
   useRequireAuth,
   formatApiError,
-  useOrganizationDisplay,
 } from "@/lib/auth/auth-context";
+import { useOrganizationDisplay, useOrgLookups } from "@/lib/org-lookups";
 import {
   getLatestQualitySnapshot,
   listFinancialFiles,
@@ -35,7 +42,7 @@ import {
   listQualityChecks,
   uploadFinancialFile,
 } from "@/lib/api/khazina-api";
-import { writeDemoArtifacts } from "@/lib/demo/state";
+import { beginNewFinancialDataset } from "@/lib/demo/state";
 import { formatDate, mapProcessingStatus } from "@/lib/format";
 
 const summaryIcons = [FileStack, Database, HardDrive, FileCheck2];
@@ -43,13 +50,14 @@ const summaryIcons = [FileStack, Database, HardDrive, FileCheck2];
 export function DataManagementPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
+  const { departmentName } = useOrgLookups();
   const [loading, setLoading] = React.useState(true);
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [files, setFiles] = React.useState<UploadedFileItem[]>([]);
   const [importHistory, setImportHistory] = React.useState<ImportHistoryItem[]>([]);
   const [validationItems, setValidationItems] = React.useState<DataValidationItem[]>([]);
-  const [qualityScore, setQualityScore] = React.useState<string>("—");
+  const [qualityScore, setQualityScore] = React.useState<string>("لم يُقيَّم بعد");
   const [uploadMessage, setUploadMessage] = React.useState<string | null>(null);
 
   const loadFiles = React.useCallback(async () => {
@@ -64,9 +72,11 @@ export function DataManagementPage() {
       const mapped: UploadedFileItem[] = rows.map((row) => ({
         id: row.id,
         fileName: row.file_name,
-        department: "—",
+        department: row.department_id
+          ? departmentName(row.department_id) ?? "قسم غير معروف"
+          : "بدون قسم",
         uploadDate: formatDate(row.uploaded_at),
-        size: row.size_display ?? "—",
+        size: row.size_display ?? "غير محدد",
         status: mapProcessingStatus(row.processing_status),
       }));
       setFiles(mapped);
@@ -83,7 +93,9 @@ export function DataManagementPage() {
             date: formatDate(record.imported_at),
             file: latestFile.file_name,
             records:
-              record.record_count != null ? String(record.record_count) : "—",
+              record.record_count != null
+                ? String(record.record_count)
+                : "غير متوفر",
             status:
               record.status === "failed" || record.status.includes("fail")
                 ? "فشل"
@@ -104,7 +116,7 @@ export function DataManagementPage() {
         setQualityScore(
           snapshot.overall_score != null
             ? `${snapshot.overall_score.toFixed(1)}%`
-            : "—",
+            : "لم يُقيَّم بعد",
         );
         const checks = await listQualityChecks(
           auth.session.organizationId,
@@ -118,11 +130,11 @@ export function DataManagementPage() {
             .map((check) => ({
               check: check.check_name,
               result: `${check.result_percent.toFixed(1)}%`,
-              details: check.details ?? "—",
+              details: check.details ?? "لا توجد تفاصيل",
             })),
         );
       } else {
-        setQualityScore("—");
+        setQualityScore("لم يُقيَّم بعد");
         setValidationItems([]);
       }
     } catch (err) {
@@ -130,7 +142,7 @@ export function DataManagementPage() {
     } finally {
       setLoading(false);
     }
-  }, [auth.session]);
+  }, [auth.session, departmentName]);
 
   React.useEffect(() => {
     if (auth.session) {
@@ -150,7 +162,7 @@ export function DataManagementPage() {
         file,
       );
       if (outcome.financial_snapshot) {
-        writeDemoArtifacts({
+        beginNewFinancialDataset({
           fileId: outcome.financial_file.id,
           snapshotId: outcome.financial_snapshot.id,
           snapshotVersion: outcome.financial_snapshot.snapshot_version,
@@ -174,10 +186,11 @@ export function DataManagementPage() {
   const kpis = [
     { label: "الملفات المرفوعة", value: String(files.length), hint: "مستودع البيانات" },
     { label: "جاهزة للتحليل", value: String(readyCount), hint: "حالة المعالجة" },
-    { label: "آخر رفع", value: files[0]?.uploadDate ?? "—", hint: files[0]?.fileName ?? "لا يوجد" },
+    { label: "آخر رفع", value: files[0]?.uploadDate ?? "لا يوجد رفع بعد", hint: files[0]?.fileName ?? "لا يوجد ملف" },
     { label: "جودة البيانات", value: qualityScore, hint: "آخر تقييم محفوظ" },
   ];
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) {
     return null;
   }
@@ -186,23 +199,30 @@ export function DataManagementPage() {
     <AppLayout
       brand={<DashboardBrand />}
       title="مستودع البيانات"
-      subtitle={org.reportingPeriod}
+      subtitle={org.reportingPeriod ?? undefined}
       activeItemId="data"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
         <div className={executivePageSpacingClassName}>
           <PageHero
             title="مستودع البيانات المالية"
-            description={`${org.name} — إدارة مجموعات البيانات المؤسسية.`}
+            description={`${org.name} — نقطة البداية الموصى بها لرفع البيانات وبدء مسار التحليل التنفيذي.`}
             period={org.reportingPeriod}
           />
 
+          <WorkflowIndicator activeStageId="upload" />
+
           {uploadMessage ? (
-            <Alert variant="success" title="تم تحديث المستودع">
-              {uploadMessage}
+            <Alert variant="success" title="تم رفع الملف بنجاح">
+              <div className="space-y-3">
+                <p>{uploadMessage}</p>
+                <Button asChild size="sm">
+                  <Link href={navRouteMap.waste}>{EXECUTIVE_MESSAGES.dataUploadNext}</Link>
+                </Button>
+              </div>
             </Alert>
           ) : null}
 
@@ -243,13 +263,24 @@ export function DataManagementPage() {
             <DashboardSectionHeader
               dense
               title="رفع البيانات"
-              description={uploading ? "جاري الرفع والمعالجة..." : "ارفع ملف Excel أو CSV مدعوم"}
+              description={
+                uploading
+                  ? "جاري رفع الملف ومعالجة البيانات..."
+                  : EXECUTIVE_MESSAGES.uploadPrimaryHint
+              }
             />
-            <UploadDataPanel
-              disabled={uploading}
-              onUpload={() => undefined}
-              onFileUpload={(file) => void handleFileUpload(file)}
-            />
+            {uploading ? (
+              <OperationLoadingPanel
+                title="جاري رفع الملف ومعالجة البيانات"
+                description="يتم استيراد البيانات المالية وتحضيرها للتحليل — يرجى الانتظار."
+              />
+            ) : (
+              <UploadDataPanel
+                disabled={uploading}
+                onUpload={() => undefined}
+                onFileUpload={(file) => void handleFileUpload(file)}
+              />
+            )}
           </section>
 
           <section className={executiveSectionSpacingClassName}>

@@ -7,6 +7,7 @@ import {
   SidebarShell,
   type SidebarNavItem,
 } from "@/components/layout/sidebar-shell";
+import type { AppNavGroup } from "@/lib/app-nav";
 
 export interface AppLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export interface AppLayoutProps {
   sidebarFooter?: React.ReactNode;
   sidebarContent?: React.ReactNode;
   navItems?: SidebarNavItem[];
+  navGroups?: AppNavGroup[];
   activeItemId?: string;
   onNavItemClick?: (item: SidebarNavItem) => void;
   sidebarVariant?: "default" | "executive";
@@ -33,6 +35,7 @@ export function AppLayout({
   sidebarFooter,
   sidebarContent,
   navItems = [],
+  navGroups,
   activeItemId,
   onNavItemClick,
   sidebarVariant = "default",
@@ -48,6 +51,7 @@ export function AppLayout({
         brand={brand}
         footer={sidebarFooter}
         navItems={navItems}
+        navGroups={navGroups}
         activeItemId={activeItemId}
         onNavItemClick={onNavItemClick}
         collapsed={collapsed}

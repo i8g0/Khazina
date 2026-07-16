@@ -1,0 +1,163 @@
+{
+  "fixtures": {
+    "demo_workbook": "Procurement_Q2.xlsx",
+    "canonical": "canonical.xlsx",
+    "different_values": "different_values.xlsx",
+    "extended_rows": "extended_rows.xlsx",
+    "reordered_rows": "reordered_rows.xlsx",
+    "arabic_headers": "arabic_headers.xlsx",
+    "invalid_layout": "invalid_layout.xlsx"
+  },
+  "local": {
+    "demo_workbook": {
+      "accepted": true,
+      "record_count": 3,
+      "quality_score": 100.0,
+      "elapsed_ms": 5.69
+    },
+    "canonical": {
+      "accepted": true,
+      "record_count": 3,
+      "quality_score": 100.0,
+      "elapsed_ms": 17.15
+    },
+    "different_values": {
+      "accepted": true,
+      "record_count": 3,
+      "quality_score": 100.0,
+      "elapsed_ms": 17.31
+    },
+    "extended_rows": {
+      "accepted": true,
+      "record_count": 5,
+      "quality_score": 100.0,
+      "elapsed_ms": 15.14
+    },
+    "reordered_rows": {
+      "accepted": true,
+      "record_count": 3,
+      "quality_score": 100.0,
+      "elapsed_ms": 15.19
+    },
+    "arabic_headers": {
+      "accepted": true,
+      "record_count": 3,
+      "quality_score": 100.0,
+      "elapsed_ms": 14.79
+    },
+    "invalid_layout": {
+      "accepted": false,
+      "error": "Workbook does not match the approved financial waste template (W-1): Required column not found",
+      "elapsed_ms": 13.52
+    }
+  },
+  "http": {
+    "org_id": "7dd234e7-58dd-4844-a38e-92a4fa67d0ed",
+    "demo_workbook": {
+      "file_name": "Procurement_Q2.xlsx",
+      "file_id": "c9c4aa72-7bb5-4475-add2-9e87d37852a6",
+      "status": "ready_for_analysis",
+      "snapshot_id": "9abfe7d3-4bd3-4c2f-ac5e-c21998e810a2",
+      "waste_total": 2340000.0,
+      "waste_pct": 4.68,
+      "run_id": "9ad4a1d6-fbcd-4f8b-a0b2-ef300be6ddfb",
+      "simulation_run_id": "ba8c8566-12c4-4cc1-8cdc-6c14826d8532",
+      "recommendation_count": 5,
+      "report_id": "04c6041b-af5b-48ac-b6d5-b9ff4427c790",
+      "pdf_bytes": 3319,
+      "accepted": true
+    },
+    "canonical": {
+      "file_name": "canonical.xlsx",
+      "file_id": "0535361d-04b8-4dcb-968b-a4a8ab36b1e8",
+      "status": "ready_for_analysis",
+      "snapshot_id": "ca925b56-6513-4fc7-859d-3285f3d95043",
+      "waste_total": 2340000.0,
+      "waste_pct": 4.68,
+      "run_id": "72700a3d-fe26-4ae5-90f7-73c476b3e5dc",
+      "simulation_run_id": "78e41f3c-a9fc-4af6-87b3-a8020c3cd25f",
+      "recommendation_count": 5,
+      "report_id": "56d02ab5-465d-45ed-99c6-5534666b3a13",
+      "pdf_bytes": 3295,
+      "accepted": true
+    },
+    "different_values": {
+      "file_name": "different_values.xlsx",
+      "file_id": "f1cf5a14-16d3-44a9-98b9-bea3e246c6c5",
+      "status": "ready_for_analysis",
+      "snapshot_id": "17f492f1-dda8-43ca-a23f-47f8d8bce5dc",
+      "waste_total": 1950000.0,
+      "waste_pct": 2.44,
+      "run_id": "dceafa1d-1e6d-4481-b342-7d4ad0039820",
+      "simulation_run_id": "aee0d069-aade-43a1-a397-9d64f488cfcf",
+      "recommendation_count": 5,
+      "report_id": "96868ee9-b468-46a4-bb02-a332d893d3c1",
+      "pdf_bytes": 3296,
+      "accepted": true
+    },
+    "extended_rows": {
+      "file_name": "extended_rows.xlsx",
+      "file_id": "b00a108c-0026-4f10-a4a5-4ad538b8c4d6",
+      "status": "ready_for_analysis",
+      "snapshot_id": "e5e662dd-55c3-4305-b683-1b14949a79d9",
+      "waste_total": 800000.0,
+      "waste_pct": 4.0,
+      "run_id": "ecf045e3-5c7d-4216-a88b-877e1c745c7a",
+      "simulation_run_id": "e6a0c1ff-b131-4943-af63-7e41e5247c54",
+      "recommendation_count": 5,
+      "report_id": "fc63fd65-f52d-4ec1-b234-bc7e49415974",
+      "pdf_bytes": 3298,
+      "accepted": true
+    },
+    "reordered_rows": {
+      "file_name": "reordered_rows.xlsx",
+      "file_id": "85c5a2fa-ea29-4706-b068-7bdc5ebe3dbb",
+      "status": "ready_for_analysis",
+      "snapshot_id": "df2efafd-ffe0-4561-81e0-5443221f1d7f",
+      "waste_total": 2340000.0,
+      "waste_pct": 4.68,
+      "run_id": "0e14c6e7-cf15-4131-84a7-5725ffa95694",
+      "simulation_run_id": "8ac6cb24-4231-4223-a2ae-e4880f4b76fc",
+      "recommendation_count": 5,
+      "report_id": "2ec928ab-bb5f-44da-9a94-6eb5c24b7db2",
+      "pdf_bytes": 3297,
+      "accepted": true
+    },
+    "arabic_headers": {
+      "file_name": "arabic_headers.xlsx",
+      "file_id": "bc4d0be1-e73b-4574-aa18-4c8c1e0cb349",
+      "status": "ready_for_analysis",
+      "snapshot_id": "83234467-021b-445f-baa0-1b9a4dc29788",
+      "waste_total": 2340000.0,
+      "waste_pct": 4.68,
+      "run_id": "be1732ce-aec0-4210-928e-73d1ea2d04d0",
+      "simulation_run_id": "ba3a1afd-006f-4b5b-a46c-b9ea38a3f108",
+      "recommendation_count": 5,
+      "report_id": "ee9c7a5f-7fc4-4550-8ee4-fa289dd1f147",
+      "pdf_bytes": 3307,
+      "accepted": true
+    },
+    "freshness": {
+      "file_id": {
+        "unique_count": 6,
+        "all_unique": true
+      },
+      "snapshot_id": {
+        "unique_count": 6,
+        "all_unique": true
+      },
+      "run_id": {
+        "unique_count": 6,
+        "all_unique": true
+      },
+      "report_id": {
+        "unique_count": 6,
+        "all_unique": true
+      }
+    },
+    "invalid_layout": {
+      "accepted": false,
+      "status": "failed"
+    }
+  }
+}

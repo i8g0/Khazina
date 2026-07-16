@@ -1,11 +1,14 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+import logging
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.logging import get_logger
+from app.observability.errors import classify_exception
+from app.observability.structured_log import log_pipeline_event
 from app.schemas.response import error_response
 from app.ai_recommendations.exceptions import AiRecommendationError
 from app.decision.exceptions import SnapshotAdapterError
@@ -164,6 +167,14 @@ async def validation_exception_handler(
 
 
 async def sqlalchemy_error_handler(_: Request, exc: SQLAlchemyError) -> JSONResponse:
+    category = classify_exception(exc)
+    log_pipeline_event(
+        logger,
+        "request_error",
+        level=logging.ERROR,
+        error_category=category,
+        message=str(exc),
+    )
     logger.exception("Database error")
     message = "Internal server error"
     errors = [str(exc)] if settings.debug else None
@@ -176,6 +187,14 @@ async def sqlalchemy_error_handler(_: Request, exc: SQLAlchemyError) -> JSONResp
 
 
 async def unhandled_exception_handler(_: Request, exc: Exception) -> JSONResponse:
+    category = classify_exception(exc)
+    log_pipeline_event(
+        logger,
+        "request_error",
+        level=logging.ERROR,
+        error_category=category,
+        message=str(exc),
+    )
     logger.exception("Unhandled exception")
     errors = [str(exc)] if settings.debug else None
     message = str(exc) if settings.debug else "Internal server error"

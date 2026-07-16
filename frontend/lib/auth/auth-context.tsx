@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { humanizeErrorMessage } from "@/lib/workflow/messages";
 import { ApiError } from "@/lib/api/client";
 import { getActiveOrganization, login } from "@/lib/api/khazina-api";
 import {
@@ -143,30 +144,28 @@ export function useRequireAuth(): AuthContextValue {
   return auth;
 }
 
-/** Display helpers from live session (falls back only for optional fields). */
-export function useOrganizationDisplay() {
-  const { session } = useAuth();
-  return {
-    name: session?.organizationName || "—",
-    platformName: session?.platformName || "خزينة",
-    executiveTitle: session?.executiveTitle || "المستخدم التنفيذي",
-    /** No backend field for reporting period label — UI period badge only. */
-    reportingPeriod: "الفترة النشطة",
-  };
-}
+export { useOrganizationDisplay } from "@/lib/org-lookups";
 
 export function formatApiError(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 401) {
-      return "انتهت صلاحية الجلسة أو غير مصرح — سجّل الدخول مجدداً";
+      return "انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً";
     }
     if (error.status === 403) {
       return "ليس لديك صلاحية لتنفيذ هذا الإجراء";
     }
-    return error.message;
+    if (error.status === 503) {
+      return "الخدمة غير متاحة مؤقتاً. أعد المحاولة بعد قليل.";
+    }
+    if (error.status >= 500) {
+      return humanizeErrorMessage(
+        error.message || "تعذّر إتمام العملية. أعد المحاولة بعد قليل.",
+      );
+    }
+    return humanizeErrorMessage(error.message);
   }
   if (error instanceof Error) {
-    return error.message;
+    return humanizeErrorMessage(error.message);
   }
-  return "حدث خطأ غير متوقع";
+  return "حدث خطأ غير متوقع. حاول مجدداً.";
 }

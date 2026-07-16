@@ -19,6 +19,9 @@ import type {
   SettingsPatchPayload,
   SimulationChartPointResponse,
   SimulationComparisonMetricResponse,
+  SimulationAssumptionResponse,
+  SimulationImpactItemResponse,
+  SimulationActionItemResponse,
   SimulationForecastSummaryResponse,
   SimulationScenarioResponse,
   TimelineEventResponse,
@@ -29,6 +32,9 @@ import type {
   WasteAiRecommendationsResponse,
   WasteAnalysisResultResponse,
   WasteCategoryBreakdownResponse,
+  WasteVendorFindingResponse,
+  AiHealthResponse,
+  SystemHealthResponse,
   WasteDecisionExecuteResponse,
 } from "@/lib/api/types";
 
@@ -52,6 +58,14 @@ export async function login(
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+}
+
+export async function getAiHealth(): Promise<AiHealthResponse> {
+  return apiRequest<AiHealthResponse>("/ai/health");
+}
+
+export async function getSystemHealth(): Promise<SystemHealthResponse> {
+  return apiRequest<SystemHealthResponse>("/health");
 }
 
 export async function getActiveOrganization(
@@ -363,6 +377,18 @@ export async function listWasteBreakdowns(
   );
 }
 
+export async function listVendorFindings(
+  orgId: string,
+  token: string,
+  runId: string,
+  options: ListQueryParams = {},
+): Promise<WasteVendorFindingResponse[]> {
+  return apiRequest<WasteVendorFindingResponse[]>(
+    `/organizations/${orgId}/analysis-runs/${runId}/waste/vendor-findings${toQuery(options)}`,
+    { token },
+  );
+}
+
 export async function generateWasteAi(
   orgId: string,
   token: string,
@@ -455,6 +481,39 @@ export async function listComparisonMetrics(
 ): Promise<SimulationComparisonMetricResponse[]> {
   return apiRequest<SimulationComparisonMetricResponse[]>(
     `/organizations/${orgId}/simulation/runs/${runId}/comparison-metrics`,
+    { token },
+  );
+}
+
+export async function listScenarioAssumptions(
+  orgId: string,
+  token: string,
+  scenarioId: string,
+): Promise<SimulationAssumptionResponse[]> {
+  return apiRequest<SimulationAssumptionResponse[]>(
+    `/organizations/${orgId}/simulation/scenarios/${scenarioId}/assumptions`,
+    { token },
+  );
+}
+
+export async function listImpactItems(
+  orgId: string,
+  token: string,
+  runId: string,
+): Promise<SimulationImpactItemResponse[]> {
+  return apiRequest<SimulationImpactItemResponse[]>(
+    `/organizations/${orgId}/simulation/runs/${runId}/impact-items`,
+    { token },
+  );
+}
+
+export async function listActionItems(
+  orgId: string,
+  token: string,
+  runId: string,
+): Promise<SimulationActionItemResponse[]> {
+  return apiRequest<SimulationActionItemResponse[]>(
+    `/organizations/${orgId}/simulation/runs/${runId}/action-items`,
     { token },
   );
 }

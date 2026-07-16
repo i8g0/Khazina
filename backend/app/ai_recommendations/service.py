@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -22,6 +24,7 @@ from app.ai_recommendations.pipeline import AiTaskPipeline, TaskExecutionResult
 from app.ai_recommendations.validator import validate_task_results
 from app.business.facts.contract import FactsContract
 from app.core.config import settings
+from app.core.logging import get_logger
 from app.db.models import AnalysisRun, Recommendation
 from app.db.models.enums import AnalysisRunStatus, AnalysisType, RecommendationDomain
 from app.repositories import AnalysisRepository, RecommendationRepository, WasteRepository
@@ -31,6 +34,11 @@ from app.settings.exceptions import AiRecommendationsDisabledError
 from app.settings.service import SettingsService
 from app.notifications.builder import NotificationBuilder
 from app.notifications.hooks import try_materialize
+from app.observability.errors import classify_exception
+from app.observability.pipeline import PipelineStage, PipelineTimeline, load_pipeline_timeline
+from app.observability.structured_log import log_pipeline_event
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,38 +103,86 @@ class AiRecommendationService(BaseService):
                 "pass regenerate=true to replace",
             )
 
-        facts = load_facts_contract(metadata)
-        task_results = self._execute_tasks(facts, prompt_language=prompt_language)
-        validate_task_results(task_results)
-        generated_at = datetime.now(timezone.utc)
-
-        rec_task = next(
-            r for r in task_results if r.task == PromptTask.RECOMMENDATIONS
+        timeline = PipelineTimeline(
+            organization_id=str(organization_id),
+            file_id=str(run.source_file_id) if run.source_file_id else None,
+            snapshot_id=str(run.source_snapshot_id) if run.source_snapshot_id else None,
+            analysis_run_id=str(analysis_run_id),
+            inherited=load_pipeline_timeline(metadata),
         )
-        rec_payloads = parse_and_map_recommendations(
-            rec_task,
-            facts,
-            analysis_run_id,
-            self._model_name,
-        )
-        snapshot_id = str(run.source_snapshot_id) if run.source_snapshot_id else None
-        ai_insights = build_ai_insights_payload(
-            task_results=task_results,
-            facts_contract=facts,
-            model_name=self._model_name,
-            source_snapshot_id=snapshot_id,
-            generated_at=generated_at,
+        pipeline_started = time.perf_counter()
+        timeline.start_stage(PipelineStage.AI_STARTED)
+        log_pipeline_event(
+            logger,
+            "pipeline_stage",
+            stage=PipelineStage.AI_STARTED.value,
+            status="started",
+            organization_id=str(organization_id),
+            analysis_run_id=str(analysis_run_id),
         )
 
-        with self._transaction():
-            if regenerate:
-                self._delete_waste_recommendations_for_run(analysis_run_id)
-            recommendations = tuple(
-                self._create_recommendation(organization_id, payload)
-                for payload in rec_payloads
+        try:
+            facts = load_facts_contract(metadata)
+            task_results = self._execute_tasks(facts, prompt_language=prompt_language)
+            validate_task_results(task_results)
+            generated_at = datetime.now(timezone.utc)
+
+            rec_task = next(
+                r for r in task_results if r.task == PromptTask.RECOMMENDATIONS
             )
-            metadata["ai_insights"] = ai_insights
-            updated = self._analyses.update(run, {"runtime_metadata": metadata})
+            rec_payloads = parse_and_map_recommendations(
+                rec_task,
+                facts,
+                analysis_run_id,
+                self._model_name,
+            )
+            snapshot_id = str(run.source_snapshot_id) if run.source_snapshot_id else None
+            ai_insights = build_ai_insights_payload(
+                task_results=task_results,
+                facts_contract=facts,
+                model_name=self._model_name,
+                source_snapshot_id=snapshot_id,
+                generated_at=generated_at,
+            )
+
+            timeline.complete_stage(PipelineStage.AI_COMPLETED)
+            with self._transaction():
+                if regenerate:
+                    self._delete_waste_recommendations_for_run(analysis_run_id)
+                recommendations = tuple(
+                    self._create_recommendation(organization_id, payload)
+                    for payload in rec_payloads
+                )
+                metadata["ai_insights"] = ai_insights
+                metadata["pipeline_timeline"] = timeline.to_list()
+                updated = self._analyses.update(run, {"runtime_metadata": metadata})
+        except Exception as exc:
+            category = classify_exception(exc)
+            timeline.fail_stage(PipelineStage.AI_COMPLETED, exc)
+            metadata["pipeline_timeline"] = timeline.to_list()
+            self._analyses.update(run, {"runtime_metadata": metadata})
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                level=logging.WARNING,
+                stage=PipelineStage.AI_COMPLETED.value,
+                status="failed",
+                organization_id=str(organization_id),
+                analysis_run_id=str(analysis_run_id),
+                error_category=category,
+                message=str(exc),
+            )
+            raise
+
+        log_pipeline_event(
+            logger,
+            "pipeline_stage",
+            stage=PipelineStage.AI_COMPLETED.value,
+            status="completed",
+            organization_id=str(organization_id),
+            analysis_run_id=str(analysis_run_id),
+            duration_ms=round((time.perf_counter() - pipeline_started) * 1000, 2),
+        )
 
         try_materialize(
             self._notifications,

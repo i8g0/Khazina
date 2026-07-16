@@ -120,35 +120,52 @@ class ReportInputLoader:
         self._financials = financial_repository
 
     def load_waste_inputs(
-        self, organization_id: uuid.UUID, analysis_run_id: uuid.UUID
+        self,
+        organization_id: uuid.UUID,
+        analysis_run_id: uuid.UUID,
+        *,
+        run: AnalysisRun | None = None,
     ) -> WasteReportInputs:
-        run = self._require_completed_run(organization_id, analysis_run_id)
-        if run.analysis_type != AnalysisType.FINANCIAL_WASTE:
+        if run is not None:
+            if run.id != analysis_run_id or run.organization_id != organization_id:
+                raise ReportBuilderError(
+                    "analysis_run_not_found",
+                    f"Analysis run '{analysis_run_id}' not found",
+                )
+            if run.status != AnalysisRunStatus.COMPLETED:
+                raise ReportBuilderError(
+                    "analysis_run_not_completed",
+                    f"Analysis run must be completed (current status: '{run.status}')",
+                )
+            resolved_run = run
+        else:
+            resolved_run = self._require_completed_run(organization_id, analysis_run_id)
+        if resolved_run.analysis_type != AnalysisType.FINANCIAL_WASTE:
             raise ReportBuilderError(
                 "unsupported_analysis_type",
                 f"Analysis type '{run.analysis_type}' is not supported for waste reports",
             )
-        metadata = dict(run.runtime_metadata or {})
+        metadata = dict(resolved_run.runtime_metadata or {})
         facts = load_facts_contract(metadata)
-        waste_result = self._waste.get_result_for_run(run.id)
+        waste_result = self._waste.get_result_for_run(resolved_run.id)
         if waste_result is None:
             raise ReportBuilderError(
                 "missing_waste_gold",
                 "Analysis run has no waste_analysis_results Gold record",
             )
-        breakdowns = tuple(self._waste.list_category_breakdowns(run.id))
-        vendors = tuple(self._waste.list_vendor_findings(run.id))
+        breakdowns = tuple(self._waste.list_category_breakdowns(resolved_run.id))
+        vendors = tuple(self._waste.list_vendor_findings(resolved_run.id))
         recommendations = tuple(
             rec
-            for rec in self._recommendations.list_for_analysis_run(run.id)
+            for rec in self._recommendations.list_for_analysis_run(resolved_run.id)
             if rec.domain_source == RecommendationDomain.WASTE
         )
         ai_insights = metadata.get("ai_insights")
         if ai_insights is not None and not isinstance(ai_insights, dict):
             ai_insights = None
-        context = self._load_context(organization_id, run)
+        context = self._load_context(organization_id, resolved_run)
         return WasteReportInputs(
-            run=run,
+            run=resolved_run,
             facts=facts,
             waste_result=waste_result,
             category_breakdowns=breakdowns,

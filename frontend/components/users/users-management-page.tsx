@@ -15,8 +15,9 @@ import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
-  getAppNavItems,
+  getAppNavGroups,
 } from "@/lib/app-nav";
+import { EXECUTIVE_MESSAGES } from "@/lib/workflow/messages";
 import {
   createUser,
   deactivateUser,
@@ -150,7 +151,7 @@ export function UsersManagementPage() {
       subtitle={org.reportingPeriod}
       activeItemId="users"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
@@ -362,8 +363,7 @@ export function UsersManagementPage() {
                 ]}
               />
               <p className="text-sm text-muted">
-                لا تتوفر واجهات دعوة أو إعادة تفعيل على الـ API — التعطيل
-                نهائي من واجهة المستخدم الحالية.
+                {EXECUTIVE_MESSAGES.usersApiLimit}
               </p>
             </section>
           </PageFeedback>

@@ -20,3 +20,4 @@ class ReportAssemblyPreferences:
     currency_display_code: str = DEFAULT_CURRENCY_DISPLAY_CODE
     default_report_title_template: str = "Executive Report — {analysis_type}"
     require_ai_insights_before_report: bool = False
+    auto_publish_on_generate: bool = False

@@ -79,3 +79,37 @@ export function mapRecommendationPriority(priority: string): string {
   if (priority === "medium") return "متوسطة";
   return priority;
 }
+
+const WASTE_CATEGORY_LABELS: Record<string, string> = {
+  overlapping_contracts: "العقود المتداخلة",
+  operations: "العمليات",
+  finance: "الشؤون المالية",
+};
+
+export function formatWasteCategoryName(categoryKey: string): string {
+  const normalized = categoryKey.trim().toLowerCase();
+  return WASTE_CATEGORY_LABELS[normalized] ?? categoryKey.replace(/_/g, " ");
+}
+
+const RECOMMENDATION_ACTION_PREFIX = /^الإجراء المقترح:\s*/u;
+
+export function formatRecommendationDisplay(rec: {
+  title: string;
+  description: string;
+}): { title: string; description: string } {
+  const rawTitle = rec.title.trim();
+  const description = rec.description.trim();
+  let title = rawTitle.replace(RECOMMENDATION_ACTION_PREFIX, "").trim();
+
+  if (!title) {
+    title = description.slice(0, 120);
+  } else if (title.length > 140) {
+    title = `${title.slice(0, 137)}…`;
+  }
+
+  if (description === rawTitle || description.startsWith(rawTitle)) {
+    return { title, description: description.slice(title.length).trim() || description };
+  }
+
+  return { title, description };
+}

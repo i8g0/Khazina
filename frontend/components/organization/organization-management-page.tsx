@@ -16,7 +16,7 @@ import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
-  getAppNavItems,
+  getAppNavGroups,
 } from "@/lib/app-nav";
 import {
   activateReportingPeriod,
@@ -216,7 +216,7 @@ export function OrganizationManagementPage() {
       subtitle={org.reportingPeriod}
       activeItemId="organization"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>

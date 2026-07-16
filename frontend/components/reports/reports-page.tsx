@@ -20,21 +20,26 @@ import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
-  getAppNavItems,
+  getAppNavGroups,
 } from "@/lib/app-nav";
+import { WorkflowIndicator } from "@/components/workflow/workflow-indicator";
+import { OperationLoadingPanel } from "@/components/workflow/operation-loading-panel";
+import { AnalysisCompletionPanel } from "@/components/workflow/analysis-completion-panel";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 import type { ReportItem } from "@/lib/placeholder-data";
 import {
   useRequireAuth,
   formatApiError,
-  useOrganizationDisplay,
 } from "@/lib/auth/auth-context";
+import { useOrganizationDisplay, useOrgLookups } from "@/lib/org-lookups";
 import {
   downloadReportPdf,
   generateReport,
   getReportContent,
   listReports,
 } from "@/lib/api/khazina-api";
-import { readDemoArtifacts, writeDemoArtifacts } from "@/lib/demo/state";
+import { writeDemoArtifacts } from "@/lib/demo/state";
+import { useDemoArtifacts } from "@/lib/demo/hooks";
 import { formatDate, mapReportStatus, mapReportType } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -62,13 +67,19 @@ function toReportItem(
     source_file_id?: string | null;
   },
   previewText: string,
+  resolveDepartment: (id: string | null | undefined) => string | null,
+  resolveFile: (id: string | null | undefined) => string | null,
 ): ReportItem {
   return {
     id: row.id,
     title: row.title,
     type: mapReportType(row.report_type),
-    department: "—",
-    sourceFile: row.source_file_id ? "ملف مصدر" : "—",
+    department: row.department_id
+      ? resolveDepartment(row.department_id) ?? "قسم غير معروف"
+      : "بدون قسم",
+    sourceFile: row.source_file_id
+      ? resolveFile(row.source_file_id) ?? "ملف غير معروف"
+      : "لا يوجد ملف مصدر",
     date: row.created_at,
     status: mapReportStatus(row.status),
     previewText,
@@ -78,6 +89,8 @@ function toReportItem(
 export function ReportsPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
+  const artifacts = useDemoArtifacts();
+  const { departments, departmentName, fileName } = useOrgLookups();
   const [loading, setLoading] = React.useState(true);
   const [generating, setGenerating] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
@@ -86,6 +99,8 @@ export function ReportsPage() {
   const [reports, setReports] = React.useState<ReportItem[]>([]);
   const [typeFilter, setTypeFilter] = React.useState("الكل");
   const [departmentFilter, setDepartmentFilter] = React.useState("الكل");
+  const [showCompletion, setShowCompletion] = React.useState(false);
+  const reportsSectionRef = React.useRef<HTMLElement>(null);
 
   const loadReports = React.useCallback(async () => {
     if (!auth.session) return;
@@ -108,7 +123,7 @@ export function ReportsPage() {
               preview = row.summary;
             }
           }
-          return toReportItem(row, preview);
+          return toReportItem(row, preview, departmentName, fileName);
         }),
       );
       setReports(mapped);
@@ -117,7 +132,7 @@ export function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  }, [auth.session]);
+  }, [auth.session, departmentName, fileName]);
 
   React.useEffect(() => {
     if (auth.session) void loadReports();
@@ -125,7 +140,6 @@ export function ReportsPage() {
 
   const handleGenerate = async () => {
     if (!auth.session) return;
-    const artifacts = readDemoArtifacts();
     if (!artifacts.wasteRunId) {
       setError("شغّل تحليل الهدر أولاً قبل إنشاء التقرير");
       return;
@@ -140,6 +154,7 @@ export function ReportsPage() {
       );
       writeDemoArtifacts({ lastReportId: outcome.report.id });
       setMessage("تم إنشاء التقرير التنفيذي");
+      setShowCompletion(true);
       await loadReports();
     } catch (err) {
       setError(formatApiError(err));
@@ -150,10 +165,9 @@ export function ReportsPage() {
 
   const handlePdfExport = async () => {
     if (!auth.session) return;
-    const reportId =
-      readDemoArtifacts().lastReportId ?? reports.find((r) => r.status === "جاهز")?.id;
+    const reportId = artifacts.lastReportId;
     if (!reportId) {
-      setError("لا يوجد تقرير جاهز للتصدير — أنشئ تقريراً أولاً");
+      setError("لا يوجد تقرير مرتبط بالتحليل الحالي — أنشئ تقريراً بعد إكمال كشف الهدر");
       return;
     }
     setExporting(true);
@@ -187,37 +201,75 @@ export function ReportsPage() {
     });
   }, [reports, typeFilter, departmentFilter]);
 
+  const departmentFilterOptions = React.useMemo(
+    () => ["الكل", ...departments.map((dept) => dept.name_ar)],
+    [departments],
+  );
+
   const readyCount = reports.filter((r) => r.status === "جاهز").length;
 
+  React.useEffect(() => {
+    if (
+      departmentFilter !== "الكل" &&
+      !departmentFilterOptions.includes(departmentFilter)
+    ) {
+      setDepartmentFilter("الكل");
+    }
+  }, [departmentFilter, departmentFilterOptions]);
+
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
   return (
     <AppLayout
       brand={<DashboardBrand />}
       title="التقارير"
-      subtitle={org.reportingPeriod}
+      subtitle={org.reportingPeriod ?? undefined}
       activeItemId="reports"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
         <div className={executivePageSpacingClassName}>
           <PageHero
             title="التقارير"
-            description="عرض وتصفية وتصدير التقارير المالية والتحليلية للمراجعة التنفيذية."
+            description="إنشاء وتصدير التقارير التنفيذية لمراجعة نتائج التحليل المالي."
             period={org.reportingPeriod}
           />
 
+          <WorkflowIndicator activeStageId="report" />
+
+          {showCompletion ? (
+            <AnalysisCompletionPanel
+              onViewReport={() =>
+                reportsSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+              }
+              onExportPdf={() => void handlePdfExport()}
+              pdfExporting={exporting}
+            />
+          ) : null}
+
           <div className="flex flex-wrap gap-3">
             <Button disabled={generating} onClick={() => void handleGenerate()}>
-              {generating ? "جاري الإنشاء..." : "إنشاء تقرير من تحليل الهدر"}
+              {generating ? "جاري إنشاء التقرير..." : "إنشاء تقرير من تحليل الهدر"}
             </Button>
           </div>
 
+          {generating ? (
+            <OperationLoadingPanel
+              title="جاري إنشاء التقرير التنفيذي"
+              description="تجميع نتائج التحليل والتوصيات في تقرير جاهز للمراجعة."
+            />
+          ) : null}
+
           {message ? <Alert variant="success" title="تم">{message}</Alert> : null}
           {error ? (
-            <ErrorState title="خطأ" description={error} onRetry={() => setError(null)} />
+            <ErrorState
+              title="تعذّر إكمال العملية"
+              description={error}
+              onRetry={() => setError(null)}
+            />
           ) : null}
 
           {loading ? (
@@ -254,7 +306,11 @@ export function ReportsPage() {
               />
               <DashboardStatCard
                 label="آخر تحديث"
-                value={reports[0] ? formatDate(reports[0].date) : "—"}
+                value={
+                  reports[0]
+                    ? formatDate(reports[0].date)
+                    : "لا توجد تقارير بعد"
+                }
                 hint="أحدث تقرير"
                 emphasis
                 dense
@@ -278,14 +334,14 @@ export function ReportsPage() {
               />
               <FilterGroup
                 label="القسم"
-                options={["الكل"]}
+                options={departmentFilterOptions}
                 value={departmentFilter}
                 onChange={setDepartmentFilter}
               />
             </div>
           </section>
 
-          <section className={executiveSectionSpacingClassName}>
+          <section ref={reportsSectionRef} className={executiveSectionSpacingClassName}>
             <DashboardSectionHeader
               dense
               title="التقارير المُنشأة"

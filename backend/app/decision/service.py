@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from dataclasses import dataclass
 from typing import Any
@@ -25,12 +27,18 @@ from app.repositories import (
 )
 from app.services.analysis import AnalysisService
 from app.services.base import BaseService
+from app.core.logging import get_logger
+from app.observability.persistence import load_file_timeline
+from app.observability.pipeline import PipelineStage, PipelineTimeline
+from app.observability.structured_log import log_pipeline_event
 from app.services.exceptions import (
     BusinessValidationError,
     InvalidStateError,
     ResourceNotFoundError,
 )
 from app.services.waste import WasteService
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,6 +109,25 @@ class DecisionService(BaseService):
         )
         period_label = self._resolve_period_label(snapshot, reporting_period_id)
 
+        inherited = load_file_timeline(source_file)
+        timeline = PipelineTimeline(
+            organization_id=str(organization_id),
+            file_id=str(source_file_id),
+            snapshot_id=str(snapshot.id),
+            inherited=inherited,
+        )
+        pipeline_started = time.perf_counter()
+        timeline.start_stage(PipelineStage.WASTE_ANALYSIS_STARTED)
+        log_pipeline_event(
+            logger,
+            "pipeline_stage",
+            stage=PipelineStage.WASTE_ANALYSIS_STARTED.value,
+            status="started",
+            organization_id=str(organization_id),
+            file_id=str(source_file_id),
+            snapshot_id=str(snapshot.id),
+        )
+
         run = self._analysis.create_run(
             organization_id,
             analysis_type=AnalysisType.FINANCIAL_WASTE,
@@ -111,8 +138,10 @@ class DecisionService(BaseService):
             runtime_metadata={
                 "decision_engine": "waste_v1",
                 "snapshot_version": snapshot.snapshot_version,
+                "pipeline_timeline": timeline.to_list(),
             },
         )
+        timeline.analysis_run_id = str(run.id)
         self._analysis.start_run(organization_id, run.id)
 
         try:
@@ -125,29 +154,73 @@ class DecisionService(BaseService):
             facts = engine.run(engine_input)
             gold_payload = WasteGoldMapper.to_record_payload(facts)
             self._waste.record_result(organization_id, run.id, **gold_payload)
+            timeline.complete_stage(PipelineStage.WASTE_ANALYSIS_COMPLETED)
             completed = self._analysis.complete_run(
                 organization_id,
                 run.id,
-                success_metadata={"facts_contract": facts.to_dict()},
+                success_metadata={
+                    "facts_contract": facts.to_dict(),
+                    "pipeline_timeline": timeline.to_list(),
+                },
                 initiating_user_id=initiating_user_id,
             )
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                stage=PipelineStage.WASTE_ANALYSIS_COMPLETED.value,
+                status="completed",
+                organization_id=str(organization_id),
+                analysis_run_id=str(run.id),
+                snapshot_id=str(snapshot.id),
+                duration_ms=round((time.perf_counter() - pipeline_started) * 1000, 2),
+            )
         except SnapshotAdapterError as exc:
+            category = timeline.fail_stage(PipelineStage.WASTE_ANALYSIS_COMPLETED, exc)
             self._analysis.fail_run(
                 organization_id,
                 run.id,
-                failure_details=exc.to_failure_details(),
+                failure_details={
+                    **exc.to_failure_details(),
+                    "error_category": category.value,
+                    "pipeline_timeline": timeline.to_list(),
+                },
                 initiating_user_id=initiating_user_id,
+            )
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                level=logging.WARNING,
+                stage=PipelineStage.WASTE_ANALYSIS_COMPLETED.value,
+                status="failed",
+                organization_id=str(organization_id),
+                analysis_run_id=str(run.id),
+                error_category=category,
+                message=str(exc),
             )
             raise
         except EngineError as exc:
+            category = timeline.fail_stage(PipelineStage.WASTE_ANALYSIS_COMPLETED, exc)
             self._analysis.fail_run(
                 organization_id,
                 run.id,
                 failure_details={
                     "error_code": "engine_execution_failed",
                     "message": str(exc),
+                    "error_category": category.value,
+                    "pipeline_timeline": timeline.to_list(),
                 },
                 initiating_user_id=initiating_user_id,
+            )
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                level=logging.WARNING,
+                stage=PipelineStage.WASTE_ANALYSIS_COMPLETED.value,
+                status="failed",
+                organization_id=str(organization_id),
+                analysis_run_id=str(run.id),
+                error_category=category,
+                message=str(exc),
             )
             raise
 

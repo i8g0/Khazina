@@ -39,15 +39,74 @@ export const navIcons: Record<string, React.ReactNode> = {
   settings: <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />,
 };
 
-export function getAppNavItems() {
-  return dashboardNavItems.map((item) => ({
-    id: item.id,
-    label: item.label,
-    href: navRouteMap[item.id],
-    icon: navIcons[item.id] ?? (
+export interface AppNavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
+
+export interface AppNavGroup {
+  id: string;
+  label: string;
+  items: AppNavItem[];
+  variant?: "primary" | "secondary" | "deferred";
+}
+
+function buildNavItem(id: string, label: string): AppNavItem {
+  return {
+    id,
+    label,
+    href: navRouteMap[id],
+    icon: navIcons[id] ?? (
       <BarChart3 className="h-[18px] w-[18px]" strokeWidth={1.75} />
     ),
-  }));
+  };
+}
+
+export function getAppNavItems(): AppNavItem[] {
+  return dashboardNavItems.map((item) =>
+    buildNavItem(item.id, item.label),
+  );
+}
+
+export function getAppNavGroups(): AppNavGroup[] {
+  const byId = Object.fromEntries(
+    dashboardNavItems.map((item) => [item.id, item.label]),
+  ) as Record<string, string>;
+
+  return [
+    {
+      id: "analysis",
+      label: "مسار التحليل التنفيذي",
+      variant: "primary",
+      items: ["data", "waste", "simulation", "reports"].map((id) =>
+        buildNavItem(id, byId[id]),
+      ),
+    },
+    {
+      id: "overview",
+      label: "نظرة عامة",
+      variant: "secondary",
+      items: ["dashboard", "notifications"].map((id) =>
+        buildNavItem(id, byId[id]),
+      ),
+    },
+    {
+      id: "deferred",
+      label: "وحدات لاحقة",
+      variant: "deferred",
+      items: ["risk"].map((id) => buildNavItem(id, byId[id])),
+    },
+    {
+      id: "admin",
+      label: "إدارة المنصة",
+      variant: "secondary",
+      items: ["organization", "users", "settings"].map((id) =>
+        buildNavItem(id, byId[id]),
+      ),
+    },
+  ];
 }
 
 export const executivePageContainerClassName =

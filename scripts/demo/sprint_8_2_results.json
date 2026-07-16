@@ -1,0 +1,631 @@
+{
+  "environment": {
+    "backend": true,
+    "frontend": true,
+    "ollama": true,
+    "ollama_models": [
+      "qwen3.5:4b"
+    ],
+    "login": true,
+    "org_id": "7dd234e7-58dd-4844-a38e-92a4fa67d0ed"
+  },
+  "run_a": {
+    "label": "canonical",
+    "timings": {
+      "upload": 0.054227800000262505,
+      "quality": 0.07925540000087494,
+      "waste_execute": 0.03518919999987702,
+      "waste_fetch": 0.019201799999791547,
+      "ai": 52.49732799999947,
+      "report": 0.05726570000024367,
+      "pdf": 0.0555701000002955
+    },
+    "ids": {
+      "file_id": "0ca6c549-3dd2-4b0d-91cd-7d88b2d912f2",
+      "file_name": "Procurement_Q2.xlsx",
+      "processing_status": "ready_for_analysis",
+      "snapshot_id": "86f67973-882f-4026-9788-7076f4cbc862",
+      "snapshot_version": 1,
+      "record_count": 3,
+      "waste_run_id": "b33b454b-8527-4cf9-b015-28b6aaf590f1",
+      "report_id": "cecadbbe-3b86-46da-94f5-cb9b6d78b6d5"
+    },
+    "waste": {
+      "total_waste_amount": 2340000.0,
+      "waste_percentage": 4.68,
+      "potential_savings_amount": 1872000.0,
+      "active_savings_opportunities": 3,
+      "categories": [
+        {
+          "name": "finance",
+          "amount": 1075000.0,
+          "percentage": 45.94,
+          "department_id": null
+        },
+        {
+          "name": "operations",
+          "amount": 520000.0,
+          "percentage": 22.22,
+          "department_id": null
+        },
+        {
+          "name": "overlapping_contracts",
+          "amount": 745000.0,
+          "percentage": 31.84,
+          "department_id": null
+        }
+      ],
+      "vendor_count": 0,
+      "vendors": []
+    },
+    "ai": {
+      "recommendation_count": 5,
+      "titles": [
+        "الإجراء المقترح: تخصيص موارد لخفض هدر الفعاليات المالية كمصدر رئيسي للهدر البالغ نسبته ٤٥٫٪ من إجمالي المصروفات، حيث يمثل هذا النوع مبلغاً قدره (745000.00) العملة وهو الأعلى بين فئات الهدر الثلاثة المذكورة.",
+        "الإجراء المقترح: تنفيذ تدخلات فورية للمصادر ذات الخطورة العالية التي تساهم بمبلغ (520000.00) العملة، لأن النسبة المئوية لمصدر واحد من هذه الفئة تصل إلى ٣١٫٪ وهو ما يعادل نصف إجمالي الهدر المتاح للتحسين بنسبة (4.68) المئة مضافاً إليه نسبة مصدرين آخرين عالياً الخطورة مجتمعة.",
+        "الإجراء المقترح: تطوير ٣ فرص توفير مالية متاحة بالفعل كما هو موضح في البيانات، مع التركيز الأول على مصدر يمتلك نسبته الأعلى (45.94) بالمئة ضمن مصادر الخطورة العالية لضمان أفضل عائد للمجهود المخصص.",
+        "الإجراء المقترح: مراجعة الفئات ذات الخطورة المتوسطة (التي تساهم بمبلغ 1075000.00) وتطبيق معايير صارمة للتحكم في النفقات لتقليل مساهمتها التي تمثل نسبة (22.22) بالمئة من إجمالي المصروفات، مع مراعاة أنها ليست المصدر الرئيسي مقارنة بالفئات الأخرى الأعلى خطورة وقيمة مادية.",
+        "الإجراء المقترح: إعادة تصنيف مصادر الهدر ضمن الفعاليات المالية إلى مستويات خطورة منخفضة أو متوسطة بناءً على نتائج التدخل المتوقعة، حيث أن مستوى الخطورة الحالي للمصدر الرئيسي مرتفع جداً مما يعكس الحاجة لقياس كفاءة الإجراءات المستقبلية بدقة عالية."
+      ],
+      "priorities": [
+        "medium",
+        "medium",
+        "high",
+        "medium",
+        "high"
+      ],
+      "confidence_labels": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "estimated_savings": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "descriptions_sample": [
+        "الإجراء المقترح: تخصيص موارد لخفض هدر الفعاليات المالية كمصدر رئيسي للهدر البالغ نسبته ٤٥٫٪ من إجمالي المصروفات، حيث يمث",
+        "الإجراء المقترح: تنفيذ تدخلات فورية للمصادر ذات الخطورة العالية التي تساهم بمبلغ (520000.00) العملة، لأن النسبة المئوية ",
+        "الإجراء المقترح: تطوير ٣ فرص توفير مالية متاحة بالفعل كما هو موضح في البيانات، مع التركيز الأول على مصدر يمتلك نسبته الأ"
+      ],
+      "insights_keys": [
+        "generated_at",
+        "prompt_version",
+        "model",
+        "tasks_executed",
+        "facts_contract_version",
+        "engine_id",
+        "engine_version",
+        "executive_summary",
+        "risk_explanation",
+        "narrative",
+        "source_snapshot_id"
+      ]
+    },
+    "scenarios": [
+      {
+        "name": "تقليل الإنفاق 10%",
+        "scenario_id": "b4142399-9792-4b5d-a8ae-dc5234fe3fd5",
+        "simulation_run_id": "10c3c302-2f3b-4835-82ee-ff07efab8d44",
+        "elapsed_s": 0.04,
+        "assumptions_count": 2,
+        "assumptions": [
+          {
+            "label": "نسبة خفض الإنفاق",
+            "value": "10%"
+          },
+          {
+            "label": "الأفق الزمني",
+            "value": "3 أرباع"
+          }
+        ],
+        "forecast": {
+          "created_at": "2026-07-16T11:29:36.405290+03:00",
+          "id": "725e2b1f-2eac-4434-82c3-875af311f972",
+          "simulation_run_id": "10c3c302-2f3b-4835-82ee-ff07efab8d44",
+          "baseline_label": "الأساس",
+          "baseline_value": "50.00M ر.س",
+          "projected_label": "المتوقع",
+          "projected_value": "45.00M ر.س",
+          "delta_label": "التغير",
+          "delta_value": "-10.0%",
+          "confidence_label": "88%"
+        },
+        "impact_count": 3,
+        "action_count": 1,
+        "chart_points": 3,
+        "comparison_metrics": 3,
+        "baseline_projected_sample": {
+          "created_at": "2026-07-16T11:29:36.405290+03:00",
+          "id": "1c42be71-575a-4e04-999d-02cdafc686b4",
+          "simulation_run_id": "10c3c302-2f3b-4835-82ee-ff07efab8d44",
+          "quarter_label": "Q3 2026",
+          "quarter_order": 1,
+          "baseline_amount": 16666666.67,
+          "projected_amount": 15000000.0
+        }
+      },
+      {
+        "name": "دمج الموردين",
+        "scenario_id": "c98030a4-cbfe-4b13-bb17-e9fc105b0cfa",
+        "simulation_run_id": "16871152-11c8-4bd1-afd5-168facefbda9",
+        "elapsed_s": 0.04,
+        "assumptions_count": 4,
+        "assumptions": [
+          {
+            "label": "عدد الموردين قبل الدمج",
+            "value": "5"
+          },
+          {
+            "label": "عدد الموردين بعد الدمج",
+            "value": "3"
+          },
+          {
+            "label": "توفير إداري متوقع",
+            "value": "5%"
+          },
+          {
+            "label": "الأفق الزمني",
+            "value": "3 أرباع"
+          }
+        ],
+        "forecast": {
+          "created_at": "2026-07-16T11:29:36.495701+03:00",
+          "id": "ffcc1ec4-2ab1-4317-87d8-4f352786c71c",
+          "simulation_run_id": "16871152-11c8-4bd1-afd5-168facefbda9",
+          "baseline_label": "الأساس",
+          "baseline_value": "50.00M ر.س",
+          "projected_label": "المتوقع",
+          "projected_value": "39.00M ر.س",
+          "delta_label": "التغير",
+          "delta_value": "-22.0%",
+          "confidence_label": "85%"
+        },
+        "impact_count": 3,
+        "action_count": 1,
+        "chart_points": 3,
+        "comparison_metrics": 3,
+        "baseline_projected_sample": {
+          "created_at": "2026-07-16T11:29:36.495701+03:00",
+          "id": "e7c895b7-0b59-4649-9730-687f3a2d9424",
+          "simulation_run_id": "16871152-11c8-4bd1-afd5-168facefbda9",
+          "quarter_label": "Q3 2026",
+          "quarter_order": 1,
+          "baseline_amount": 16666666.67,
+          "projected_amount": 13000000.0
+        }
+      },
+      {
+        "name": "توسع السوق الخليجي",
+        "scenario_id": "3debff9e-47a8-49e1-8ffb-6933007ce2e3",
+        "simulation_run_id": "4563c694-30ec-4aef-883e-056f3335eed9",
+        "elapsed_s": 0.04,
+        "assumptions_count": 3,
+        "assumptions": [
+          {
+            "label": "نمو الإيرادات المتوقع",
+            "value": "15%"
+          },
+          {
+            "label": "تكلفة التوسع",
+            "value": "2500000"
+          },
+          {
+            "label": "الأفق الزمني",
+            "value": "3 أرباع"
+          }
+        ],
+        "forecast": {
+          "created_at": "2026-07-16T11:29:36.571956+03:00",
+          "id": "d06c189c-a7af-4dc1-b62d-8926a125a376",
+          "simulation_run_id": "4563c694-30ec-4aef-883e-056f3335eed9",
+          "baseline_label": "الأساس",
+          "baseline_value": "50.00M ر.س",
+          "projected_label": "المتوقع",
+          "projected_value": "55.00M ر.س",
+          "delta_label": "التغير",
+          "delta_value": "+10.0%",
+          "confidence_label": "72%"
+        },
+        "impact_count": 3,
+        "action_count": 1,
+        "chart_points": 3,
+        "comparison_metrics": 3,
+        "baseline_projected_sample": {
+          "created_at": "2026-07-16T11:29:36.571956+03:00",
+          "id": "a19c44d1-9070-4849-8850-a40d7df01636",
+          "simulation_run_id": "4563c694-30ec-4aef-883e-056f3335eed9",
+          "quarter_label": "Q3 2026",
+          "quarter_order": 1,
+          "baseline_amount": 16666666.67,
+          "projected_amount": 18333333.33
+        }
+      }
+    ],
+    "report": {
+      "title": "تقرير — canonical",
+      "has_content": true,
+      "section_keys": [
+        "cover",
+        "executive_summary",
+        "key_metrics",
+        "waste_analysis",
+        "risk_explanation",
+        "recommendations",
+        "provenance"
+      ],
+      "executive_summary_preview": "ينعكس الوضع المالي للشركة على إجمالي نفقات الهدر بلغ حوالي 2.34 مليون دولار، مع وجود فرص واعدة لتخفيض التكاليف تتراوح قيمتها بين نحو 1.87 مليون دولار عبر ثلاثة مجالات رئيسية من بينها الميزانيات المالية والتمويل وإدارة النفايات.\n\n**أبرز النتائج التشغيلية:**\n*   يمثل قطاع \"المالية\" الجزء الأكبر من اله",
+      "waste_summary_preview": "",
+      "pdf_bytes": 3383,
+      "pdf_content_type": "application/pdf"
+    },
+    "quality": {
+      "error": "Client error '404 Not Found' for url 'http://127.0.0.1:8000/api/v1/organizations/7dd234e7-58dd-4844-a38e-92a4fa67d0ed/data-quality/snapshots/latest'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+    }
+  },
+  "run_b": {
+    "label": "variant",
+    "timings": {
+      "upload": 0.0315866000000824,
+      "quality": 0.0015434000006280257,
+      "waste_execute": 0.027331199999935052,
+      "waste_fetch": 0.016368300000067393,
+      "ai": 41.06585240000004,
+      "report": 0.0339841000004526,
+      "pdf": 0.021143200000551587
+    },
+    "ids": {
+      "file_id": "99d71fd7-baa1-4aab-a365-afae90ac6462",
+      "file_name": "Procurement_Q2_variant.xlsx",
+      "processing_status": "ready_for_analysis",
+      "snapshot_id": "da67015a-21c2-450a-ad9d-5087009e3812",
+      "snapshot_version": 1,
+      "record_count": 3,
+      "waste_run_id": "01f51d48-b1ba-4588-b0d3-fcdfa11023f6",
+      "report_id": "3854940e-0ec0-44fc-bb71-fff479e0e06c"
+    },
+    "waste": {
+      "total_waste_amount": 1950000.0,
+      "waste_percentage": 2.44,
+      "potential_savings_amount": 1560000.0,
+      "active_savings_opportunities": 3,
+      "categories": [
+        {
+          "name": "finance",
+          "amount": 450000.0,
+          "percentage": 23.08,
+          "department_id": null
+        },
+        {
+          "name": "operations",
+          "amount": 300000.0,
+          "percentage": 15.38,
+          "department_id": null
+        },
+        {
+          "name": "overlapping_contracts",
+          "amount": 1200000.0,
+          "percentage": 61.54,
+          "department_id": null
+        }
+      ],
+      "vendor_count": 0,
+      "vendors": []
+    },
+    "ai": {
+      "recommendation_count": 5,
+      "titles": [
+        "الإجراء المقترح: تطبيق إجراءات مراجعة فورية لل عقود المتداخلة (overlapping_contracts) التي تمثل الفئة الأعلى في الميزانية.",
+        "الإجراء المقترح: تخصيص موارد مالية وتقنية مستهدفة للاستفادة القصوى من فرص التوفير المتوقعة والتي بلغت قيمتها 1560000.00 وحدة عملات.",
+        "الإجراء المقترح: إعطاء أولوية قصوى لمعالجة الفئة التي لديها أعلى نسبة مئوية (61.54%) وترتبط بالخطر المرتفع (high risk).",
+        "الإجراء المقترح: مراجعة الهياكل التنظيمية والموردين المرتبطين بالفئات التي تم رصد نسبها بـ 23.08% و15.38%.",
+        "الإجراء المقترح: إعادة تصنيف إدارة المخاطر بناءً على التباين بين الهامش العام المنخفض (low) والفرص الداخلية العالية القيمة."
+      ],
+      "priorities": [
+        "medium",
+        "medium",
+        "high",
+        "high",
+        "medium"
+      ],
+      "confidence_labels": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "estimated_savings": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "descriptions_sample": [
+        "الإجراء المقترح: تطبيق إجراءات مراجعة فورية لل عقود المتداخلة (overlapping_contracts) التي تمثل الفئة الأعلى في الميزاني",
+        "الإجراء المقترح: تخصيص موارد مالية وتقنية مستهدفة للاستفادة القصوى من فرص التوفير المتوقعة والتي بلغت قيمتها 1560000.00 ",
+        "الإجراء المقترح: إعطاء أولوية قصوى لمعالجة الفئة التي لديها أعلى نسبة مئوية (61.54%) وترتبط بالخطر المرتفع (high risk).\n"
+      ],
+      "insights_keys": [
+        "generated_at",
+        "prompt_version",
+        "model",
+        "tasks_executed",
+        "facts_contract_version",
+        "engine_id",
+        "engine_version",
+        "executive_summary",
+        "risk_explanation",
+        "narrative",
+        "source_snapshot_id"
+      ]
+    },
+    "scenarios": [
+      {
+        "name": "تقليل الإنفاق 10%",
+        "scenario_id": "b4142399-9792-4b5d-a8ae-dc5234fe3fd5",
+        "simulation_run_id": "514bd4d3-ac9d-4b9e-a0b3-12f63489231b",
+        "elapsed_s": 0.07,
+        "assumptions_count": 2,
+        "assumptions": [
+          {
+            "label": "نسبة خفض الإنفاق",
+            "value": "10%"
+          },
+          {
+            "label": "الأفق الزمني",
+            "value": "3 أرباع"
+          }
+        ],
+        "forecast": {
+          "created_at": "2026-07-16T11:30:17.924297+03:00",
+          "id": "7e834349-ac9a-4fa9-836c-0cabbf291c17",
+          "simulation_run_id": "514bd4d3-ac9d-4b9e-a0b3-12f63489231b",
+          "baseline_label": "الأساس",
+          "baseline_value": "80.00M ر.س",
+          "projected_label": "المتوقع",
+          "projected_value": "72.00M ر.س",
+          "delta_label": "التغير",
+          "delta_value": "-10.0%",
+          "confidence_label": "88%"
+        },
+        "impact_count": 3,
+        "action_count": 1,
+        "chart_points": 3,
+        "comparison_metrics": 3,
+        "baseline_projected_sample": {
+          "created_at": "2026-07-16T11:30:17.924297+03:00",
+          "id": "b1cbeaf0-e415-44f8-a6a7-4c913714a77a",
+          "simulation_run_id": "514bd4d3-ac9d-4b9e-a0b3-12f63489231b",
+          "quarter_label": "Q3 2026",
+          "quarter_order": 1,
+          "baseline_amount": 26666666.67,
+          "projected_amount": 24000000.0
+        }
+      },
+      {
+        "name": "دمج الموردين",
+        "scenario_id": "c98030a4-cbfe-4b13-bb17-e9fc105b0cfa",
+        "simulation_run_id": "e88ad846-e7ff-4dd1-8034-b3876cf4eb08",
+        "elapsed_s": 0.04,
+        "assumptions_count": 4,
+        "assumptions": [
+          {
+            "label": "عدد الموردين قبل الدمج",
+            "value": "5"
+          },
+          {
+            "label": "عدد الموردين بعد الدمج",
+            "value": "3"
+          },
+          {
+            "label": "توفير إداري متوقع",
+            "value": "5%"
+          },
+          {
+            "label": "الأفق الزمني",
+            "value": "3 أرباع"
+          }
+        ],
+        "forecast": {
+          "created_at": "2026-07-16T11:30:18.040526+03:00",
+          "id": "df227bad-68c7-414a-a901-b06271ef66ee",
+          "simulation_run_id": "e88ad846-e7ff-4dd1-8034-b3876cf4eb08",
+          "baseline_label": "الأساس",
+          "baseline_value": "80.00M ر.س",
+          "projected_label": "المتوقع",
+          "projected_value": "62.40M ر.س",
+          "delta_label": "التغير",
+          "delta_value": "-22.0%",
+          "confidence_label": "85%"
+        },
+        "impact_count": 3,
+        "action_count": 1,
+        "chart_points": 3,
+        "comparison_metrics": 3,
+        "baseline_projected_sample": {
+          "created_at": "2026-07-16T11:30:18.040526+03:00",
+          "id": "39c6ddd1-c9dc-4647-ad77-76a535385309",
+          "simulation_run_id": "e88ad846-e7ff-4dd1-8034-b3876cf4eb08",
+          "quarter_label": "Q3 2026",
+          "quarter_order": 1,
+          "baseline_amount": 26666666.67,
+          "projected_amount": 20800000.0
+        }
+      },
+      {
+        "name": "توسع السوق الخليجي",
+        "scenario_id": "3debff9e-47a8-49e1-8ffb-6933007ce2e3",
+        "simulation_run_id": "ebe76775-55c3-4362-a68a-cf5e04d83103",
+        "elapsed_s": 0.04,
+        "assumptions_count": 3,
+        "assumptions": [
+          {
+            "label": "نمو الإيرادات المتوقع",
+            "value": "15%"
+          },
+          {
+            "label": "تكلفة التوسع",
+            "value": "2500000"
+          },
+          {
+            "label": "الأفق الزمني",
+            "value": "3 أرباع"
+          }
+        ],
+        "forecast": {
+          "created_at": "2026-07-16T11:30:18.125709+03:00",
+          "id": "9fd87627-2cc7-4a74-ae1e-b36f1dcb23b9",
+          "simulation_run_id": "ebe76775-55c3-4362-a68a-cf5e04d83103",
+          "baseline_label": "الأساس",
+          "baseline_value": "80.00M ر.س",
+          "projected_label": "المتوقع",
+          "projected_value": "89.50M ر.س",
+          "delta_label": "التغير",
+          "delta_value": "+11.9%",
+          "confidence_label": "72%"
+        },
+        "impact_count": 3,
+        "action_count": 1,
+        "chart_points": 3,
+        "comparison_metrics": 3,
+        "baseline_projected_sample": {
+          "created_at": "2026-07-16T11:30:18.125709+03:00",
+          "id": "bb389f19-2866-4c68-80ad-31cfadbee2dc",
+          "simulation_run_id": "ebe76775-55c3-4362-a68a-cf5e04d83103",
+          "quarter_label": "Q3 2026",
+          "quarter_order": 1,
+          "baseline_amount": 26666666.67,
+          "projected_amount": 29833333.33
+        }
+      }
+    ],
+    "report": {
+      "title": "تقرير — variant",
+      "has_content": true,
+      "section_keys": [
+        "cover",
+        "executive_summary",
+        "key_metrics",
+        "waste_analysis",
+        "risk_explanation",
+        "recommendations",
+        "provenance"
+      ],
+      "executive_summary_preview": "يشير التقرير المالي الحالي للهدر إلى وجود إجمالي نفقات بلغ 1,950,000 وحدة عملات، مع تباين كبير في توزيع هذه النفقات حسب فئات الهدر وأولوياتها. يمثل الهدر الناتج عن العقود المتداخلة (overlapping_contracts) أكبر فئة بنسبة تشكل ما يقارب الـ 62% من إجمالي المبلغ والخطورة مرتفعة فيها على الرغم أن مستوى ا",
+      "waste_summary_preview": "",
+      "pdf_bytes": 3376,
+      "pdf_content_type": "application/pdf"
+    },
+    "quality": {
+      "error": "Client error '404 Not Found' for url 'http://127.0.0.1:8000/api/v1/organizations/7dd234e7-58dd-4844-a38e-92a4fa67d0ed/data-quality/snapshots/latest'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+    }
+  },
+  "comparison": {
+    "waste_total_changed": true,
+    "waste_pct_changed": true,
+    "waste_a_total": 2340000.0,
+    "waste_b_total": 1950000.0,
+    "waste_a_pct": 4.68,
+    "waste_b_pct": 2.44,
+    "ai_titles_identical": false,
+    "ai_titles_a": [
+      "الإجراء المقترح: تخصيص موارد لخفض هدر الفعاليات المالية كمصدر رئيسي للهدر البالغ نسبته ٤٥٫٪ من إجمالي المصروفات، حيث يمثل هذا النوع مبلغاً قدره (745000.00) العملة وهو الأعلى بين فئات الهدر الثلاثة المذكورة.",
+      "الإجراء المقترح: تنفيذ تدخلات فورية للمصادر ذات الخطورة العالية التي تساهم بمبلغ (520000.00) العملة، لأن النسبة المئوية لمصدر واحد من هذه الفئة تصل إلى ٣١٫٪ وهو ما يعادل نصف إجمالي الهدر المتاح للتحسين بنسبة (4.68) المئة مضافاً إليه نسبة مصدرين آخرين عالياً الخطورة مجتمعة.",
+      "الإجراء المقترح: تطوير ٣ فرص توفير مالية متاحة بالفعل كما هو موضح في البيانات، مع التركيز الأول على مصدر يمتلك نسبته الأعلى (45.94) بالمئة ضمن مصادر الخطورة العالية لضمان أفضل عائد للمجهود المخصص.",
+      "الإجراء المقترح: مراجعة الفئات ذات الخطورة المتوسطة (التي تساهم بمبلغ 1075000.00) وتطبيق معايير صارمة للتحكم في النفقات لتقليل مساهمتها التي تمثل نسبة (22.22) بالمئة من إجمالي المصروفات، مع مراعاة أنها ليست المصدر الرئيسي مقارنة بالفئات الأخرى الأعلى خطورة وقيمة مادية.",
+      "الإجراء المقترح: إعادة تصنيف مصادر الهدر ضمن الفعاليات المالية إلى مستويات خطورة منخفضة أو متوسطة بناءً على نتائج التدخل المتوقعة، حيث أن مستوى الخطورة الحالي للمصدر الرئيسي مرتفع جداً مما يعكس الحاجة لقياس كفاءة الإجراءات المستقبلية بدقة عالية."
+    ],
+    "ai_titles_b": [
+      "الإجراء المقترح: تطبيق إجراءات مراجعة فورية لل عقود المتداخلة (overlapping_contracts) التي تمثل الفئة الأعلى في الميزانية.",
+      "الإجراء المقترح: تخصيص موارد مالية وتقنية مستهدفة للاستفادة القصوى من فرص التوفير المتوقعة والتي بلغت قيمتها 1560000.00 وحدة عملات.",
+      "الإجراء المقترح: إعطاء أولوية قصوى لمعالجة الفئة التي لديها أعلى نسبة مئوية (61.54%) وترتبط بالخطر المرتفع (high risk).",
+      "الإجراء المقترح: مراجعة الهياكل التنظيمية والموردين المرتبطين بالفئات التي تم رصد نسبها بـ 23.08% و15.38%.",
+      "الإجراء المقترح: إعادة تصنيف إدارة المخاطر بناءً على التباين بين الهامش العام المنخفض (low) والفرص الداخلية العالية القيمة."
+    ],
+    "scenario_forecasts_a": [
+      {
+        "created_at": "2026-07-16T11:29:36.405290+03:00",
+        "id": "725e2b1f-2eac-4434-82c3-875af311f972",
+        "simulation_run_id": "10c3c302-2f3b-4835-82ee-ff07efab8d44",
+        "baseline_label": "الأساس",
+        "baseline_value": "50.00M ر.س",
+        "projected_label": "المتوقع",
+        "projected_value": "45.00M ر.س",
+        "delta_label": "التغير",
+        "delta_value": "-10.0%",
+        "confidence_label": "88%"
+      },
+      {
+        "created_at": "2026-07-16T11:29:36.495701+03:00",
+        "id": "ffcc1ec4-2ab1-4317-87d8-4f352786c71c",
+        "simulation_run_id": "16871152-11c8-4bd1-afd5-168facefbda9",
+        "baseline_label": "الأساس",
+        "baseline_value": "50.00M ر.س",
+        "projected_label": "المتوقع",
+        "projected_value": "39.00M ر.س",
+        "delta_label": "التغير",
+        "delta_value": "-22.0%",
+        "confidence_label": "85%"
+      },
+      {
+        "created_at": "2026-07-16T11:29:36.571956+03:00",
+        "id": "d06c189c-a7af-4dc1-b62d-8926a125a376",
+        "simulation_run_id": "4563c694-30ec-4aef-883e-056f3335eed9",
+        "baseline_label": "الأساس",
+        "baseline_value": "50.00M ر.س",
+        "projected_label": "المتوقع",
+        "projected_value": "55.00M ر.س",
+        "delta_label": "التغير",
+        "delta_value": "+10.0%",
+        "confidence_label": "72%"
+      }
+    ],
+    "scenario_forecasts_b": [
+      {
+        "created_at": "2026-07-16T11:30:17.924297+03:00",
+        "id": "7e834349-ac9a-4fa9-836c-0cabbf291c17",
+        "simulation_run_id": "514bd4d3-ac9d-4b9e-a0b3-12f63489231b",
+        "baseline_label": "الأساس",
+        "baseline_value": "80.00M ر.س",
+        "projected_label": "المتوقع",
+        "projected_value": "72.00M ر.س",
+        "delta_label": "التغير",
+        "delta_value": "-10.0%",
+        "confidence_label": "88%"
+      },
+      {
+        "created_at": "2026-07-16T11:30:18.040526+03:00",
+        "id": "df227bad-68c7-414a-a901-b06271ef66ee",
+        "simulation_run_id": "e88ad846-e7ff-4dd1-8034-b3876cf4eb08",
+        "baseline_label": "الأساس",
+        "baseline_value": "80.00M ر.س",
+        "projected_label": "المتوقع",
+        "projected_value": "62.40M ر.س",
+        "delta_label": "التغير",
+        "delta_value": "-22.0%",
+        "confidence_label": "85%"
+      },
+      {
+        "created_at": "2026-07-16T11:30:18.125709+03:00",
+        "id": "9fd87627-2cc7-4a74-ae1e-b36f1dcb23b9",
+        "simulation_run_id": "ebe76775-55c3-4362-a68a-cf5e04d83103",
+        "baseline_label": "الأساس",
+        "baseline_value": "80.00M ر.س",
+        "projected_label": "المتوقع",
+        "projected_value": "89.50M ر.س",
+        "delta_label": "التغير",
+        "delta_value": "+11.9%",
+        "confidence_label": "72%"
+      }
+    ],
+    "report_exec_a": "ينعكس الوضع المالي للشركة على إجمالي نفقات الهدر بلغ حوالي 2.34 مليون دولار، مع وجود فرص واعدة لتخفيض التكاليف تتراوح قيمتها بين نحو 1.87 مليون دولار عبر ثلاثة مجالات رئيسية من بينها الميزانيات المالي",
+    "report_exec_b": "يشير التقرير المالي الحالي للهدر إلى وجود إجمالي نفقات بلغ 1,950,000 وحدة عملات، مع تباين كبير في توزيع هذه النفقات حسب فئات الهدر وأولوياتها. يمثل الهدر الناتج عن العقود المتداخلة (overlapping_contra"
+  }
+}

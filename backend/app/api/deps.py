@@ -287,6 +287,9 @@ def get_report_export_service(
     organization_repo: Annotated[
         OrganizationRepository, Depends(get_organization_repository)
     ],
+    analysis_repo: Annotated[
+        AnalysisRepository, Depends(get_analysis_repository)
+    ],
     export_storage: Annotated[ReportExportStorage, Depends(get_report_export_storage)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
 ) -> ReportExportService:
@@ -296,6 +299,7 @@ def get_report_export_service(
         export_repo,
         organization_repo,
         export_storage,
+        analysis_repository=analysis_repo,
         settings_service=settings_service,
     )
 

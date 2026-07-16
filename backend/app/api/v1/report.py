@@ -12,7 +12,6 @@ from app.api.deps import (
     ReportBuilderServiceDep,
     ReportExportServiceDep,
     ReportServiceDep,
-    SettingsServiceDep,
 )
 from app.api.permissions import RequireOrgAdmin, RequireOrgExecutive, require_org_role
 from app.db.models.enums import UserRole
@@ -46,7 +45,6 @@ def generate_report(
     body: ReportGenerateRequest,
     builder: ReportBuilderServiceDep,
     report_service: ReportServiceDep,
-    settings_service: SettingsServiceDep,
     current_user: RequireOrgExecutive,
 ) -> ApiResponse[ReportGenerateResponse]:
     outcome = builder.generate_report(
@@ -56,9 +54,8 @@ def generate_report(
         department_id=body.department_id,
         initiating_user_id=current_user.id,
     )
-    resolved = settings_service.get_resolved_settings(organization_id)
     report = outcome.report
-    if resolved.report_preferences.auto_publish_on_generate:
+    if outcome.auto_publish_on_generate:
         report = report_service.publish_report(
             organization_id,
             report.id,

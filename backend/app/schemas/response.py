@@ -14,6 +14,9 @@ class ApiResponse(BaseModel, Generic[T]):
 
 class HealthData(BaseModel):
     status: str = Field(..., examples=["ok"])
+    backend: dict[str, str] | None = None
+    database: dict[str, str] | None = None
+    ai: dict[str, str] | None = None
 
 
 def success_response(*, data: T, message: str = "Success") -> ApiResponse[T]:

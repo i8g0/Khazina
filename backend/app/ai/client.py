@@ -20,6 +20,18 @@ class OllamaClient:
         self._base_url = str(self._settings.ollama_url).rstrip("/")
         if not self._base_url:
             raise AIConfigurationError("OLLAMA_URL must not be empty")
+        self._http: httpx.Client | None = None
+
+    def _client(self) -> httpx.Client:
+        """Reuse a single HTTP client for connection pooling across LLM calls."""
+        if self._http is None or self._http.is_closed:
+            self._http = httpx.Client(timeout=self._settings.ai_timeout)
+        return self._http
+
+    def close(self) -> None:
+        if self._http is not None and not self._http.is_closed:
+            self._http.close()
+        self._http = None
 
     @property
     def configured_model(self) -> str:
@@ -36,15 +48,14 @@ class OllamaClient:
         """
         url = f"{self._base_url}/api/tags"
         try:
-            with httpx.Client(timeout=self._settings.ai_timeout) as client:
-                response = client.get(url)
-                response.raise_for_status()
+            response = self._client().get(url)
+            response.raise_for_status()
         except httpx.TimeoutException as exc:
             raise AITimeoutError(
                 f"Ollama request timed out after {self._settings.ai_timeout}s"
             ) from exc
         except httpx.HTTPError as exc:
-            logger.debug("Ollama connectivity check failed: %s", exc)
+            logger.warning("Ollama connectivity check failed: %s", exc)
             raise AIConnectionError("Ollama endpoint is unreachable") from exc
 
     def chat(
@@ -70,16 +81,15 @@ class OllamaClient:
 
         url = f"{self._base_url}/api/chat"
         try:
-            with httpx.Client(timeout=self._settings.ai_timeout) as client:
-                response = client.post(url, json=payload)
-                response.raise_for_status()
-                body = response.json()
+            response = self._client().post(url, json=payload)
+            response.raise_for_status()
+            body = response.json()
         except httpx.TimeoutException as exc:
             raise AITimeoutError(
                 f"Ollama request timed out after {self._settings.ai_timeout}s"
             ) from exc
         except httpx.HTTPError as exc:
-            logger.debug("Ollama chat request failed: %s", exc)
+            logger.warning("Ollama chat request failed: %s", exc)
             raise AIConnectionError("Ollama chat request failed") from exc
 
         message = body.get("message")

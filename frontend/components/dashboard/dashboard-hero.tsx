@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 export interface DashboardHeroProps {
   title: string;
   description?: string;
-  period: string;
+  period?: string | null;
   className?: string;
 }
 
@@ -53,7 +53,7 @@ export function DashboardHero({
               />
             </span>
             <span className="inline-flex items-center rounded-full border border-gold-primary/30 bg-gold-primary/[0.07] px-3.5 py-1.5 text-sm font-medium text-gold-dark">
-              {period}
+              {period ?? "لم تُحدَّد فترة تقرير نشطة"}
             </span>
           </div>
         </div>

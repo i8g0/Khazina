@@ -15,9 +15,7 @@ def test_orchestrator_success_path(tmp_path) -> None:
         {
             "category": ["Travel"],
             "amount": ["1500"],
-            "date": ["2026-06-28"],
-            "budget": ["2000"],
-            "actual": ["1500"],
+            "total_spend": ["50000"],
         }
     ).to_excel(path, index=False)
     result = IngestionOrchestrator().run(str(path), "procurement.xlsx")

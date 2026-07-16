@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -9,6 +11,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.db.models.reporting import Report
 from app.db.models.report_export import ReportExport
 from app.reports.constants import EXPORT_FORMAT_PDF
 from app.reports.content import content_fingerprint
@@ -19,10 +22,17 @@ from app.reports.pdf_renderer import (
     preferences_fingerprint,
     render_pdf,
 )
-from app.repositories import OrganizationRepository, ReportExportRepository, ReportRepository
+from app.repositories import AnalysisRepository, OrganizationRepository, ReportExportRepository, ReportRepository
 from app.services.base import BaseService
+from app.core.logging import get_logger
+from app.observability.errors import classify_exception
+from app.observability.persistence import merge_run_timeline
+from app.observability.pipeline import PipelineStage, PipelineTimeline, load_pipeline_timeline
+from app.observability.structured_log import log_pipeline_event
 from app.services.exceptions import InvalidStateError, ResourceNotFoundError
 from app.settings.service import SettingsService
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,12 +53,14 @@ class ReportExportService(BaseService):
         organization_repository: OrganizationRepository,
         export_storage: ReportExportStorage,
         *,
+        analysis_repository: AnalysisRepository | None = None,
         settings_service: SettingsService | None = None,
     ) -> None:
         super().__init__(session)
         self._reports = report_repository
         self._exports = report_export_repository
         self._organizations = organization_repository
+        self._analyses = analysis_repository
         self._storage = export_storage
         self._settings = settings_service
 
@@ -96,49 +108,146 @@ class ReportExportService(BaseService):
             prefs_fp,
         )
         if existing is not None:
+            self._record_pdf_timeline(
+                organization_id,
+                report,
+                duration_ms=0,
+                cached=True,
+            )
             return PdfExportOutcome(
                 export_record=existing,
                 pdf_bytes=self._storage.read(existing.storage_reference),
                 created=False,
             )
 
-        platform_name = (
-            resolved.organization_identity.platform_name
-            if resolved
-            else "Khazina"
-        )
-        pdf_bytes = render_pdf(
-            content,
-            report_title=report.title,
-            platform_name=platform_name,
-            report_language=report_language,
-            include_cover_page=include_cover,
-            include_provenance_appendix=include_provenance,
-        )
-        export_fp = export_fingerprint(pdf_bytes)
-        generated_at = datetime.now(timezone.utc)
-        storage_reference = self._storage.save(
+        export_started = time.perf_counter()
+        timeline: PipelineTimeline | None = None
+        if report.analysis_run_id and self._analyses is not None:
+            run = self._analyses.get(report.analysis_run_id)
+            if run is not None:
+                timeline = PipelineTimeline(
+                    organization_id=str(organization_id),
+                    analysis_run_id=str(report.analysis_run_id),
+                    inherited=load_pipeline_timeline(run.runtime_metadata),
+                )
+                timeline.start_stage(PipelineStage.PDF_EXPORT)
+                log_pipeline_event(
+                    logger,
+                    "pipeline_stage",
+                    stage=PipelineStage.PDF_EXPORT.value,
+                    status="started",
+                    organization_id=str(organization_id),
+                    analysis_run_id=str(report.analysis_run_id),
+                    report_id=str(report_id),
+                )
+
+        try:
+            platform_name = (
+                resolved.organization_identity.platform_name
+                if resolved
+                else "Khazina"
+            )
+            pdf_bytes = render_pdf(
+                content,
+                report_title=report.title,
+                platform_name=platform_name,
+                report_language=report_language,
+                include_cover_page=include_cover,
+                include_provenance_appendix=include_provenance,
+            )
+            export_fp = export_fingerprint(pdf_bytes)
+            generated_at = datetime.now(timezone.utc)
+            storage_reference = self._storage.save(
+                organization_id,
+                report_id,
+                export_fp,
+                pdf_bytes,
+            )
+            export_record = ReportExport(
+                report_id=report_id,
+                export_format=EXPORT_FORMAT_PDF,
+                content_fingerprint=content_fp,
+                preferences_fingerprint=prefs_fp,
+                export_fingerprint=export_fp,
+                file_size_bytes=len(pdf_bytes),
+                storage_reference=storage_reference,
+                generated_at=generated_at,
+            )
+            with self._transaction():
+                self._exports.create(export_record)
+        except Exception as exc:
+            if timeline is not None and report.analysis_run_id and self._analyses is not None:
+                run = self._analyses.get(report.analysis_run_id)
+                if run is not None:
+                    category = timeline.fail_stage(PipelineStage.PDF_EXPORT, exc)
+                    self._analyses.update(
+                        run,
+                        {"runtime_metadata": merge_run_timeline(run, timeline)},
+                    )
+                    log_pipeline_event(
+                        logger,
+                        "pipeline_stage",
+                        level=logging.WARNING,
+                        stage=PipelineStage.PDF_EXPORT.value,
+                        status="failed",
+                        organization_id=str(organization_id),
+                        analysis_run_id=str(report.analysis_run_id),
+                        report_id=str(report_id),
+                        error_category=category,
+                        message=str(exc),
+                    )
+            raise
+
+        self._record_pdf_timeline(
             organization_id,
-            report_id,
-            export_fp,
-            pdf_bytes,
+            report,
+            duration_ms=round((time.perf_counter() - export_started) * 1000, 2),
+            cached=False,
+            timeline=timeline,
         )
-        export_record = ReportExport(
-            report_id=report_id,
-            export_format=EXPORT_FORMAT_PDF,
-            content_fingerprint=content_fp,
-            preferences_fingerprint=prefs_fp,
-            export_fingerprint=export_fp,
-            file_size_bytes=len(pdf_bytes),
-            storage_reference=storage_reference,
-            generated_at=generated_at,
-        )
-        with self._transaction():
-            self._exports.create(export_record)
         return PdfExportOutcome(
             export_record=export_record,
             pdf_bytes=pdf_bytes,
             created=True,
+        )
+
+    def _record_pdf_timeline(
+        self,
+        organization_id: uuid.UUID,
+        report: Report,
+        *,
+        duration_ms: float,
+        cached: bool,
+        timeline: PipelineTimeline | None = None,
+    ) -> None:
+        if not report.analysis_run_id or self._analyses is None:
+            return
+        run = self._analyses.get(report.analysis_run_id)
+        if run is None:
+            return
+        if timeline is None:
+            timeline = PipelineTimeline(
+                organization_id=str(organization_id),
+                analysis_run_id=str(report.analysis_run_id),
+                inherited=load_pipeline_timeline(run.runtime_metadata),
+            )
+            timeline.start_stage(PipelineStage.PDF_EXPORT)
+        timeline.complete_stage(PipelineStage.PDF_EXPORT, duration_ms=duration_ms)
+        timeline.mark_completed()
+        self._analyses.update(
+            run,
+            {"runtime_metadata": merge_run_timeline(run, timeline)},
+        )
+        log_pipeline_event(
+            logger,
+            "pipeline_stage",
+            stage=PipelineStage.PDF_EXPORT.value,
+            status="completed",
+            organization_id=str(organization_id),
+            analysis_run_id=str(report.analysis_run_id),
+            report_id=str(report.id),
+            duration_ms=duration_ms,
+            message="cache_hit" if cached else "rendered",
         )
 
     def _owned_report(

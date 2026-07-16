@@ -20,13 +20,27 @@ export interface OrganizationResponse {
   updated_at: string;
 }
 
+export interface PipelineTimelineEntry {
+  stage: string;
+  status: string;
+  timestamp: string;
+  duration_ms?: number | null;
+  error_category?: string | null;
+  message?: string | null;
+}
+
 export interface FinancialFileResponse {
   id: string;
   organization_id: string;
+  department_id: string | null;
   file_name: string;
   size_display: string | null;
   processing_status: string;
   uploaded_at: string;
+  file_metadata?: {
+    pipeline_timeline?: PipelineTimelineEntry[];
+    [key: string]: unknown;
+  } | null;
 }
 
 export interface FinancialSnapshotResponse {
@@ -49,6 +63,10 @@ export interface AnalysisRunResponse {
   source_file_id: string | null;
   source_snapshot_id: string | null;
   completed_at: string | null;
+  runtime_metadata?: {
+    pipeline_timeline?: PipelineTimelineEntry[];
+    [key: string]: unknown;
+  } | null;
 }
 
 export interface WasteDecisionExecuteResponse {
@@ -70,6 +88,35 @@ export interface WasteCategoryBreakdownResponse {
   amount: number;
   percentage: number;
   department_id: string | null;
+}
+
+export interface WasteVendorFindingResponse {
+  id: string;
+  analysis_run_id: string;
+  vendor_name: string;
+  category_label: string | null;
+  amount: number;
+  deviation_label: string | null;
+  status: string;
+}
+
+export interface AiHealthResponse {
+  status: string;
+  ollama_reachable: boolean;
+  configured_model: string;
+  message: string;
+}
+
+export interface ComponentHealthResponse {
+  status: string;
+  message: string;
+}
+
+export interface SystemHealthResponse {
+  status: string;
+  backend?: ComponentHealthResponse | null;
+  database?: ComponentHealthResponse | null;
+  ai?: ComponentHealthResponse | null;
 }
 
 export interface RecommendationResponse {
@@ -122,6 +169,33 @@ export interface SimulationComparisonMetricResponse {
   current_value: string;
   simulated_value: string;
   change_value: string;
+}
+
+export interface SimulationAssumptionResponse {
+  id: string;
+  scenario_id: string;
+  label: string;
+  value: string;
+  display_order: number;
+}
+
+export interface SimulationImpactItemResponse {
+  id: string;
+  simulation_run_id: string;
+  category_label: string;
+  baseline_value: string;
+  projected_value: string;
+  change_value: string;
+  direction: string;
+  display_order: number;
+}
+
+export interface SimulationActionItemResponse {
+  id: string;
+  simulation_run_id: string;
+  title: string;
+  description: string;
+  status: string;
 }
 
 export interface ReportResponse {

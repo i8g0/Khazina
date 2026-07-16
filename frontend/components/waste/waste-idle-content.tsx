@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   ArrowDown,
   BarChart3,
@@ -12,6 +13,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { navRouteMap } from "@/lib/app-nav";
+import { EXECUTIVE_MESSAGES } from "@/lib/workflow/messages";
 
 const helperItems = [
   { label: "Excel", icon: FileSpreadsheet },
@@ -30,11 +33,13 @@ const workflowSteps = [
 
 export interface WasteIdleContentProps {
   onUploadClick: () => void;
+  preferDataManagement?: boolean;
   className?: string;
 }
 
 export function WasteIdleContent({
   onUploadClick,
+  preferDataManagement = false,
   className,
 }: WasteIdleContentProps) {
   return (
@@ -99,24 +104,38 @@ export function WasteIdleContent({
             <FileSpreadsheet className="h-6 w-6" strokeWidth={1.75} />
           </span>
           <h2 className="text-xl font-semibold tracking-tight text-black-primary md:text-[1.35rem]">
-            ابدأ بتحليل ملفاتك المالية
+            {preferDataManagement
+              ? "ارفع ملفك من مستودع البيانات أولاً"
+              : "ابدأ بتحليل ملفاتك المالية"}
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted md:text-[15px]">
-            ارفع ملف Excel أو CSV لاكتشاف أنماط الهدر المالي وفرص التوفير
-            المؤسسية. ستظهر النتائج والرسوم البيانية هنا بعد اكتمال التحليل.
+            {preferDataManagement
+              ? EXECUTIVE_MESSAGES.uploadPrimaryHint
+              : "ارفع ملف Excel أو CSV لاكتشاف أنماط الهدر المالي وفرص التوفير المؤسسية. ستظهر النتائج هنا بعد اكتمال التحليل."}
           </p>
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            className="mt-6"
-            onClick={onUploadClick}
-          >
-            <Upload className="h-4 w-4" strokeWidth={1.75} />
-            رفع ملف Excel
-          </Button>
+          {preferDataManagement ? (
+            <Button asChild type="button" variant="primary" size="lg" className="mt-6">
+              <Link href={navRouteMap.data}>
+                <Upload className="h-4 w-4" strokeWidth={1.75} />
+                الانتقال إلى مستودع البيانات
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              className="mt-6"
+              onClick={onUploadClick}
+            >
+              <Upload className="h-4 w-4" strokeWidth={1.75} />
+              رفع سريع وتحليل
+            </Button>
+          )}
           <p className="mt-4 text-xs text-muted">
-            لا توجد نتائج حتى رفع ملف للتحليل · البيانات للعرض التوضيحي فقط
+            {preferDataManagement
+              ? EXECUTIVE_MESSAGES.uploadQuickHint
+              : "أو ارفع من مستودع البيانات — الطريقة الموصى بها للمستخدمين الجدد."}
           </p>
         </div>
       </section>

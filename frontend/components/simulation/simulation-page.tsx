@@ -5,7 +5,10 @@ import { AppLayout, PageContainer } from "@/components/layout";
 import { DashboardBrand } from "@/components/dashboard/dashboard-brand";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
 import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
+import { SimulationActionPanel } from "@/components/simulation/simulation-action-panel";
+import { SimulationAssumptions } from "@/components/simulation/simulation-assumptions";
 import { SimulationComparisonChart } from "@/components/simulation/simulation-comparison-chart";
+import { SimulationImpactBreakdown } from "@/components/simulation/simulation-impact-breakdown";
 import { SimulationScenarioCard } from "@/components/simulation/simulation-scenario-card";
 import { DemoHeaderActions } from "@/components/notifications/notification-bell";
 import { Alert } from "@/components/ui/alert";
@@ -15,31 +18,51 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Input } from "@/components/ui/input";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageHero } from "@/components/ui/page-hero";
+import Link from "next/link";
 import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
-  getAppNavItems,
+  getAppNavGroups,
+  navRouteMap,
 } from "@/lib/app-nav";
+import { WorkflowIndicator } from "@/components/workflow/workflow-indicator";
+import { OperationLoadingPanel } from "@/components/workflow/operation-loading-panel";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
+import { EXECUTIVE_MESSAGES } from "@/lib/workflow/messages";
 import {
   useRequireAuth,
   formatApiError,
-  useOrganizationDisplay,
 } from "@/lib/auth/auth-context";
+import { useOrganizationDisplay } from "@/lib/org-lookups";
 import {
   createScenario,
   executeScenario,
   getForecastSummary,
+  listActionItems,
   listChartPoints,
   listComparisonMetrics,
+  listImpactItems,
+  listScenarioAssumptions,
   listScenarios,
 } from "@/lib/api/khazina-api";
-import { readDemoArtifacts, writeDemoArtifacts } from "@/lib/demo/state";
+import { writeDemoArtifacts } from "@/lib/demo/state";
+import { useDemoArtifacts } from "@/lib/demo/hooks";
 import { mapSimulationStatus } from "@/lib/format";
+
+function mapImpactDirection(
+  direction: string,
+): "up" | "down" | "neutral" {
+  if (direction === "up" || direction === "down") {
+    return direction;
+  }
+  return "neutral";
+}
 
 export function SimulationPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
+  const artifacts = useDemoArtifacts();
   const [loading, setLoading] = React.useState(true);
   const [executing, setExecuting] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
@@ -51,17 +74,34 @@ export function SimulationPage() {
     { id: string; name: string; description: string; status: string }[]
   >([]);
   const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [forecast, setForecast] = React.useState({
-    baseline: "—",
-    projected: "—",
-    delta: "—",
-    confidence: "—",
-  });
+  const [assumptions, setAssumptions] = React.useState<
+    { id: string; label: string; value: string }[]
+  >([]);
+  const [hasRunResults, setHasRunResults] = React.useState(false);
+  const [forecast, setForecast] = React.useState<{
+    baseline: string;
+    projected: string;
+    delta: string;
+    confidence: string | null;
+  } | null>(null);
   const [chartPoints, setChartPoints] = React.useState<
     { quarter: string; baseline: number; projected: number }[]
   >([]);
   const [comparisons, setComparisons] = React.useState<
     { name: string; current: string; simulated: string; change: string }[]
+  >([]);
+  const [impactItems, setImpactItems] = React.useState<
+    {
+      id: string;
+      category: string;
+      baseline: string;
+      projected: string;
+      change: string;
+      direction: "up" | "down" | "neutral";
+    }[]
+  >([]);
+  const [actionItems, setActionItems] = React.useState<
+    { id: string; title: string; description: string; status: string }[]
   >([]);
 
   const loadScenarios = React.useCallback(async () => {
@@ -90,9 +130,40 @@ export function SimulationPage() {
     if (auth.session) void loadScenarios();
   }, [auth.session, loadScenarios]);
 
+  const loadAssumptions = React.useCallback(
+    async (scenarioId: string) => {
+      if (!auth.session) return;
+      try {
+        const rows = await listScenarioAssumptions(
+          auth.session.organizationId,
+          auth.session.token,
+          scenarioId,
+        );
+        setAssumptions(
+          rows.map((item) => ({
+            id: item.id,
+            label: item.label,
+            value: item.value,
+          })),
+        );
+      } catch {
+        setAssumptions([]);
+      }
+    },
+    [auth.session],
+  );
+
+  React.useEffect(() => {
+    if (activeId) {
+      void loadAssumptions(activeId);
+    } else {
+      setAssumptions([]);
+    }
+  }, [activeId, loadAssumptions]);
+
   const loadRunResults = async (runId: string) => {
     if (!auth.session) return;
-    const [summary, points, metrics] = await Promise.all([
+    const [summary, points, metrics, impacts, actions] = await Promise.all([
       getForecastSummary(auth.session.organizationId, auth.session.token, runId),
       listChartPoints(auth.session.organizationId, auth.session.token, runId),
       listComparisonMetrics(
@@ -100,14 +171,20 @@ export function SimulationPage() {
         auth.session.token,
         runId,
       ),
+      listImpactItems(auth.session.organizationId, auth.session.token, runId),
+      listActionItems(auth.session.organizationId, auth.session.token, runId),
     ]);
     if (summary) {
       setForecast({
         baseline: summary.baseline_value,
         projected: summary.projected_value,
         delta: summary.delta_value,
-        confidence: summary.confidence_label ?? "—",
+        confidence: summary.confidence_label,
       });
+      setHasRunResults(true);
+    } else {
+      setForecast(null);
+      setHasRunResults(false);
     }
     setChartPoints(
       points.map((p) => ({
@@ -122,6 +199,24 @@ export function SimulationPage() {
         current: m.current_value,
         simulated: m.simulated_value,
         change: m.change_value,
+      })),
+    );
+    setImpactItems(
+      impacts.map((item) => ({
+        id: item.id,
+        category: item.category_label,
+        baseline: item.baseline_value,
+        projected: item.projected_value,
+        change: item.change_value,
+        direction: mapImpactDirection(item.direction),
+      })),
+    );
+    setActionItems(
+      actions.map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        status: item.status,
       })),
     );
   };
@@ -154,9 +249,17 @@ export function SimulationPage() {
     }
   };
 
+  const resetRunResults = React.useCallback(() => {
+    setHasRunResults(false);
+    setForecast(null);
+    setChartPoints([]);
+    setComparisons([]);
+    setImpactItems([]);
+    setActionItems([]);
+  }, []);
+
   const runScenario = async () => {
     if (!auth.session || !activeId) return;
-    const artifacts = readDemoArtifacts();
     if (!artifacts.fileId || !artifacts.snapshotId || !artifacts.snapshotVersion) {
       setError("ارفع ملفاً وشغّل تحليل الهدر أولاً");
       return;
@@ -195,22 +298,27 @@ export function SimulationPage() {
   };
 
   React.useEffect(() => {
-    const runId = readDemoArtifacts().simulationRunId;
-    if (auth.session && runId) {
-      void loadRunResults(runId).catch(() => undefined);
+    if (!auth.session) return;
+    if (!artifacts.simulationRunId) {
+      resetRunResults();
+      return;
     }
-  }, [auth.session]);
+    void loadRunResults(artifacts.simulationRunId).catch(() => undefined);
+  }, [auth.session, artifacts.simulationRunId, resetRunResults]);
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
+
+  const activeScenario = scenarios.find((scenario) => scenario.id === activeId);
 
   return (
     <AppLayout
       brand={<DashboardBrand />}
       title="محاكاة الأعمال"
-      subtitle={org.reportingPeriod}
+      subtitle={org.reportingPeriod ?? undefined}
       activeItemId="simulation"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>
@@ -220,6 +328,12 @@ export function SimulationPage() {
             description="مقارنة السيناريوهات التشغيلية مقابل خط الأساس من بيانات حقيقية."
             period={org.reportingPeriod}
           />
+
+          <WorkflowIndicator activeStageId="simulation" />
+
+          <Alert variant="default" title="إرشاد">
+            {EXECUTIVE_MESSAGES.simulationDemoHint}
+          </Alert>
 
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[200px] flex-1 space-y-1.5">
@@ -249,14 +363,30 @@ export function SimulationPage() {
               disabled={executing || !activeId}
               onClick={() => void runScenario()}
             >
-              {executing ? "جاري التنفيذ..." : "تشغيل السيناريو النشط"}
+              {executing
+                ? "جاري التنفيذ..."
+                : activeScenario
+                  ? `تشغيل: ${activeScenario.name}`
+                  : "تشغيل السيناريو"}
             </Button>
+            {hasRunResults ? (
+              <Button asChild variant="secondary">
+                <Link href={navRouteMap.reports}>التالي: إنشاء التقرير</Link>
+              </Button>
+            ) : null}
           </div>
+
+          {executing ? (
+            <OperationLoadingPanel
+              title="جاري تشغيل محاكاة السيناريو"
+              description="حساب التوقعات والمقارنات بناءً على نتائج تحليل الهدر."
+            />
+          ) : null}
 
           {message ? <Alert variant="success" title="تم">{message}</Alert> : null}
           {error ? (
             <ErrorState
-              title="خطأ"
+              title="تعذّر تشغيل المحاكاة"
               description={error}
               onRetry={() => setError(null)}
             />
@@ -287,27 +417,47 @@ export function SimulationPage() {
             </section>
           )}
 
-          <section className="grid gap-5 sm:grid-cols-3">
-            <DashboardStatCard
-              label="الأساس"
-              value={forecast.baseline}
-              hint="خط الأساس"
-              dense
+          {activeId ? (
+            assumptions.length > 0 ? (
+              <SimulationAssumptions
+                assumptions={assumptions.map(({ label, value }) => ({ label, value }))}
+              />
+            ) : (
+              <EmptyState
+                title="لا توجد افتراضات مسجّلة"
+                description="لم يُعرّف هذا السيناريو أي افتراضات بعد."
+              />
+            )
+          ) : null}
+
+          {hasRunResults && forecast ? (
+            <section className="grid gap-5 sm:grid-cols-3">
+              <DashboardStatCard
+                label="الأساس"
+                value={forecast.baseline}
+                hint="خط الأساس"
+                dense
+              />
+              <DashboardStatCard
+                label="المتوقع"
+                value={forecast.projected}
+                hint="بعد المحاكاة"
+                dense
+                emphasis
+              />
+              <DashboardStatCard
+                label="التغير"
+                value={forecast.delta}
+                hint={forecast.confidence ?? "بدون تصنيف ثقة"}
+                dense
+              />
+            </section>
+          ) : (
+            <EmptyState
+              title="لا توجد نتائج محاكاة بعد"
+              description="شغّل السيناريو النشط لعرض ملخص التوقعات والمقارنات."
             />
-            <DashboardStatCard
-              label="المتوقع"
-              value={forecast.projected}
-              hint="بعد المحاكاة"
-              dense
-              emphasis
-            />
-            <DashboardStatCard
-              label="التغير"
-              value={forecast.delta}
-              hint={forecast.confidence}
-              dense
-            />
-          </section>
+          )}
 
           {chartPoints.length > 0 ? (
             <section className={executiveSectionSpacingClassName}>
@@ -330,6 +480,20 @@ export function SimulationPage() {
                   />
                 ))}
               </div>
+            </section>
+          ) : null}
+
+          {impactItems.length > 0 ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="تأثير المحاكاة حسب الفئة" />
+              <SimulationImpactBreakdown items={impactItems} />
+            </section>
+          ) : null}
+
+          {actionItems.length > 0 ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="إجراءات مقترحة" />
+              <SimulationActionPanel items={actionItems} />
             </section>
           ) : null}
         </div>

@@ -17,7 +17,7 @@ import {
   executivePageContainerClassName,
   executivePageSpacingClassName,
   executiveSectionSpacingClassName,
-  getAppNavItems,
+  getAppNavGroups,
 } from "@/lib/app-nav";
 import {
   getOrganizationSettings,
@@ -154,7 +154,7 @@ export function SettingsPage() {
       subtitle={org.reportingPeriod}
       activeItemId="settings"
       sidebarVariant="executive"
-      navItems={getAppNavItems()}
+      navGroups={getAppNavGroups()}
       headerActions={<DemoHeaderActions />}
     >
       <PageContainer className={executivePageContainerClassName}>

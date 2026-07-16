@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-07-14T12:32:52.921072+00:00",
+  "generated_at": "2026-07-16T11:38:18.467001+00:00",
   "baseline": {
     "benchmark_version": "2.0",
     "profile": "quick",
-    "model": "tinyllama:latest",
+    "model": "qwen3.5:4b",
     "model_version": null,
     "prompt_version": "1.0",
     "facts_contract_version": "1.0",
     "thinking_mode": "disabled",
     "hardware": {
       "platform": "Windows-11-10.0.26200-SP0",
-      "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+      "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
       "cpu_count": 20,
-      "total_ram_gb": 15.72,
-      "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
-      "gpu_vram_total_mb": 4096.0,
+      "total_ram_gb": 15.63,
+      "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "gpu_vram_total_mb": 8188.0,
       "gpu_available": true
     }
   },
@@ -23,7 +23,7 @@
     "benchmark_timeout": 600.0,
     "thinking_mode": "disabled",
     "ollama_url": "http://localhost:11434",
-    "ollama_model": "tinyllama:latest",
+    "ollama_model": "qwen3.5:4b",
     "llm_prompt": "\u0642\u0644 \u0643\u0644\u0645\u0629 \u0648\u0627\u062d\u062f\u0629 \u0641\u0642\u0637: \u0645\u0631\u062d\u0628\u0627",
     "stability_iterations": 0,
     "cooldown_seconds": 2.0,
@@ -44,22 +44,22 @@
         "business_engine_ms": 0.0,
         "context_builder_ms": 0.0,
         "prompt_engine_ms": 0.0,
-        "llm_ms": 38893.58,
+        "llm_ms": 10148.18,
         "parser_ms": 0.0,
-        "total_ms": 38893.58
+        "total_ms": 10148.18
       },
       "error": null,
       "facts_count": null,
       "selected_facts_count": null,
       "parsed_format": null,
       "prompt_chars": 24,
-      "peak_process_rss_mb": 48.6,
-      "peak_system_ram_used_mb": 11872.63,
-      "peak_cpu_percent": 51.4,
-      "peak_gpu_utilization_percent": 87.0,
-      "peak_gpu_vram_used_mb": 1667.0,
+      "peak_process_rss_mb": 82.68,
+      "peak_system_ram_used_mb": 12717.66,
+      "peak_cpu_percent": 26.0,
+      "peak_gpu_utilization_percent": 11.0,
+      "peak_gpu_vram_used_mb": 5361.0,
       "extensions": {
-        "response_chars": 277
+        "response_chars": 5
       }
     },
     {
@@ -70,60 +70,60 @@
       "thinking_mode": "disabled",
       "success": true,
       "stage_timings": {
-        "business_engine_ms": 0.23,
-        "context_builder_ms": 0.06,
-        "prompt_engine_ms": 0.07,
-        "llm_ms": 3917.45,
-        "parser_ms": 0.07,
-        "total_ms": 4098.07
+        "business_engine_ms": 0.17,
+        "context_builder_ms": 0.04,
+        "prompt_engine_ms": 0.05,
+        "llm_ms": 6390.26,
+        "parser_ms": 0.04,
+        "total_ms": 6558.38
       },
       "error": null,
       "facts_count": 16,
       "selected_facts_count": 16,
       "parsed_format": "text",
       "prompt_chars": 2619,
-      "peak_process_rss_mb": 49.33,
-      "peak_system_ram_used_mb": 11893.41,
-      "peak_cpu_percent": 19.0,
-      "peak_gpu_utilization_percent": 88.0,
-      "peak_gpu_vram_used_mb": 1664.0,
+      "peak_process_rss_mb": 83.38,
+      "peak_system_ram_used_mb": 12832.99,
+      "peak_cpu_percent": 23.5,
+      "peak_gpu_utilization_percent": 91.0,
+      "peak_gpu_vram_used_mb": 5356.0,
       "extensions": {}
     }
   ],
   "llm_stats_by_thinking": {
     "disabled": {
-      "average_ms": 38893.58,
-      "minimum_ms": 38893.58,
-      "maximum_ms": 38893.58,
+      "average_ms": 10148.18,
+      "minimum_ms": 10148.18,
+      "maximum_ms": 10148.18,
       "sample_count": 1
     }
   },
   "e2e_stats_by_thinking": {
     "disabled": {
-      "average_ms": 4098.07,
-      "minimum_ms": 4098.07,
-      "maximum_ms": 4098.07,
+      "average_ms": 6558.38,
+      "minimum_ms": 6558.38,
+      "maximum_ms": 6558.38,
       "sample_count": 1
     }
   },
   "cold_start_ms": null,
   "warm_stats_by_thinking": {
     "disabled": {
-      "average_ms": 4098.07,
-      "minimum_ms": 4098.07,
-      "maximum_ms": 4098.07,
+      "average_ms": 6558.38,
+      "minimum_ms": 6558.38,
+      "maximum_ms": 6558.38,
       "sample_count": 1
     }
   },
-  "peak_process_rss_mb": 49.33,
-  "peak_system_ram_used_mb": 11893.41,
-  "peak_cpu_percent": 51.4,
-  "peak_gpu_utilization_percent": 88.0,
-  "peak_gpu_vram_used_mb": 1667.0,
+  "peak_process_rss_mb": 83.38,
+  "peak_system_ram_used_mb": 12832.99,
+  "peak_cpu_percent": 26.0,
+  "peak_gpu_utilization_percent": 91.0,
+  "peak_gpu_vram_used_mb": 5361.0,
   "functional_validation_passed": true,
   "stability_passed": true,
   "overall_success": true,
-  "recommendation": "Keep `tinyllama:latest` for hackathon demo. Profile `quick` completed successfully. Thinking disabled average latency: 4098 ms. Retain GPU acceleration for demo.",
+  "recommendation": "Keep `qwen3.5:4b` for hackathon demo. Profile `quick` completed successfully. Thinking disabled average latency: 6558 ms. Retain GPU acceleration for demo.",
   "notes": [
     "Executing thinking_mode=disabled"
   ]

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, PanelRightClose, PanelRightOpen, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import type { AppNavGroup } from "@/lib/app-nav";
 import { Button } from "@/components/ui/button";
 import { slideInFromEnd } from "@/lib/motion";
 
@@ -20,6 +21,7 @@ export interface SidebarShellProps {
   children?: React.ReactNode;
   footer?: React.ReactNode;
   navItems?: SidebarNavItem[];
+  navGroups?: AppNavGroup[];
   activeItemId?: string;
   onNavItemClick?: (item: SidebarNavItem) => void;
   collapsed?: boolean;
@@ -30,11 +32,74 @@ export interface SidebarShellProps {
   className?: string;
 }
 
+function SidebarNavLink({
+  item,
+  isActive,
+  collapsed,
+  isExecutive,
+  onNavItemClick,
+}: {
+  item: SidebarNavItem;
+  isActive: boolean;
+  collapsed?: boolean;
+  isExecutive: boolean;
+  onNavItemClick?: (item: SidebarNavItem) => void;
+}) {
+  const itemClassName = cn(
+    "relative flex w-full items-center gap-3 rounded-xl font-medium transition-all",
+    isExecutive
+      ? cn(
+          "px-4 py-3.5 text-[15px]",
+          isActive
+            ? "bg-gold-primary text-white shadow-none"
+            : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+        )
+      : cn(
+          "px-3.5 py-3 text-sm",
+          isActive
+            ? "bg-gold-primary/10 text-gold-dark"
+            : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
+        ),
+    collapsed && "justify-center px-2",
+  );
+  const itemContent = (
+    <>
+      {item.icon ? (
+        <span className="shrink-0 text-current">{item.icon}</span>
+      ) : null}
+      {!collapsed ? <span className="truncate">{item.label}</span> : null}
+    </>
+  );
+
+  if (item.href) {
+    return (
+      <Link
+        href={item.href}
+        className={itemClassName}
+        onClick={() => onNavItemClick?.(item)}
+      >
+        {itemContent}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onNavItemClick?.(item)}
+      className={itemClassName}
+    >
+      {itemContent}
+    </button>
+  );
+}
+
 function SidebarPanel({
   brand,
   children,
   footer,
   navItems,
+  navGroups,
   activeItemId,
   onNavItemClick,
   collapsed,
@@ -49,6 +114,7 @@ function SidebarPanel({
   children?: React.ReactNode;
   footer?: React.ReactNode;
   navItems: SidebarNavItem[];
+  navGroups?: AppNavGroup[];
   activeItemId?: string;
   onNavItemClick?: (item: SidebarNavItem) => void;
   collapsed?: boolean;
@@ -117,59 +183,48 @@ function SidebarPanel({
         ) : null}
       </div>
 
-      <nav className={cn("flex-1 overflow-y-auto", isExecutive ? "space-y-1.5 px-4 py-5" : "space-y-1 p-3")}>
-        {navItems.map((item) => {
-          const isActive = item.id === activeItemId;
-          const itemClassName = cn(
-            "relative flex w-full items-center gap-3 rounded-xl font-medium transition-all",
-            isExecutive
-              ? cn(
-                  "px-4 py-3.5 text-[15px]",
-                  isActive
-                    ? "bg-gold-primary text-white shadow-none"
-                    : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
-                )
-              : cn(
-                  "px-3.5 py-3 text-sm",
-                  isActive
-                    ? "bg-gold-primary/10 text-gold-dark"
-                    : "text-gray-medium hover:bg-bg-light hover:text-black-primary",
-                ),
-            collapsed && "justify-center px-2",
-          );
-          const itemContent = (
-            <>
-              {item.icon ? (
-                <span className="shrink-0 text-current">{item.icon}</span>
+      <nav className={cn("flex-1 overflow-y-auto", isExecutive ? "space-y-4 px-4 py-5" : "space-y-1 p-3")}>
+        {navGroups && navGroups.length > 0 ? (
+          navGroups.map((group) => (
+            <div key={group.id} className="space-y-1.5">
+              {!collapsed ? (
+                <p
+                  className={cn(
+                    "px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+                    group.variant === "deferred"
+                      ? "text-muted/80"
+                      : "text-muted",
+                  )}
+                >
+                  {group.label}
+                </p>
               ) : null}
-              {!collapsed ? <span className="truncate">{item.label}</span> : null}
-            </>
-          );
-
-          if (item.href) {
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={itemClassName}
-                onClick={() => onNavItemClick?.(item)}
-              >
-                {itemContent}
-              </Link>
-            );
-          }
-
-          return (
-            <button
+              <div className="space-y-1.5">
+                {group.items.map((item) => (
+                  <SidebarNavLink
+                    key={item.id}
+                    item={item}
+                    isActive={item.id === activeItemId}
+                    collapsed={collapsed}
+                    isExecutive={isExecutive}
+                    onNavItemClick={onNavItemClick}
+                  />
+                ))}
+              </div>
+            </div>
+          ))
+        ) : (
+          navItems.map((item) => (
+            <SidebarNavLink
               key={item.id}
-              type="button"
-              onClick={() => onNavItemClick?.(item)}
-              className={itemClassName}
-            >
-              {itemContent}
-            </button>
-          );
-        })}
+              item={item}
+              isActive={item.id === activeItemId}
+              collapsed={collapsed}
+              isExecutive={isExecutive}
+              onNavItemClick={onNavItemClick}
+            />
+          ))
+        )}
         {children}
       </nav>
 
@@ -192,6 +247,7 @@ export function SidebarShell({
   children,
   footer,
   navItems = [],
+  navGroups,
   activeItemId,
   onNavItemClick,
   collapsed = false,
@@ -206,6 +262,7 @@ export function SidebarShell({
     children,
     footer,
     navItems,
+    navGroups,
     activeItemId,
     onNavItemClick,
     collapsed,

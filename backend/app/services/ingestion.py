@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import mimetypes
+import time
 import uuid
 from dataclasses import dataclass
 from typing import Any
@@ -21,6 +23,11 @@ from app.ingestion.constants import PARSER_VERSION, SCHEMA_VERSION
 from app.ingestion.exceptions import IngestionError, ParseError, ValidationFailure
 from app.ingestion.orchestrator import IngestionOrchestrator
 from app.ingestion.storage import BronzeStorage
+from app.core.logging import get_logger
+from app.observability.errors import classify_exception
+from app.observability.persistence import file_metadata_with_timeline
+from app.observability.pipeline import PipelineStage, PipelineTimeline
+from app.observability.structured_log import log_pipeline_event
 from app.repositories import (
     DepartmentRepository,
     FinancialRepository,
@@ -36,6 +43,8 @@ _COMPLETED = ProcessingStatus.COMPLETED
 _FAILED = ProcessingStatus.FAILED
 _READY = ProcessingStatus.READY_FOR_ANALYSIS
 _PENDING = ProcessingStatus.PENDING
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,56 +89,126 @@ class IngestionService(BaseService):
         reporting_period_id: uuid.UUID | None = None,
         mime_type: str | None = None,
     ) -> UploadIngestionOutcome:
-        self._validate_upload_request(
-            organization_id,
-            file_name=file_name,
-            content=content,
-            upload_source=upload_source,
-            department_id=department_id,
-            reporting_period_id=reporting_period_id,
+        org_key = str(organization_id)
+        timeline = PipelineTimeline(organization_id=org_key)
+        pipeline_started = time.perf_counter()
+        timeline.start_stage(PipelineStage.UPLOAD_STARTED)
+        log_pipeline_event(
+            logger,
+            "pipeline_stage",
+            stage=PipelineStage.UPLOAD_STARTED.value,
+            status="started",
+            organization_id=org_key,
+            message=file_name,
         )
-        storage_path, size_bytes = self._bronze.save(
-            organization_id, file_name, content
-        )
-        size_display = BronzeStorage.format_size_display(size_bytes)
-        resolved_mime = mime_type or mimetypes.guess_type(file_name)[0]
-
-        financial_file = FinancialFile(
-            organization_id=organization_id,
-            department_id=department_id,
-            reporting_period_id=reporting_period_id,
-            file_name=file_name.strip(),
-            storage_path=storage_path,
-            size_bytes=size_bytes,
-            size_display=size_display,
-            mime_type=resolved_mime,
-            processing_status=_PENDING,
-            upload_source=upload_source,
-        )
-
-        with self._transaction():
-            self._financials.create_file(financial_file)
-            self._transition(financial_file, _PROCESSING)
-            processing_record = ImportRecord(
-                financial_file_id=financial_file.id,
-                status=ImportStatus.PROCESSING,
-            )
-            self._financials.add_import_record(processing_record)
 
         try:
-            ingestion = self._orchestrator.run(storage_path, file_name)
-        except (ParseError, ValidationFailure, IngestionError) as exc:
-            return self._finalize_failure(
+            self._validate_upload_request(
                 organization_id,
-                financial_file.id,
-                error_message=str(exc),
+                file_name=file_name,
+                content=content,
+                upload_source=upload_source,
+                department_id=department_id,
+                reporting_period_id=reporting_period_id,
+            )
+            storage_path, size_bytes = self._bronze.save(
+                organization_id, file_name, content
+            )
+            size_display = BronzeStorage.format_size_display(size_bytes)
+            resolved_mime = mime_type or mimetypes.guess_type(file_name)[0]
+
+            financial_file = FinancialFile(
+                organization_id=organization_id,
+                department_id=department_id,
+                reporting_period_id=reporting_period_id,
+                file_name=file_name.strip(),
+                storage_path=storage_path,
+                size_bytes=size_bytes,
+                size_display=size_display,
+                mime_type=resolved_mime,
+                processing_status=_PENDING,
+                upload_source=upload_source,
             )
 
-        return self._finalize_success(
-            organization_id,
-            financial_file.id,
-            ingestion_result=ingestion,
-        )
+            with self._transaction():
+                self._financials.create_file(financial_file)
+                self._transition(financial_file, _PROCESSING)
+                processing_record = ImportRecord(
+                    financial_file_id=financial_file.id,
+                    status=ImportStatus.PROCESSING,
+                )
+                self._financials.add_import_record(processing_record)
+
+            timeline.file_id = str(financial_file.id)
+            try:
+                ingestion = self._orchestrator.run(
+                    storage_path,
+                    file_name,
+                    timeline=timeline,
+                )
+            except (ParseError, ValidationFailure, IngestionError) as exc:
+                category = classify_exception(exc)
+                timeline.fail_stage(PipelineStage.UPLOAD_COMPLETED, exc)
+                log_pipeline_event(
+                    logger,
+                    "pipeline_stage",
+                    level=logging.WARNING,
+                    stage=PipelineStage.UPLOAD_COMPLETED.value,
+                    status="failed",
+                    organization_id=org_key,
+                    file_id=str(financial_file.id),
+                    error_category=category,
+                    duration_ms=round((time.perf_counter() - pipeline_started) * 1000, 2),
+                    message=str(exc),
+                )
+                return self._finalize_failure(
+                    organization_id,
+                    financial_file.id,
+                    error_message=str(exc),
+                    timeline=timeline.to_list(),
+                )
+
+            timeline.start_stage(PipelineStage.SNAPSHOT_CREATED)
+            outcome = self._finalize_success(
+                organization_id,
+                financial_file.id,
+                ingestion_result=ingestion,
+                timeline=timeline,
+            )
+            timeline.complete_stage(PipelineStage.SNAPSHOT_CREATED)
+            timeline.complete_stage(PipelineStage.UPLOAD_COMPLETED)
+            duration_ms = round((time.perf_counter() - pipeline_started) * 1000, 2)
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                stage=PipelineStage.UPLOAD_COMPLETED.value,
+                status="completed",
+                organization_id=org_key,
+                file_id=str(outcome.financial_file.id),
+                snapshot_id=(
+                    str(outcome.financial_snapshot.id)
+                    if outcome.financial_snapshot
+                    else None
+                ),
+                duration_ms=duration_ms,
+                message=file_name,
+            )
+            return outcome
+        except Exception as exc:
+            category = classify_exception(exc)
+            timeline.fail_stage(PipelineStage.UPLOAD_COMPLETED, exc)
+            log_pipeline_event(
+                logger,
+                "pipeline_stage",
+                level=logging.ERROR,
+                stage=PipelineStage.UPLOAD_COMPLETED.value,
+                status="failed",
+                organization_id=org_key,
+                error_category=category,
+                duration_ms=round((time.perf_counter() - pipeline_started) * 1000, 2),
+                message=str(exc),
+            )
+            raise
 
     def get_snapshot(
         self, organization_id: uuid.UUID, snapshot_id: uuid.UUID
@@ -167,6 +246,7 @@ class IngestionService(BaseService):
         file_id: uuid.UUID,
         *,
         ingestion_result: Any,
+        timeline: PipelineTimeline | None = None,
     ) -> UploadIngestionOutcome:
         financial_file = self._owned_file(organization_id, file_id)
         snapshot_version = self._snapshots.next_snapshot_version(financial_file.id)
@@ -195,7 +275,16 @@ class IngestionService(BaseService):
 
             self._financials.update_file(
                 financial_file,
-                {"file_metadata": ingestion_result.parse_metadata.to_dict()},
+                {
+                    "file_metadata": {
+                        **ingestion_result.parse_metadata.to_dict(),
+                        **(
+                            {"pipeline_timeline": timeline.to_list()}
+                            if timeline is not None
+                            else {}
+                        ),
+                    }
+                },
             )
             self._transition(financial_file, _READY)
 
@@ -232,6 +321,7 @@ class IngestionService(BaseService):
         file_id: uuid.UUID,
         *,
         error_message: str,
+        timeline: list[dict[str, Any]] | None = None,
     ) -> UploadIngestionOutcome:
         financial_file = self._owned_file(organization_id, file_id)
         with self._transaction():
@@ -242,6 +332,16 @@ class IngestionService(BaseService):
                 error_message=error_message.strip(),
             )
             self._financials.add_import_record(failed_record)
+            if timeline is not None:
+                self._financials.update_file(
+                    financial_file,
+                    {
+                        "file_metadata": file_metadata_with_timeline(
+                            financial_file,
+                            timeline,
+                        )
+                    },
+                )
         refreshed_file = self._owned_file(organization_id, file_id)
         return UploadIngestionOutcome(
             financial_file=refreshed_file,
