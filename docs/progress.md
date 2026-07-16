@@ -1,4 +1,4 @@
-﻿# Khazina - Development Tracker
+# Khazina - Development Tracker
 
 Official progress tracker for the Khazina project.
 
@@ -9,9 +9,9 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 9 – Financial Risk Intelligence                             |
-| Current Sprint | — (awaiting Phase 9 charter)                                      |
-| Overall Status | Phases 1–7 **completed and frozen**; Product Polish **complete**; Phase 8 **completed and accepted** — ready for Phase 9 |
+| Current Phase  | Phase 9 – Financial Risk Intelligence (complete) + Zero-Hour Stabilization |
+| Current Sprint | Zero-Hour Stabilization (TL-approved charter)                                |
+| Overall Status | Phases 1–8 **completed**; Phase 9 sprints 9.2–9.8 **completed**; Zero-Hour stabilization **completed** 2026-07-16 |
 | Last Updated   | 2026-07-16                                                      |
 
 ---
@@ -29,7 +29,7 @@ Official progress tracker for the Khazina project.
 | Phase 7 – Frontend Features   | ✅ Completed (frozen — Sprint 7.3) |
 | Product Polish (Transition)   | ✅ Completed (Sprints D1–D5; pre-polish 8.x mock removal) |
 | Phase 8 – Testing & Quality Assurance | ✅ Completed (accepted — Sprints 8.1–8.5) |
-| Phase 9 – Financial Risk Intelligence | 🔄 Next active phase |
+| Phase 9 – Financial Risk Intelligence | ✅ Completed (Sprints 9.2–9.8) |
 | Phase 10 – Reports, Analytics & Production | 📋 Planned |
 
 ---
@@ -2236,7 +2236,24 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 
 **Phase 8 exit:** Testing & Quality Assurance **APPROVED — CLOSED** — ready for Phase 9 Financial Risk Intelligence.
 
-**Next step:** Begin Phase 9 — Financial Risk Intelligence (`docs/PROJECT_ROADMAP.md`).
+**Next step:** Hackathon submission readiness — see `docs/ZERO_HOUR_STABILIZATION_REPORT.md`.
+
+---
+
+## Phase 9 Sprint Sign-Off (2026-07-16)
+
+| Sprint | Description | Status | Reviewed by | Approval date |
+| ------ | ----------- | ------ | ----------- | ------------- |
+| 9.2 | Risk Engine | Completed | Tech Lead | 2026-07-16 |
+| 9.3 | Risk Persistence | Completed | Tech Lead | 2026-07-16 |
+| 9.4 | Risk Register | Completed | Tech Lead | 2026-07-16 |
+| 9.5 | Risk AI | Completed | Tech Lead | 2026-07-16 |
+| 9.6 | Risk Frontend | Completed | Tech Lead | 2026-07-16 |
+| 9.7 | Platform Integration | Completed | Tech Lead | 2026-07-16 |
+| 9.8 | QA Freeze | Completed | Tech Lead | 2026-07-16 |
+| ZH | Zero-Hour Stabilization | Completed | Tech Lead | 2026-07-16 |
+
+Reports: `docs/SPRINT_9_2_RISK_ENGINE_REPORT.md` through `docs/SPRINT_9_8_QA_FREEZE_REPORT.md`; stabilization: `docs/ZERO_HOUR_STABILIZATION_REPORT.md`.
 
 ---
 
