@@ -9,10 +9,12 @@ from app.core.exceptions import AppError
 from app.core.logging import get_logger
 from app.observability.errors import classify_exception
 from app.observability.structured_log import log_pipeline_event
+from app.presentation.executive_messages import executive_message_for_exception
 from app.schemas.response import error_response
 from app.ai_recommendations.exceptions import AiRecommendationError
 from app.decision.exceptions import SnapshotAdapterError
 from app.reports.exceptions import ReportBuilderError
+from app.scenario.exceptions import ScenarioInterpretationError
 from app.services.exceptions import (
     AuthenticationError,
     BusinessRuleViolationError,
@@ -47,22 +49,32 @@ def _status_for_service_error(exc: ServiceError) -> int:
 
 
 def _service_error_message(exc: ServiceError) -> str:
+    mapped = executive_message_for_exception(exc)
+    if mapped:
+        return mapped
     if isinstance(exc, AuthenticationError):
-        return "Invalid email or password"
+        return "البريد الإلكتروني أو كلمة المرور غير صحيحة"
     if isinstance(exc, BusinessRuleViolationError) and not settings.debug:
-        return "The operation violates a data integrity rule"
-    return str(exc)
+        return "لا يمكن تنفيذ هذا الإجراء على البيانات الحالية"
+    return str(exc) if settings.debug else "تعذّر إتمام العملية. أعد المحاولة بعد قليل."
+
+
+def _domain_error_message(exc: Exception) -> str:
+    mapped = executive_message_for_exception(exc)
+    if mapped:
+        return mapped
+    return str(exc) if settings.debug else "تعذّر إتمام العملية. أعد المحاولة بعد قليل."
 
 
 def _http_error_message(exc: HTTPException) -> tuple[str, list[str] | None]:
     if settings.debug:
         errors = [str(exc.detail)] if exc.detail else None
-        return "Request failed", errors
+        return "تعذّر الطلب", errors
     if exc.status_code == 401:
-        return "Authentication failed", None
+        return "يرجى تسجيل الدخول للمتابعة", None
     if exc.status_code == 403:
-        return "Forbidden", None
-    return "Request failed", None
+        return "ليس لديك صلاحية لتنفيذ هذا الإجراء", None
+    return "تعذّر إتمام الطلب. أعد المحاولة بعد قليل.", None
 
 
 def _format_validation_errors(exc: RequestValidationError) -> list[str]:
@@ -81,6 +93,7 @@ def _format_validation_errors(exc: RequestValidationError) -> list[str]:
 def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(SnapshotAdapterError, snapshot_adapter_error_handler)
     app.add_exception_handler(AiRecommendationError, ai_recommendation_error_handler)
+    app.add_exception_handler(ScenarioInterpretationError, scenario_interpretation_error_handler)
     app.add_exception_handler(ReportBuilderError, report_builder_error_handler)
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(ServiceError, service_error_handler)
@@ -96,8 +109,8 @@ async def snapshot_adapter_error_handler(
     return JSONResponse(
         status_code=422,
         content=error_response(
-            message=exc.message,
-            errors=[exc.error_code],
+            message=_domain_error_message(exc),
+            errors=[exc.error_code] if settings.debug else None,
         ).model_dump(),
     )
 
@@ -108,8 +121,20 @@ async def ai_recommendation_error_handler(
     return JSONResponse(
         status_code=422,
         content=error_response(
-            message=exc.message,
-            errors=[exc.error_code],
+            message=_domain_error_message(exc),
+            errors=[exc.error_code] if settings.debug else None,
+        ).model_dump(),
+    )
+
+
+async def scenario_interpretation_error_handler(
+    _: Request, exc: ScenarioInterpretationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=error_response(
+            message=_domain_error_message(exc),
+            errors=[exc.error_code] if settings.debug else None,
         ).model_dump(),
     )
 
@@ -120,8 +145,8 @@ async def report_builder_error_handler(
     return JSONResponse(
         status_code=422,
         content=error_response(
-            message=exc.message,
-            errors=[exc.code],
+            message=_domain_error_message(exc),
+            errors=[exc.code] if settings.debug else None,
         ).model_dump(),
     )
 
@@ -138,7 +163,7 @@ async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
         message = exc.message
         errors = exc.errors
     else:
-        message = "Internal server error"
+        message = "تعذّر إتمام العملية. أعد المحاولة بعد قليل."
         errors = None
     return JSONResponse(
         status_code=exc.status_code,
@@ -160,8 +185,8 @@ async def validation_exception_handler(
     return JSONResponse(
         status_code=422,
         content=error_response(
-            message="Validation failed",
-            errors=_format_validation_errors(exc),
+            message="يرجى مراجعة البيانات المدخلة وإكمال الحقول المطلوبة",
+            errors=_format_validation_errors(exc) if settings.debug else None,
         ).model_dump(),
     )
 

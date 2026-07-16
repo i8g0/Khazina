@@ -53,7 +53,7 @@ def test_waste_engine_manifest_complete() -> None:
     assert manifest.engine_version == "1.0.0"
     assert manifest.engine_description
     assert manifest.supported_facts
-    assert manifest.extensions["facts_contract_version"] == "1.0"
+    assert manifest.extensions["facts_contract_version"] == "1.1"
 
 
 @pytest.mark.parametrize(

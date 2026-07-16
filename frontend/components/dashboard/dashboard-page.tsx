@@ -66,7 +66,7 @@ const dashboardKpiLabels = [
   "إجمالي الهدر المالي المكتشف",
   "عدد المخاطر الحرجة",
   "المخاطر النشطة",
-  "آخر توصية من الذكاء الاصطناعي",
+  "آخر توصية تنفيذية",
   "حالة آخر تحليل",
 ];
 
@@ -268,7 +268,7 @@ export function DashboardPage() {
             ) : recommendations.length === 0 ? (
               <EmptyState
                 title="لا توجد توصيات"
-                description="شغّل تحليل الهدر والذكاء الاصطناعي لعرض التوصيات"
+                description="نفّذ كشف الهدر ثم أعد التوصيات لعرض التوصيات"
               />
             ) : (
               <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">

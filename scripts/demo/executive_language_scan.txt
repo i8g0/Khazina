@@ -1,0 +1,53 @@
+frontend\components\data\data-management-page.tsx:111: const snapshot = await getLatestQualitySnapshot(
+frontend\components\data\data-management-page.tsx:115: if (snapshot) {
+frontend\components\data\data-management-page.tsx:117: snapshot.overall_score != null
+frontend\components\data\data-management-page.tsx:118: ? `${snapshot.overall_score.toFixed(1)}%`
+frontend\components\data\data-management-page.tsx:124: snapshot.id,
+frontend\components\data\data-management-page.tsx:188: const kpis = [
+frontend\components\data\data-management-page.tsx:247: {kpis.map((kpi, index) => {
+frontend\components\data\data-management-page.tsx:251: key={kpi.label}
+frontend\components\data\data-management-page.tsx:252: label={kpi.label}
+frontend\components\data\data-management-page.tsx:253: value={kpi.value}
+frontend\components\data\data-management-page.tsx:254: hint={kpi.hint}
+frontend\components\risk\risk-detail-page.tsx:9: import { RiskAiSummary } from "@/components/risk/risk-ai-summary";
+frontend\components\risk\risk-detail-page.tsx:92: runTitle = runDetail.analysis_run.title;
+frontend\components\risk\risk-detail-page.tsx:93: const meta = runDetail.analysis_run.runtime_metadata?.ai_insights;
+frontend\components\risk\risk-page.tsx:17: import { RiskAiSummary } from "@/components/risk/risk-ai-summary";
+frontend\components\risk\risk-page.tsx:32: import { AiProgressOverlay } from "@/components/workflow/ai-progress-overlay";
+frontend\components\risk\risk-page.tsx:171: const insights = runDetail.analysis_run.runtime_metadata?.ai_insights;
+frontend\components\risk\risk-page.tsx:225: riskRunId: outcome.analysis_run.id,
+frontend\components\risk\risk-page.tsx:229: await loadRunResults(outcome.analysis_run.id);
+frontend\components\risk\risk-page.tsx:321: const kpis = [
+frontend\components\risk\risk-page.tsx:426: key={kpis[index].label}
+frontend\components\risk\risk-page.tsx:427: label={kpis[index].label}
+frontend\components\risk\risk-page.tsx:429: kpis[index].value ?? (
+frontend\components\risk\risk-page.tsx:433: hint={kpis[index].hint}
+frontend\components\simulation\simulation-page.tsx:203: const metadata = run.runtime_metadata ?? {};
+frontend\components\simulation\simulation-page.tsx:205: typeof metadata.user_request === "string" ? metadata.user_request : null,
+frontend\components\simulation\simulation-page.tsx:207: setInterpreted(parseInterpretedScenario(metadata.interpreted_scenario));
+frontend\components\simulation\simulation-page.tsx:208: setExplanation(parseExplanation(metadata.ai_explanation));
+frontend\components\simulation\simulation-page.tsx:267: simulationAnalysisRunId: outcome.analysis_run.id,
+frontend\components\waste\waste-breakdown-table.tsx:144: description="محرك الهدر الحالي لا ينتج انحرافات موردين من ملفات Excel في مسار العرض التنفيذي. ستُعرض النتائج هنا عند توف
+frontend\components\waste\waste-page.tsx:57: import { AiProgressOverlay } from "@/components/workflow/ai-progress-overlay";
+frontend\components\waste\waste-page.tsx:260: wasteRunId: decision.analysis_run.id,
+frontend\components\waste\waste-page.tsx:265: await loadResults(decision.analysis_run.id);
+frontend\components\waste\waste-page.tsx:315: const kpis = [
+frontend\components\waste\waste-page.tsx:350: <WorkflowIndicator activeStageId={ready && !artifacts.aiRecommendationsReady ? "ai" : "waste"} />
+frontend\components\waste\waste-page.tsx:440: {kpis.map((kpi, index) => {
+frontend\components\waste\waste-page.tsx:444: key={kpi.label}
+frontend\components\waste\waste-page.tsx:445: label={kpi.label}
+frontend\components\waste\waste-page.tsx:447: kpi.value ?? (
+frontend\components\waste\waste-page.tsx:453: hint={kpi.hint}
+frontend\components\workflow\ai-progress-overlay.tsx:61: aria-labelledby="ai-progress-title"
+frontend\components\workflow\ai-progress-overlay.tsx:62: aria-describedby="ai-progress-description"
+frontend\components\workflow\ai-progress-overlay.tsx:72: id="ai-progress-title"
+frontend\components\workflow\ai-progress-overlay.tsx:77: <p id="ai-progress-description" className="text-sm leading-relaxed text-muted">
+frontend\components\workflow\index.ts:3: export { AiProgressOverlay } from "@/components/workflow/ai-progress-overlay";
+frontend\components\workflow\system-status-banner.tsx:52: const ai = await getAiHealth();
+frontend\components\workflow\system-status-banner.tsx:53: setAiStatus(ai.status);
+frontend\components\workflow\system-status-banner.tsx:54: setAiMessage(ai.message);
+frontend\lib\workflow\messages.ts:70: if (lower.includes("internal server error")) {
+frontend\lib\workflow\messages.ts:74: if (lower.includes("validation error") || lower.includes("validation failed")) {
+frontend\lib\workflow\pipeline.ts:7: | "ai"
+frontend\lib\workflow\pipeline.ts:32: id: "ai",
+frontend\lib\workflow\pipeline.ts:66: case "ai":

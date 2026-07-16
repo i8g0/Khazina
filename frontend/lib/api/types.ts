@@ -152,6 +152,51 @@ export interface ScenarioExecuteResponse {
   archetype: string;
 }
 
+export interface InterpretedScenarioPayload {
+  scenario_type: string;
+  title_ar: string;
+  summary_ar: string;
+  target_amount?: number | null;
+  currency?: string;
+  horizon_quarters?: number;
+  actions: {
+    action_type: string;
+    mode?: string;
+    value?: number | null;
+    amount?: number | null;
+    category?: string | null;
+    department?: string | null;
+    description?: string;
+  }[];
+  assumptions?: string[];
+  confidence?: number;
+}
+
+export interface SimulationExplanationPayload {
+  executive_summary: string;
+  expected_impact: string;
+  financial_changes: string;
+  risks: string;
+  benefits: string;
+  confidence: string;
+  assumptions: string;
+  board_recommendation: string;
+  next_actions?: string[];
+}
+
+export interface AISimulationExecuteResponse {
+  analysis_run: AnalysisRunResponse;
+  simulation_run: { id: string; scenario_id: string };
+  user_request: string;
+  interpreted_scenario: InterpretedScenarioPayload;
+  ai_explanation: SimulationExplanationPayload;
+  facts_contract_version: string;
+  engine_id: string;
+  engine_version: string;
+  snapshot_id: string;
+  snapshot_version: number;
+}
+
 export interface SimulationForecastSummaryResponse {
   baseline_label: string;
   baseline_value: string;
@@ -212,6 +257,7 @@ export interface ReportResponse {
   created_at: string;
   department_id: string | null;
   source_file_id: string | null;
+  analysis_run_id: string | null;
 }
 
 export interface ReportContentResponse {

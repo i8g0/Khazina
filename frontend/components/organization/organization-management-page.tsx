@@ -230,7 +230,7 @@ export function OrganizationManagementPage() {
           />
 
           <p className="text-sm text-muted">
-            إعدادات التشغيل والذكاء الاصطناعي في{" "}
+            إعدادات التشغيل والتوصيات في{" "}
             <Link href="/settings" className="text-gold-dark underline">
               الإعدادات
             </Link>

@@ -113,7 +113,7 @@ class ReportContentRepresentation:
                 text = section.payload.get("text")
                 if isinstance(text, str) and text.strip():
                     return text.strip()
-        return "Executive report summary unavailable."
+        return "الملخص التنفيذي غير متوفر — أكمل التحليل المالي ثم أعد إعداد التقرير."
 
 
 def canonical_serialize(content: ReportContentRepresentation | dict[str, Any]) -> str:

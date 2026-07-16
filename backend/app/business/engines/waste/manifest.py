@@ -10,7 +10,7 @@ ENGINE_VERSION = "1.0.0"
 ENGINE_DESCRIPTION = (
     "Deterministic financial waste analysis — cost leakage and inefficiency metrics"
 )
-FACTS_CONTRACT_VERSION = "1.0"
+FACTS_CONTRACT_VERSION = "1.1"
 
 SUPPORTED_FACTS: tuple[str, ...] = (
     "waste.total_amount",
@@ -23,6 +23,12 @@ SUPPORTED_FACTS: tuple[str, ...] = (
     "waste.category_percentage",
     "waste.overall_level",
     "waste.category_level",
+    "waste.reporting_period",
+    "waste.category_count",
+    "waste.currency",
+    "waste.evidence_source",
+    "waste.financial_impact",
+    "waste.savings_opportunity",
 )
 
 WASTE_ENGINE_MANIFEST = EngineManifest(

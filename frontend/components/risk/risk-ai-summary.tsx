@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { sanitizeExecutiveText } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export interface RiskAiSummaryProps {
@@ -23,7 +24,12 @@ export function RiskAiSummary({
     { title: "الموجز التنفيذي", body: executiveBrief },
     { title: "شرح المخاطر", body: explanation },
     { title: "تقرير مجلس الإدارة", body: boardReport },
-  ].filter((section) => Boolean(section.body?.trim()));
+  ]
+    .map((section) => ({
+      ...section,
+      body: section.body ? sanitizeExecutiveText(section.body) : section.body,
+    }))
+    .filter((section) => Boolean(section.body?.trim()));
 
   if (sections.length === 0) {
     return null;
@@ -41,8 +47,10 @@ export function RiskAiSummary({
           <Sparkles className="h-[18px] w-[18px]" strokeWidth={1.75} />
         </span>
         <div>
-          <h3 className="text-lg font-semibold text-black-primary">ملخص الذكاء الاصطناعي</h3>
-          <p className="text-xs text-muted">شرح وتوصيات — المصدر الحتمي للدرجات هو محرك المخاطر</p>
+          <h3 className="text-lg font-semibold text-black-primary">ملخص المخاطر</h3>
+          <p className="text-xs text-muted">
+            ملخص للإدارة العليا — الدرجات مستمدة من التحليل المالي المعتمد
+          </p>
         </div>
       </div>
       <div className="space-y-5">

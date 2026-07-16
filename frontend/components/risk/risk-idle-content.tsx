@@ -54,7 +54,7 @@ export function RiskIdleContent({
       ) : (
         <div className="flex flex-wrap gap-3">
           <Button asChild>
-            <Link href={navRouteMap.data}>الانتقال إلى مستودع البيانات</Link>
+            <Link href={navRouteMap.data}>الانتقال إلى مركز البيانات المالية</Link>
           </Button>
         </div>
       )}

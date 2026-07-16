@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.ai_recommendations.exceptions import AiRecommendationError
-from app.business.facts.contract import CONTRACT_VERSION, FactsContract
+from app.business.facts.contract import SUPPORTED_CONTRACT_VERSIONS, FactsContract
 
 
 def load_facts_contract(
@@ -31,11 +31,11 @@ def load_facts_contract(
             "invalid_facts_contract",
             "Facts Contract payload cannot be rehydrated",
         ) from exc
-    if contract.contract_version != CONTRACT_VERSION:
+    if contract.contract_version not in SUPPORTED_CONTRACT_VERSIONS:
         raise AiRecommendationError(
             "invalid_facts_contract",
             f"Unsupported contract_version '{contract.contract_version}'",
-            {"expected": CONTRACT_VERSION},
+            {"expected": sorted(SUPPORTED_CONTRACT_VERSIONS)},
         )
     if contract.engine_id != expected_engine_id:
         raise AiRecommendationError(

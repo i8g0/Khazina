@@ -64,6 +64,8 @@ def _service(
         r, "runtime_metadata", values["runtime_metadata"]
     ) or r
     waste_repo.get_result_for_run.return_value = waste_result or MagicMock()
+    waste_repo.list_category_breakdowns.return_value = []
+    waste_repo.list_vendor_findings.return_value = []
     recommendation_repo.list_for_analysis_run.return_value = []
     recommendation_repo.create.side_effect = lambda rec: rec
 
@@ -90,7 +92,7 @@ def test_generate_success(
 
     assert outcome.ai_insights["executive_summary"]
     assert outcome.ai_insights["risk_explanation"]
-    assert outcome.ai_insights["prompt_version"] == "1.0"
+    assert outcome.ai_insights["prompt_version"] == "1.2"
     assert outcome.ai_insights["source_snapshot_id"] == str(snapshot_id)
     assert len(outcome.recommendations) == 3
     assert run.runtime_metadata["ai_insights"]

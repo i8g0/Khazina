@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.ai.health import check_ollama_health
+from app.ai.health import check_ai_provider_health
 from app.db.session import check_database_connection
 
 
@@ -37,7 +37,7 @@ def check_system_health() -> SystemHealthResult:
             message=f"Database unavailable: {exc}",
         )
 
-    ai_result = check_ollama_health()
+    ai_result = check_ai_provider_health()
     ai = ComponentHealth(
         status=ai_result.status,
         message=ai_result.message,

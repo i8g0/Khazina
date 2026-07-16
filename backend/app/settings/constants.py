@@ -11,7 +11,7 @@ DEFAULT_DATE_DISPLAY_FORMAT = "gregorian"
 DEFAULT_CURRENCY_DISPLAY_CODE = "SAR"
 
 DEFAULT_ANALYSIS_TITLE_TEMPLATE = "{analysis_type} — {reporting_period_label}"
-DEFAULT_REPORT_TITLE_TEMPLATE = "Executive Report — {analysis_type}"
+DEFAULT_REPORT_TITLE_TEMPLATE = "تقرير تنفيذي — {analysis_type}"
 
 DEFAULT_ENABLED_ANALYSIS_TYPES: frozenset[str] = frozenset(
     {
@@ -53,9 +53,14 @@ DEFAULT_PDF_INCLUDE_PROVENANCE_APPENDIX = True
 
 FORBIDDEN_SETTINGS_KEYS: frozenset[str] = frozenset(
     {
+        "ai_provider",
         "ollama_model",
         "ollama_url",
+        "cloud_ai_base_url",
+        "cloud_ai_model",
+        "cloud_ai_api_key",
         "ai_timeout",
+        "ai_temperature",
         "thinking_enabled",
         "prompt_version",
     }

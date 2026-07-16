@@ -39,14 +39,14 @@ export async function apiRequest<T>(
   });
 
   if (response.status === 401) {
-    throw new ApiError(401, "غير مصرح — يرجى تسجيل الدخول");
+    throw new ApiError(401, "يرجى تسجيل الدخول للمتابعة");
   }
 
   const contentType = response.headers.get("content-type") ?? "";
   if (contentType.includes("application/pdf")) {
     throw new ApiError(
       response.status,
-      "توقّع استجابة JSON وليس PDF — استخدم downloadBinary",
+      "تعذّر تحميل التقرير — أعد المحاولة",
     );
   }
 
@@ -54,13 +54,13 @@ export async function apiRequest<T>(
   try {
     envelope = (await response.json()) as ApiResponse<T>;
   } catch {
-    throw new ApiError(response.status, "استجابة غير صالحة من الخادم");
+    throw new ApiError(response.status, "تعذّر قراءة الرد — أعد المحاولة");
   }
 
   if (!response.ok || !envelope.success) {
     throw new ApiError(
       response.status,
-      envelope.message || "فشل الطلب",
+      envelope.message || "تعذّر إتمام الطلب",
       envelope.errors,
     );
   }
@@ -83,7 +83,7 @@ export async function downloadBinary(
     headers: buildHeaders(token),
   });
   if (response.status === 401) {
-    throw new ApiError(401, "غير مصرح — يرجى تسجيل الدخول");
+    throw new ApiError(401, "يرجى تسجيل الدخول للمتابعة");
   }
   if (!response.ok) {
     throw new ApiError(response.status, "فشل تنزيل الملف");

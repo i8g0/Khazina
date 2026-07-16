@@ -163,6 +163,7 @@ export function mapRecommendation(rec: RecommendationResponse): RiskRecommendati
       typeof rec.source_context?.recommendation_category === "string"
         ? rec.source_context.recommendation_category
         : undefined,
+    source_context: rec.source_context ?? null,
   };
 }
 

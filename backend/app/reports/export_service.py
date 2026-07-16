@@ -93,7 +93,7 @@ class ReportExportService(BaseService):
             report_prefs.pdf_include_cover_page if report_prefs else True
         )
         include_provenance = (
-            report_prefs.pdf_include_provenance_appendix if report_prefs else True
+            report_prefs.pdf_include_provenance_appendix if report_prefs else False
         )
         prefs_fp = preferences_fingerprint(
             report_language=report_language,

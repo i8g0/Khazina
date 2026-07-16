@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 import time
 import uuid
+
+from app.ai.execution_trace import begin_trace
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -12,6 +14,8 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.ai.client import OllamaClient
+from app.ai.providers.base import AIProvider
+from app.ai.providers.factory import create_ai_provider
 from app.ai.prompts.tasks import PromptTask
 from app.ai_recommendations.constants import TASK_EXECUTION_ORDER
 from app.ai_recommendations.exceptions import AiRecommendationError
@@ -32,6 +36,7 @@ from app.ai_recommendations.mapper import (
 )
 from app.ai_recommendations.pipeline import AiTaskPipeline, TaskExecutionResult
 from app.ai_recommendations.validator import validate_task_results
+from app.ai_recommendations.waste_metadata import build_waste_metadata_supplement
 from app.business.facts.contract import FactsContract
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -78,6 +83,7 @@ class AiRecommendationService(BaseService):
         *,
         risk_analysis_repository: RiskAnalysisRepository | None = None,
         task_pipeline: AiTaskPipeline | None = None,
+        ai_provider: AIProvider | None = None,
         ollama_client: OllamaClient | None = None,
         settings_service: SettingsService | None = None,
         notification_builder: NotificationBuilder | None = None,
@@ -87,13 +93,13 @@ class AiRecommendationService(BaseService):
         self._waste = waste_repository
         self._risk_analysis = risk_analysis_repository
         self._recommendation_repo = recommendation_repository
-        self._model_name = settings.ai.ollama_model
+        self._model_name = settings.ai.active_model
         self._settings = settings_service
         self._notifications = notification_builder
-        client = ollama_client or OllamaClient(settings.ai)
+        client = ai_provider or ollama_client or create_ai_provider(settings.ai)
         self._pipeline = task_pipeline or AiTaskPipeline(
-            ollama_client=client,
-            ollama_model=self._model_name,
+            llm_client=client,
+            llm_model=self._model_name,
             prompt_language=settings.ai.default_prompt_language,
         )
 
@@ -128,6 +134,7 @@ class AiRecommendationService(BaseService):
             inherited=load_pipeline_timeline(metadata),
         )
         pipeline_started = time.perf_counter()
+        trace = begin_trace(str(analysis_run_id), "waste")
         timeline.start_stage(PipelineStage.AI_STARTED)
         log_pipeline_event(
             logger,
@@ -140,7 +147,25 @@ class AiRecommendationService(BaseService):
 
         try:
             facts = load_facts_contract(metadata)
-            task_results = self._execute_tasks(facts, prompt_language=prompt_language)
+            trace.mark("facts_loaded")
+            breakdowns = self._waste.list_category_breakdowns(analysis_run_id)
+            vendors = self._waste.list_vendor_findings(analysis_run_id)
+            supplement = build_waste_metadata_supplement(
+                metadata,
+                facts_contract=facts,
+                gold_breakdowns=breakdowns,
+                gold_vendors=vendors,
+            )
+            trace.mark(
+                "settings_resolved",
+                detail=f"lang={prompt_language} parallel={settings.ai.parallel_tasks_enabled} provider={settings.ai.ai_provider}",
+            )
+            task_results = self._execute_tasks(
+                facts,
+                prompt_language=prompt_language,
+                prompt_supplement=supplement,
+            )
+            trace.mark("llm_tasks_completed", detail=f"count={len(task_results)}")
             validate_task_results(task_results)
             generated_at = datetime.now(timezone.utc)
 
@@ -173,6 +198,7 @@ class AiRecommendationService(BaseService):
                 metadata["ai_insights"] = ai_insights
                 metadata["pipeline_timeline"] = timeline.to_list()
                 updated = self._analyses.update(run, {"runtime_metadata": metadata})
+            trace.mark("persistence_completed")
         except Exception as exc:
             category = classify_exception(exc)
             timeline.fail_stage(PipelineStage.AI_COMPLETED, exc)
@@ -200,6 +226,7 @@ class AiRecommendationService(BaseService):
             analysis_run_id=str(analysis_run_id),
             duration_ms=round((time.perf_counter() - pipeline_started) * 1000, 2),
         )
+        trace.mark("service_completed")
 
         try_materialize(
             self._notifications,
@@ -258,6 +285,7 @@ class AiRecommendationService(BaseService):
             inherited=load_pipeline_timeline(metadata),
         )
         pipeline_started = time.perf_counter()
+        trace = begin_trace(str(analysis_run_id), "risk")
         timeline.start_stage(PipelineStage.AI_STARTED)
         log_pipeline_event(
             logger,
@@ -272,11 +300,16 @@ class AiRecommendationService(BaseService):
         try:
             facts = load_risk_facts_contract(metadata)
             supplement = build_risk_metadata_supplement(metadata)
+            trace.mark(
+                "preflight_completed",
+                detail=f"parallel={settings.ai.parallel_tasks_enabled} provider={settings.ai.ai_provider}",
+            )
             task_results = self._execute_risk_tasks(
                 facts,
                 prompt_language=prompt_language,
                 prompt_supplement=supplement,
             )
+            trace.mark("llm_tasks_completed", detail=f"count={len(task_results)}")
             validate_risk_task_results(task_results)
             generated_at = datetime.now(timezone.utc)
 
@@ -342,6 +375,7 @@ class AiRecommendationService(BaseService):
             duration_ms=round((time.perf_counter() - pipeline_started) * 1000, 2),
             recommendation_count=len(recommendations),
         )
+        trace.mark("service_completed")
 
         try_materialize(
             self._notifications,
@@ -384,18 +418,14 @@ class AiRecommendationService(BaseService):
         prompt_language: str,
         prompt_supplement: str,
     ) -> tuple[TaskExecutionResult, ...]:
-        results: list[TaskExecutionResult] = []
-        for task in RISK_TASK_EXECUTION_ORDER:
-            results.append(
-                self._pipeline.execute_task(
-                    facts_contract,
-                    task,
-                    domain="risk",
-                    prompt_language=prompt_language,
-                    prompt_supplement=prompt_supplement,
-                )
-            )
-        return tuple(results)
+        return self._pipeline.execute_tasks(
+            facts_contract,
+            RISK_TASK_EXECUTION_ORDER,
+            domain="risk",
+            prompt_language=prompt_language,
+            prompt_supplement=prompt_supplement,
+            parallel=settings.ai.parallel_tasks_enabled,
+        )
 
     def _build_risk_traceability(
         self, run: AnalysisRun, metadata: dict[str, Any]
@@ -467,18 +497,16 @@ class AiRecommendationService(BaseService):
         facts_contract: FactsContract,
         *,
         prompt_language: str,
+        prompt_supplement: str | None = None,
     ) -> tuple[TaskExecutionResult, ...]:
-        results: list[TaskExecutionResult] = []
-        for task in TASK_EXECUTION_ORDER:
-            results.append(
-                self._pipeline.execute_task(
-                    facts_contract,
-                    task,
-                    domain="waste",
-                    prompt_language=prompt_language,
-                )
-            )
-        return tuple(results)
+        return self._pipeline.execute_tasks(
+            facts_contract,
+            TASK_EXECUTION_ORDER,
+            domain="waste",
+            prompt_language=prompt_language,
+            prompt_supplement=prompt_supplement,
+            parallel=settings.ai.parallel_tasks_enabled,
+        )
 
     def _create_recommendation(
         self,

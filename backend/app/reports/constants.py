@@ -4,7 +4,7 @@ from __future__ import annotations
 
 BUILDER_VERSION = "1.0.0"
 REPORT_DOCUMENT_VERSION = "1.0"
-PDF_RENDERER_VERSION = "1.0"
+PDF_RENDERER_VERSION = "2.1"
 EXPORT_FORMAT_PDF = "pdf"
 
 PROFILE_WASTE_DECISION = "waste_decision"
@@ -14,6 +14,7 @@ PROFILE_RISK = "risk"
 WASTE_SECTION_ORDER: tuple[str, ...] = (
     "cover",
     "executive_summary",
+    "decision_highlights",
     "key_metrics",
     "waste_analysis",
     "risk_explanation",

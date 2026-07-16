@@ -48,35 +48,8 @@ DEMO_PASSWORD = "DemoExec2026!"
 DEMO_FULL_NAME = "المستخدم التجريبي التنفيذي"
 REPORTING_LABEL = "الربع الثاني 2026"
 
-SCENARIOS = [
-    {
-        "name": "تقليل الإنفاق 10%",
-        "description": "محاكاة خفض الإنفاق التشغيلي 10% عبر جميع الأقسام",
-        "assumptions": [
-            {"label": "نسبة خفض الإنفاق", "value": "10%"},
-            {"label": "الأفق الزمني", "value": "3 أرباع"},
-        ],
-    },
-    {
-        "name": "دمج الموردين",
-        "description": "محاكاة دمج 5 موردين إلى 3",
-        "assumptions": [
-            {"label": "عدد الموردين قبل الدمج", "value": "5"},
-            {"label": "عدد الموردين بعد الدمج", "value": "3"},
-            {"label": "توفير إداري متوقع", "value": "5%"},
-            {"label": "الأفق الزمني", "value": "3 أرباع"},
-        ],
-    },
-    {
-        "name": "توسع السوق الخليجي",
-        "description": "محاكاة زيادة 15% في الإيرادات مع تكلفة توسع",
-        "assumptions": [
-            {"label": "نمو الإيرادات المتوقع", "value": "15%"},
-            {"label": "تكلفة التوسع", "value": "2500000"},
-            {"label": "الأفق الزمني", "value": "3 أرباع"},
-        ],
-    },
-]
+# Sprint 5: AI-native simulation — no hardcoded preset scenarios.
+SCENARIOS: list[dict] = []
 
 
 def _build_services(session):

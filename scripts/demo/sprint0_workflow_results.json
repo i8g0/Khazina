@@ -1,0 +1,56 @@
+{
+  "started_at": "2026-07-16T22:05:37.154448+00:00",
+  "workbook": "C:\\Users\\ASUS\\OneDrive\\\u0627\u0644\u0635\u0648\u0631\\\u0633\u0637\u062d \u0627\u0644\u0645\u0643\u062a\u0628\\Khazina-MVP\\Khazina\\Khazina_Demo_Dataset_v2.xlsx",
+  "steps": {
+    "login": {
+      "org_id": "7dd234e7-58dd-4844-a38e-92a4fa67d0ed",
+      "ms": 261.25
+    },
+    "upload": {
+      "file_id": "ae2f2d0e-f800-4fee-a776-275245f46e5a",
+      "snapshot_id": "0b1a9ef2-ea9f-4c5d-9096-d361f9c125cc",
+      "status": "ready_for_analysis",
+      "ms": 518.35
+    },
+    "waste": {
+      "run_id": "1c30bed9-206e-4ffe-a6fe-f9ded17ccf60",
+      "total": 5960000.0,
+      "pct": 7.59,
+      "ms": 80.1
+    },
+    "waste_ai": {
+      "count": 5,
+      "ms": 20627.03
+    },
+    "risk_1": {
+      "run_id": "afb247aa-7d0a-42b7-8311-b879c46034fe",
+      "findings": 3,
+      "posture": "moderate",
+      "ms": 54.96
+    },
+    "risk_2": {
+      "run_id": "b57a494b-1938-463e-9096-0e5cec486d91",
+      "findings": 3,
+      "posture": "moderate",
+      "ms": 45.23
+    },
+    "risk_ai": {
+      "count": 5,
+      "ms": 7542.38
+    },
+    "simulation": {
+      "run_id": "9db16104-3618-4cac-983b-727541fdb5cb",
+      "ms": 9545.85
+    },
+    "report": {
+      "id": "65266184-5e04-4fea-bb9d-a4eadfda74c9",
+      "ms": 64.29
+    },
+    "pdf": {
+      "bytes": 24781,
+      "ms": 149.17
+    }
+  },
+  "ok": true,
+  "finished_at": "2026-07-16T22:06:17.636290+00:00"
+}

@@ -23,6 +23,7 @@ from app.decision.adapters.waste_v1 import WasteSnapshotAdapterV1
 from app.decision.exceptions import SnapshotAdapterError
 from app.decision.mappers.risk_metadata import RiskMetadataMapper
 from app.decision.mappers.waste_gold import WasteGoldMapper
+from app.presentation.waste_category_labels import waste_category_label_ar
 from app.repositories import (
     AnalysisRepository,
     FinancialRepository,
@@ -173,12 +174,33 @@ class DecisionService(BaseService):
             facts = engine.run(engine_input)
             gold_payload = WasteGoldMapper.to_record_payload(facts)
             self._waste.record_result(organization_id, run.id, **gold_payload)
+            org = self._organizations.get_organization(organization_id)
+            waste_gold_context = {
+                "organization_name": org.name if org else None,
+                "reporting_period_label": period_label or engine_input.period,
+                "total_waste_amount": gold_payload["total_waste_amount"],
+                "waste_percentage": gold_payload["waste_percentage"],
+                "potential_savings_amount": gold_payload.get("potential_savings_amount"),
+                "top_category_name": gold_payload.get("top_category_name"),
+                "top_category_percentage": gold_payload.get("top_category_percentage"),
+                "category_breakdowns": [
+                    {
+                        **item,
+                        "category_label_ar": waste_category_label_ar(item["category_name"]),
+                    }
+                    for item in gold_payload.get("category_breakdowns", [])
+                ],
+                "vendor_findings": [],
+                "evidence_source": "Financial Snapshot",
+                "confidence": "deterministic_engine",
+            }
             timeline.complete_stage(PipelineStage.WASTE_ANALYSIS_COMPLETED)
             completed = self._analysis.complete_run(
                 organization_id,
                 run.id,
                 success_metadata={
                     "facts_contract": facts.to_dict(),
+                    "waste_gold_context": waste_gold_context,
                     "pipeline_timeline": timeline.to_list(),
                 },
                 initiating_user_id=initiating_user_id,

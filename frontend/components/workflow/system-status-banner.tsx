@@ -85,7 +85,7 @@ export function SystemStatusBanner({ className }: { className?: string }) {
             status={databaseStatus}
             message={databaseMessage}
           />
-          <StatusChip label="الذكاء الاصطناعي" status={aiStatus} message={aiMessage} />
+          <StatusChip label="التوصيات الذكية" status={aiStatus} message={aiMessage} />
         </div>
       </div>
     </section>

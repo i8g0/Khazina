@@ -120,7 +120,7 @@ export function RiskFindingsTable({
             ) : null}
             {canPromote ? (
               <Button size="sm" disabled={busy} onClick={() => onPromote(row.id)}>
-                ترقية للسجل
+                إضافة إلى سجل المخاطر
               </Button>
             ) : null}
             {row.promotedRiskId ? (

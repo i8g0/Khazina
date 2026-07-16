@@ -7,7 +7,7 @@ from app.business.facts.contract import Fact
 
 
 def fact_to_prompt_fact(fact: Fact) -> PromptFact:
-    """Deterministic adapter — no transformation of values."""
+    """Deterministic adapter — preserves executive dimensions for evidence blocks."""
     return PromptFact(
         domain=fact.domain,
         metric=fact.metric,
@@ -16,4 +16,7 @@ def fact_to_prompt_fact(fact: Fact) -> PromptFact:
         severity=fact.severity,
         confidence=fact.confidence,
         source=fact.source,
+        period=fact.period,
+        organization_id=fact.organization_id,
+        metadata=dict(fact.metadata or {}),
     )

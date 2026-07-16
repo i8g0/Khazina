@@ -80,6 +80,7 @@ def test_assemble_waste_sections_includes_required_keys() -> None:
     assert keys >= {
         "cover",
         "executive_summary",
+        "decision_highlights",
         "key_metrics",
         "waste_analysis",
         "risk_explanation",

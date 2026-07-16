@@ -1,28 +1,28 @@
-/** Executive-facing copy — no infrastructure or developer terminology. */
+/** Executive-facing copy — board-ready financial intelligence language. */
 
 export const EXECUTIVE_MESSAGES = {
   dashboardKpiEmpty:
     "ستظهر المؤشرات التنفيذية بعد إكمال تحليل مالي واحد على الأقل.",
   dashboardKpiSection:
-    "ملخص تنفيذي — يُحدَّث تلقائياً بعد اكتمال التحليلات المالية.",
+    "ملخص تنفيذي — يُحدَّث بعد اكتمال التحليلات المالية.",
   dashboardKpiHint: "بانتظار التحليل المالي",
   chartDepartmentEmpty:
     "سيظهر توزيع الهدر حسب الإدارة بعد إكمال تحليلات مالية كافية.",
   chartTrendEmpty:
     "سيظهر اتجاه الهدر الزمني بعد إكمال تحليلات مالية كافية.",
   aiUnavailable:
-    "خدمة الذكاء الاصطناعي غير متاحة حالياً. أعد المحاولة بعد قليل أو تواصل مع مسؤول المنصة.",
+    "خدمة التوصيات الذكية غير متاحة حالياً. أعد المحاولة بعد قليل أو تواصل مع فريق الدعم.",
   aiHealthCheckFailed:
-    "تعذّر التحقق من جاهزية الذكاء الاصطناعي. أعد المحاولة بعد قليل.",
+    "تعذّر التحقق من جاهزية خدمة التوصيات. أعد المحاولة بعد قليل.",
   uploadPrimaryHint:
-    "نقطة البداية الموصى بها — ارفع ملفك المالي هنا لبدء مسار التحليل.",
+    "ابدأ برفع بياناتك المالية لإطلاق التحليل.",
   uploadQuickHint:
-    "رفع سريع: للمستخدمين المتقدمين — يرفع الملف ويشغّل التحليل مباشرة دون المرور بالمستودع.",
-  dataUploadNext: "التالي: تحليل الهدر",
+    "رفع مباشر: يرفع الملف ويبدأ التحليل فوراً دون المرور بمركز البيانات.",
+  dataUploadNext: "التالي: كشف الهدر",
   simulationDemoHint:
-    "للعرض التجريبي: اختر أحد السيناريوهات الجاهزة ثم اضغط «تشغيل السيناريو».",
+    "صف السيناريو الذي تريد اختباره — سنحسب أثره المالي ونعرض النتائج.",
   usersApiLimit:
-    "لا تتوفر دعوة المستخدمين أو إعادة تفعيلهم من هذه الشاشة — التعطيل متاح فقط.",
+    "لا يمكن إضافة مستخدمين أو إعادة تفعيلهم من هنا — يمكنك تعطيل الحسابات فقط.",
 } as const;
 
 export function humanizeErrorMessage(message: string): string {
@@ -42,12 +42,13 @@ export function humanizeErrorMessage(message: string): string {
   }
 
   if (lower.includes("timeout") || lower.includes("timed out")) {
-    return "انتهت مهلة الانتظار. قد تكون العملية ما زالت قيد التنفيذ — أعد المحاولة بعد قليل.";
+    return "استغرقت العملية وقتاً أطول من المتوقع. قد تكون ما زالت جارية — أعد المحاولة بعد قليل.";
   }
 
   if (
     lower.includes("ollama") ||
     lower.includes("qwen") ||
+    lower.includes("openai") ||
     lower.includes("model")
   ) {
     return EXECUTIVE_MESSAGES.aiUnavailable;
@@ -60,9 +61,26 @@ export function humanizeErrorMessage(message: string): string {
   if (
     lower.includes("database") ||
     lower.includes("postgres") ||
+    lower.includes("sqlalchemy") ||
     lower.includes("sql")
   ) {
-    return "تعذّر الوصول إلى بيانات المنصة. أعد المحاولة بعد قليل.";
+    return "تعذّر الوصول إلى بياناتك. أعد المحاولة بعد قليل.";
+  }
+
+  if (lower.includes("internal server error")) {
+    return "تعذّر إتمام العملية. أعد المحاولة بعد قليل.";
+  }
+
+  if (lower.includes("validation error") || lower.includes("validation failed")) {
+    return "يرجى مراجعة البيانات المدخلة وإكمال الحقول المطلوبة.";
+  }
+
+  if (lower.includes("forbidden") || lower.includes("403")) {
+    return "ليس لديك صلاحية لتنفيذ هذا الإجراء.";
+  }
+
+  if (lower.includes("not found") || lower.includes("404")) {
+    return "البيانات المطلوبة غير متوفرة.";
   }
 
   if (/\bapi\b/i.test(trimmed) || lower.includes(" aggregation")) {
@@ -72,5 +90,13 @@ export function humanizeErrorMessage(message: string): string {
       .replace(/aggregation/gi, "تحليل");
   }
 
-  return trimmed;
+  return trimmed
+    .replace(/\bJSON\b/gi, "")
+    .replace(/\bUUID\b/gi, "")
+    .replace(/\bsnapshot\b/gi, "البيانات المالية")
+    .replace(/\banalysis_run\b/gi, "التحليل")
+    .replace(/\bmetadata\b/gi, "")
+    .replace(/\bSprint\s*\d+\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }

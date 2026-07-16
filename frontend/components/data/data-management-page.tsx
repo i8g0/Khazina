@@ -42,7 +42,7 @@ import {
   listQualityChecks,
   uploadFinancialFile,
 } from "@/lib/api/khazina-api";
-import { beginNewFinancialDataset } from "@/lib/demo/state";
+import { beginNewFinancialDataset, registerNewFinancialFile } from "@/lib/demo/state";
 import { formatDate, mapProcessingStatus } from "@/lib/format";
 
 const summaryIcons = [FileStack, Database, HardDrive, FileCheck2];
@@ -167,6 +167,8 @@ export function DataManagementPage() {
           snapshotId: outcome.financial_snapshot.id,
           snapshotVersion: outcome.financial_snapshot.snapshot_version,
         });
+      } else {
+        registerNewFinancialFile(outcome.financial_file.id);
       }
       setUploadMessage(
         `تم رفع ${file.name} — الحالة: ${mapProcessingStatus(outcome.financial_file.processing_status)}`,
@@ -184,7 +186,7 @@ export function DataManagementPage() {
   ).length;
 
   const kpis = [
-    { label: "الملفات المرفوعة", value: String(files.length), hint: "مستودع البيانات" },
+    { label: "الملفات المرفوعة", value: String(files.length), hint: "مركز البيانات المالية" },
     { label: "جاهزة للتحليل", value: String(readyCount), hint: "حالة المعالجة" },
     { label: "آخر رفع", value: files[0]?.uploadDate ?? "لا يوجد رفع بعد", hint: files[0]?.fileName ?? "لا يوجد ملف" },
     { label: "جودة البيانات", value: qualityScore, hint: "آخر تقييم محفوظ" },
@@ -198,7 +200,7 @@ export function DataManagementPage() {
   return (
     <AppLayout
       brand={<DashboardBrand />}
-      title="مستودع البيانات"
+      title="مركز البيانات المالية"
       subtitle={org.reportingPeriod ?? undefined}
       activeItemId="data"
       sidebarVariant="executive"
@@ -208,7 +210,7 @@ export function DataManagementPage() {
       <PageContainer className={executivePageContainerClassName}>
         <div className={executivePageSpacingClassName}>
           <PageHero
-            title="مستودع البيانات المالية"
+            title="مركز البيانات المالية المالية"
             description={`${org.name} — نقطة البداية الموصى بها لرفع البيانات وبدء مسار التحليل التنفيذي.`}
             period={org.reportingPeriod}
           />

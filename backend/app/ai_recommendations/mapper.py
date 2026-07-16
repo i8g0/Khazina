@@ -9,6 +9,7 @@ from typing import Any
 from app.ai.prompts.tasks import PromptTask
 from app.ai.prompts.version import PROMPT_VERSION
 from app.ai_recommendations.constants import NARRATIVE_KEY_BY_TASK
+from app.ai_recommendations.evidence_validator import validate_waste_recommendations
 from app.ai_recommendations.exceptions import AiRecommendationError
 from app.ai_recommendations.pipeline import TaskExecutionResult
 from app.ai_recommendations.recommendation_parser import (
@@ -17,6 +18,7 @@ from app.ai_recommendations.recommendation_parser import (
 )
 from app.business.facts.contract import FactsContract
 from app.db.models.enums import RecommendationDomain, RecommendationPriority
+from app.presentation.executive_sanitize import sanitize_executive_text
 
 
 def build_ai_insights_payload(
@@ -36,9 +38,9 @@ def build_ai_insights_payload(
         key = NARRATIVE_KEY_BY_TASK[result.task]
         narrative[key] = _narrative_entry(result, model_name, ts)
         if result.task == PromptTask.EXECUTIVE_SUMMARY:
-            executive_summary = result.parsed_response.text
+            executive_summary = sanitize_executive_text(result.parsed_response.text)
         elif result.task == PromptTask.RISK_ANALYSIS:
-            risk_explanation = result.parsed_response.text
+            risk_explanation = sanitize_executive_text(result.parsed_response.text)
 
     if not executive_summary or not risk_explanation:
         raise AiRecommendationError(
@@ -76,9 +78,10 @@ def map_recommendation_payloads(
     payloads: list[dict[str, Any]] = []
     for item in items:
         priority = _to_recommendation_priority(item.priority)
+        executive_ctx = item.executive.to_dict() if item.executive else None
         payload: dict[str, Any] = {
-            "title": item.title,
-            "description": item.description,
+            "title": sanitize_executive_text(item.title),
+            "description": sanitize_executive_text(item.description),
             "priority": priority.value,
             "domain_source": RecommendationDomain.WASTE.value,
             "analysis_run_id": analysis_run_id,
@@ -93,6 +96,7 @@ def map_recommendation_payloads(
                 "item_index": item.index,
                 "facts_contract_version": facts_contract.contract_version,
                 "engine_id": facts_contract.engine_id,
+                "executive": executive_ctx,
             },
         }
         payloads.append(payload)
@@ -106,6 +110,7 @@ def parse_and_map_recommendations(
     model_name: str,
 ) -> list[dict[str, Any]]:
     items = parse_recommendations_text(task_result.parsed_response.text)
+    validate_waste_recommendations(items, facts_contract)
     return map_recommendation_payloads(
         items=items,
         facts_contract=facts_contract,
@@ -123,7 +128,7 @@ def _narrative_entry(
     return {
         "task": result.task.value,
         "format": result.parsed_response.format,
-        "text": result.parsed_response.text,
+        "text": sanitize_executive_text(result.parsed_response.text),
         "data": result.parsed_response.data,
         "model": model_name,
         "prompt_version": result.composed_prompt.prompt_version,

@@ -55,8 +55,13 @@ class RiskGoldMapper:
         organization_id: uuid.UUID,
         analysis_run_id: uuid.UUID,
     ) -> dict[str, Any]:
+        # Engine finding_id is deterministic (uuid5) for reproducibility within a run.
+        # Database primary keys must be unique per persisted row — reuse would violate
+        # risk_findings_pkey when the same rules fire on subsequent analyses.
+        evidence = dict(finding.evidence)
+        evidence["engine_finding_id"] = finding.finding_id
         return {
-            "id": uuid.UUID(finding.finding_id),
+            "id": uuid.uuid4(),
             "analysis_run_id": analysis_run_id,
             "organization_id": organization_id,
             "category_code": finding.category_code,
@@ -67,7 +72,7 @@ class RiskGoldMapper:
             "score": finding.score,
             "priority": finding.priority,
             "detection_rule_id": finding.detection_rule_id,
-            "evidence": dict(finding.evidence),
+            "evidence": evidence,
             "finding_status": finding.finding_status,
             "promoted_risk_id": None,
             "department_id": None,

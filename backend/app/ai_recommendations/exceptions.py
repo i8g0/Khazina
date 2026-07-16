@@ -2,20 +2,22 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any
 
 
-@dataclass(frozen=True, slots=True)
 class AiRecommendationError(Exception):
     """Deterministic AI recommendation mapping or pipeline failure."""
 
-    error_code: str
-    message: str
-    details: dict[str, Any] = field(default_factory=dict)
-
-    def __str__(self) -> str:
-        return f"{self.error_code}: {self.message}"
+    def __init__(
+        self,
+        error_code: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        self.error_code = error_code
+        self.message = message
+        self.details = details or {}
+        super().__init__(f"{error_code}: {message}")
 
     def to_failure_details(self) -> dict[str, Any]:
         return {

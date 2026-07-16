@@ -7,11 +7,13 @@ export interface DemoArtifacts {
   riskRunId: string | null;
   riskAiReady: boolean;
   simulationRunId: string | null;
+  simulationAnalysisRunId: string | null;
   lastReportId: string | null;
 }
 
 export const DEMO_ARTIFACTS_CHANGED = "khazina:demo-artifacts-changed";
 
+/** Persisted alongside auth in localStorage so run IDs survive refresh and new tabs. */
 const DEMO_KEY = "khazina_demo_artifacts";
 
 const EMPTY: DemoArtifacts = {
@@ -23,6 +25,7 @@ const EMPTY: DemoArtifacts = {
   riskRunId: null,
   riskAiReady: false,
   simulationRunId: null,
+  simulationAnalysisRunId: null,
   lastReportId: null,
 };
 
@@ -31,7 +34,7 @@ export function readDemoArtifacts(): DemoArtifacts {
     return EMPTY;
   }
   try {
-    const raw = window.sessionStorage.getItem(DEMO_KEY);
+    const raw = window.localStorage.getItem(DEMO_KEY);
     if (!raw) {
       return EMPTY;
     }
@@ -53,7 +56,7 @@ function notifyArtifactsChanged(next: DemoArtifacts): void {
 export function writeDemoArtifacts(patch: Partial<DemoArtifacts>): DemoArtifacts {
   const next = { ...readDemoArtifacts(), ...patch };
   if (typeof window !== "undefined") {
-    window.sessionStorage.setItem(DEMO_KEY, JSON.stringify(next));
+    window.localStorage.setItem(DEMO_KEY, JSON.stringify(next));
     notifyArtifactsChanged(next);
   }
   return next;
@@ -67,6 +70,7 @@ export function clearAnalysisArtifacts(): DemoArtifacts {
     riskRunId: null,
     riskAiReady: false,
     simulationRunId: null,
+    simulationAnalysisRunId: null,
     lastReportId: null,
   });
 }
@@ -89,13 +93,33 @@ export function beginNewFinancialDataset(patch: {
     riskRunId: null,
     riskAiReady: false,
     simulationRunId: null,
+    simulationAnalysisRunId: null,
+    lastReportId: null,
+  });
+}
+
+/**
+ * Reset downstream pipeline state when a new file is registered but snapshot
+ * is not yet available (async processing).
+ */
+export function registerNewFinancialFile(fileId: string): DemoArtifacts {
+  return writeDemoArtifacts({
+    fileId,
+    snapshotId: null,
+    snapshotVersion: null,
+    wasteRunId: null,
+    aiRecommendationsReady: false,
+    riskRunId: null,
+    riskAiReady: false,
+    simulationRunId: null,
+    simulationAnalysisRunId: null,
     lastReportId: null,
   });
 }
 
 export function clearDemoArtifacts(): void {
   if (typeof window !== "undefined") {
-    window.sessionStorage.removeItem(DEMO_KEY);
+    window.localStorage.removeItem(DEMO_KEY);
     notifyArtifactsChanged(EMPTY);
   }
 }

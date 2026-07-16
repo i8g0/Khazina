@@ -48,7 +48,7 @@ def test_facts_contract_immutable_and_serializable() -> None:
     json_payload = contract.to_json()
 
     assert restored == contract
-    assert '"contract_version": "1.0"' in json_payload
+    assert '"contract_version": "1.1"' in json_payload
     assert payload["engine_id"] == "waste"
     assert len(payload["facts"]) == 1
 

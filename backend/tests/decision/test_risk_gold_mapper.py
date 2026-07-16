@@ -44,7 +44,9 @@ def test_risk_gold_mapper_maps_engine_output(
     findings = payload["findings"]
     assert len(findings) == len(output.findings)
     for row, engine_finding in zip(findings, output.findings, strict=True):
-        assert row["id"] == uuid.UUID(engine_finding.finding_id)
+        assert isinstance(row["id"], uuid.UUID)
+        assert row["id"] != uuid.UUID(engine_finding.finding_id)
+        assert row["evidence"]["engine_finding_id"] == engine_finding.finding_id
         assert row["analysis_run_id"] == run_id
         assert row["organization_id"] == org_id
         assert row["category_code"] == engine_finding.category_code
@@ -58,7 +60,7 @@ def test_risk_gold_mapper_maps_engine_output(
         assert result["top_category_code"] is None
 
 
-def test_risk_gold_mapper_preserves_deterministic_ids(
+def test_risk_gold_mapper_preserves_engine_finding_ids_in_evidence(
     business_engines_initialized: None,
 ) -> None:
     engine = RiskEngine()
@@ -74,6 +76,9 @@ def test_risk_gold_mapper_preserves_deterministic_ids(
         analysis_run_id=uuid.uuid4(),
         source_snapshot_id=uuid.uuid4(),
     )
-    assert [row["id"] for row in first["findings"]] == [
+    assert [row["evidence"]["engine_finding_id"] for row in first["findings"]] == [
+        row["evidence"]["engine_finding_id"] for row in second["findings"]
+    ]
+    assert [row["id"] for row in first["findings"]] != [
         row["id"] for row in second["findings"]
     ]

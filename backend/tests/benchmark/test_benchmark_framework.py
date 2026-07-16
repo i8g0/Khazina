@@ -108,5 +108,5 @@ def test_report_builder_is_deterministic_structure() -> None:
     md = render_markdown(report)
     assert "Benchmark Baseline" in md
     assert "LLM Benchmark Latency" in md
-    assert report.baseline.prompt_version == "1.0"
-    assert report.baseline.facts_contract_version == "1.0"
+    assert report.baseline.prompt_version == "1.2"
+    assert report.baseline.facts_contract_version == "1.1"

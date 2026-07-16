@@ -21,6 +21,7 @@ from app.ai_recommendations.risk_recommendation_parser import (
 )
 from app.business.facts.contract import FactsContract
 from app.db.models.enums import RecommendationDomain, RecommendationPriority
+from app.presentation.executive_sanitize import sanitize_executive_text
 
 
 def build_risk_ai_insights_payload(
@@ -39,7 +40,7 @@ def build_risk_ai_insights_payload(
     for result in task_results:
         key = RISK_NARRATIVE_KEY_BY_TASK[result.task]
         narrative[key] = _narrative_entry(result, model_name, ts)
-        summaries[key] = result.parsed_response.text.strip()
+        summaries[key] = sanitize_executive_text(result.parsed_response.text.strip())
 
     required = (
         PromptTask.RISK_EXECUTIVE_SUMMARY,
@@ -88,8 +89,8 @@ def map_risk_recommendation_payloads(
         priority = _to_recommendation_priority(item.priority)
         payloads.append(
             {
-                "title": item.title,
-                "description": item.description,
+                "title": sanitize_executive_text(item.title),
+                "description": sanitize_executive_text(item.description),
                 "priority": priority.value,
                 "domain_source": RecommendationDomain.RISK.value,
                 "analysis_run_id": analysis_run_id,

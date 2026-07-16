@@ -57,7 +57,7 @@ def test_waste_fact_assembler_produces_expected_facts() -> None:
     metrics = {fact.metric for fact in contract.facts}
 
     assert contract.engine_id == "waste"
-    assert contract.contract_version == "1.0"
+    assert contract.contract_version == "1.1"
     assert metrics.issuperset(set(SUPPORTED_FACTS))
     assert all(fact.value for fact in contract.facts)
     assert all(

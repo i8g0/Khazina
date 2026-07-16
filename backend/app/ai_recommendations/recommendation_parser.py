@@ -13,6 +13,11 @@ from app.ai_recommendations.constants import (
     PRIORITY_MEDIUM_KEYWORDS,
 )
 from app.ai_recommendations.exceptions import AiRecommendationError
+from app.presentation.executive_recommendation import (
+    map_priority_from_label,
+    parse_executive_recommendation,
+)
+from app.presentation.executive_sanitize import sanitize_executive_text
 
 # Standard Markdown wrappers before numbered recommendation labels.
 _MARKDOWN_OPEN = r"(?:(?:#{1,6}\s+)|(?:\*\*)|(?:__))?"
@@ -32,6 +37,7 @@ class ParsedRecommendationItem:
     title: str
     description: str
     priority: str
+    executive: "ExecutiveRecommendationFields | None" = None
 
 
 def parse_recommendations_text(text: str) -> tuple[ParsedRecommendationItem, ...]:
@@ -59,7 +65,9 @@ def parse_recommendations_text(text: str) -> tuple[ParsedRecommendationItem, ...
                 "Recommendation item is empty",
                 {"item_index": index},
             )
-        title, description = _split_title_and_description(body)
+        fields = parse_executive_recommendation(body)
+        title = sanitize_executive_text(fields.recommendation or fields.action)
+        description = sanitize_executive_text(fields.to_description())
         if not title:
             raise AiRecommendationError(
                 "missing_recommendation_title",
@@ -71,7 +79,8 @@ def parse_recommendations_text(text: str) -> tuple[ParsedRecommendationItem, ...
                 index=index,
                 title=title,
                 description=description or title,
-                priority=_map_priority(body),
+                priority=map_priority_from_label(fields.priority_label, body),
+                executive=fields,
             )
         )
 

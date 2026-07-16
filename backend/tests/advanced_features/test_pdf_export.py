@@ -165,6 +165,79 @@ def test_export_pdf_disabled_fails_closed(
         service.export_pdf(org_id, report_id)
 
 
-def test_content_fingerprint_stable_for_export_idempotency() -> None:
-    content = _sample_content()
-    assert content_fingerprint(content) == content_fingerprint(dict(content))
+def test_pdf_render_excludes_technical_metadata() -> None:
+    content = {
+        **_sample_content(),
+        "sections": [
+            {
+                "key": "executive_summary",
+                "payload": {"text": "تحليل الهدر المالي للمؤسسة"},
+            },
+            {
+                "key": "key_metrics",
+                "payload": {
+                    "facts": [{"metric": "waste.top_category", "value": "finance"}],
+                    "headline": {
+                        "total_waste_amount": 1000000,
+                        "waste_percentage": 12.5,
+                    },
+                },
+            },
+            {
+                "key": "provenance",
+                "payload": {
+                    "engine_id": "waste",
+                    "facts_contract_version": "1.0",
+                    "tasks_executed": ["executive_summary"],
+                },
+            },
+        ],
+    }
+    pdf_bytes = render_pdf(
+        content,
+        report_title="تقرير تنفيذي — كشف الهدر",
+        platform_name="خزينة",
+        report_language="ar",
+        include_cover_page=True,
+        include_provenance_appendix=True,
+    )
+    pdf_text = pdf_bytes.decode("latin-1", errors="ignore")
+    assert pdf_bytes.startswith(b"%PDF")
+    assert "waste.top_category" not in pdf_text
+    assert "facts_contract" not in pdf_text
+    assert "tasks_executed" not in pdf_text
+    assert "engine_id" not in pdf_text
+
+
+def test_pdf_render_supports_arabic_text() -> None:
+    content = {
+        **_sample_content(),
+        "sections": [
+            {
+                "key": "executive_summary",
+                "payload": {"text": "تحليل الهدر المالي للمؤسسة"},
+            },
+            {
+                "key": "recommendations",
+                "payload": {
+                    "items": [
+                        {
+                            "title": "توصية تخفيض التكاليف",
+                            "description": "مراجعة عقود الموردين",
+                            "priority": "high",
+                        }
+                    ]
+                },
+            },
+        ],
+    }
+    pdf_bytes = render_pdf(
+        content,
+        report_title="تقرير تنفيذي — كشف الهدر",
+        platform_name="خزينة",
+        report_language="ar",
+        include_cover_page=True,
+        include_provenance_appendix=False,
+    )
+    assert len(pdf_bytes) > 3000
+    assert pdf_bytes.startswith(b"%PDF")

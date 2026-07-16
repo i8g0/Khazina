@@ -36,7 +36,7 @@ export const dashboardKpis: DashboardKpi[] = [
     trend: "+12.1%",
   },
   {
-    label: "آخر توصية من الذكاء الاصطناعي",
+    label: "آخر توصية تنفيذية",
     value: "دمج عقود الموردين",
     departmentBadge: "الموارد البشرية",
     hint: "ثقة 92%",
@@ -1123,6 +1123,8 @@ export interface ReportItem {
   date: string;
   status: string;
   previewText: string;
+  analysisRunId?: string | null;
+  hasContent?: boolean;
 }
 
 export const reportItems: ReportItem[] = [

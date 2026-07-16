@@ -8,6 +8,8 @@ from decimal import Decimal
 from typing import Any
 
 from app.business.facts.contract import FactsContract
+from app.presentation.business_labels import business_area_ar, category_label_ar
+from app.presentation.executive_sanitize import sanitize_executive_text
 from app.db.models import (
     Recommendation,
     Risk,
@@ -86,21 +88,26 @@ def build_waste_executive_summary(
     allow_ai: bool = True,
 ) -> ReportSection:
     if allow_ai and inputs.ai_insights and inputs.ai_insights.get("executive_summary"):
-        text = str(inputs.ai_insights["executive_summary"]).strip()
+        text = sanitize_executive_text(
+            str(inputs.ai_insights["executive_summary"]).strip()
+        )
         source = "ai_insights"
     else:
         result = inputs.waste_result
-        parts = [
-            f"تحليل الهدر المالي: نسبة الهدر {_safe_float(result.waste_percentage):.2f}%",
-            f"بإجمالي {_safe_float(result.total_waste_amount):,.2f}",
-        ]
-        if result.top_category_name:
-            parts.append(f"أعلى فئة: {result.top_category_name}")
-        if result.potential_savings_amount is not None:
-            parts.append(
-                f"وفورات محتملة: {_safe_float(result.potential_savings_amount):,.2f}"
-            )
-        text = ". ".join(parts) + "."
+        pct = _safe_float(result.waste_percentage) or 0.0
+        total = _safe_float(result.total_waste_amount) or 0.0
+        period = inputs.context.period_label or "الفترة الحالية"
+        top = category_label_ar(result.top_category_name) if result.top_category_name else "غير محدد"
+        savings = _safe_float(result.potential_savings_amount)
+        text = (
+            f"خلال {period}، سجّلت المؤسسة هدراً مالياً بنسبة {pct:.2f}% "
+            f"بقيمة إجمالية {total:,.0f} ر.س. "
+            f"أعلى ضغط مالي في {top}. "
+        )
+        if savings is not None:
+            text += f"فرصة التوفير المقدرة {savings:,.0f} ر.س تتطلب قراراً تنفيذياً خلال 30 يوماً."
+        else:
+            text += "يُوصى بمراجعة فورية لأكبر بند إنفاق لحماية الربحية والسيولة."
         source = "facts_gold_fallback"
     return ReportSection(
         key="executive_summary",
@@ -122,18 +129,23 @@ def build_waste_analysis_section(
     breakdowns: tuple[WasteCategoryBreakdown, ...],
     vendors: tuple[WasteVendorFinding, ...],
 ) -> ReportSection:
+    ranked = sorted(breakdowns, key=lambda b: float(b.amount), reverse=True)
     return ReportSection(
         key="waste_analysis",
         payload={
             "category_breakdowns": [
                 {
                     "category_name": b.category_name,
+                    "category_label_ar": category_label_ar(b.category_name),
+                    "business_area_ar": business_area_ar(b.category_name),
                     "amount": _safe_float(b.amount),
                     "percentage": _safe_float(b.percentage),
                     "department_id": str(b.department_id) if b.department_id else None,
+                    "priority_rank": index + 1,
                 }
-                for b in breakdowns
+                for index, b in enumerate(ranked)
             ],
+            "executive_commentary": _waste_executive_commentary(ranked),
             "vendor_findings": [
                 {
                     "vendor_name": v.vendor_name,
@@ -148,12 +160,49 @@ def build_waste_analysis_section(
     )
 
 
+def _waste_executive_commentary(
+    breakdowns: tuple[WasteCategoryBreakdown, ...],
+) -> str:
+    if not breakdowns:
+        return "لا تتوفر بيانات تفصيلية للهدر."
+    top = breakdowns[0]
+    label = category_label_ar(top.category_name)
+    return (
+        f"أولوية التدخل: فئة {label} بمبلغ {float(top.amount):,.0f} ريال "
+        f"({float(top.percentage):.1f}% من إجمالي الهدر)."
+    )
+
+
+def build_decision_highlights_section(
+    recommendations: tuple[Recommendation, ...],
+) -> ReportSection:
+    highlights: list[dict[str, Any]] = []
+    for rec in recommendations[:5]:
+        executive = (rec.source_context or {}).get("executive") or {}
+        highlights.append(
+            {
+                "title": sanitize_executive_text(rec.title),
+                "priority": rec.priority,
+                "executive_angle": sanitize_executive_text(
+                    str(executive.get("executive_angle", ""))
+                ),
+                "decision": sanitize_executive_text(
+                    str(executive.get("executive_decision") or executive.get("recommendation") or rec.title)
+                ),
+                "expected_savings": sanitize_executive_text(
+                    str(executive.get("expected_savings", ""))
+                ),
+            }
+        )
+    return ReportSection(key="decision_highlights", payload={"items": highlights})
+
+
 def build_risk_explanation_section(ai_insights: dict[str, Any] | None) -> ReportSection | None:
     if not ai_insights or not ai_insights.get("risk_explanation"):
         return None
     return ReportSection(
         key="risk_explanation",
-        payload={"text": str(ai_insights["risk_explanation"]).strip()},
+        payload={"text": sanitize_executive_text(str(ai_insights["risk_explanation"]).strip())},
     )
 
 
@@ -245,6 +294,7 @@ def assemble_waste_sections(
             currency_display_code=currency_display_code,
         ),
         build_waste_executive_summary(inputs, allow_ai=include_ai_sections),
+        build_decision_highlights_section(inputs.recommendations),
         build_key_metrics_section(inputs.facts, headline=headline),
         build_waste_analysis_section(inputs.category_breakdowns, inputs.vendor_findings),
     ]

@@ -66,7 +66,7 @@ import {
 import { useDemoArtifacts } from "@/lib/demo/hooks";
 import { writeDemoArtifacts } from "@/lib/demo/state";
 import {
-  formatRecommendationDisplay,
+  parseExecutiveRecommendation,
   mapRiskPosture,
 } from "@/lib/format";
 import {
@@ -203,7 +203,7 @@ export function RiskPage() {
   const runAnalysis = async () => {
     if (!auth.session) return;
     if (!artifacts.fileId || !artifacts.snapshotId) {
-      setError("ارفع ملفاً من مستودع البيانات أولاً");
+      setError("ارفع ملفاً من مركز البيانات المالية أولاً");
       return;
     }
     setLoading(true);
@@ -219,10 +219,13 @@ export function RiskPage() {
           title: "تحليل المخاطر المالية",
           source_file_id: artifacts.fileId,
           source_snapshot_id: artifacts.snapshotId,
-          snapshot_version: artifacts.snapshotVersion ?? undefined,
         },
       );
-      writeDemoArtifacts({ riskRunId: outcome.analysis_run.id, riskAiReady: false });
+      writeDemoArtifacts({
+        riskRunId: outcome.analysis_run.id,
+        riskAiReady: false,
+        lastReportId: null,
+      });
       await loadRunResults(outcome.analysis_run.id);
       await loadRegisterAndHistory();
       setMessage("اكتمل تحليل المخاطر بنجاح");
@@ -241,11 +244,8 @@ export function RiskPage() {
     setAiLoading(true);
     setError(null);
     try {
-      const health = await getAiHealth();
-      if (!health.ollama_reachable) {
-        setAiReady(false);
-        setAiHealthMessage(EXECUTIVE_MESSAGES.aiUnavailable);
-        throw new Error(EXECUTIVE_MESSAGES.aiUnavailable);
+      if (aiReady === false) {
+        throw new Error(aiHealthMessage ?? EXECUTIVE_MESSAGES.aiUnavailable);
       }
       const outcome = await generateRiskAi(
         auth.session.organizationId,
@@ -255,7 +255,7 @@ export function RiskPage() {
       setAiInsights(outcome.ai_insights);
       setRecommendations(outcome.recommendations.map(mapRecommendation));
       writeDemoArtifacts({ riskAiReady: true });
-      setMessage(`تم توليد ${outcome.recommendation_count} توصية للمخاطر`);
+      setMessage(`تم إعداد ${outcome.recommendation_count} توصية للمخاطر`);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -332,7 +332,7 @@ export function RiskPage() {
     {
       label: "الوضع العام",
       value: result ? mapRiskPosture(result.overall_posture_level) : null,
-      hint: "من محرك المخاطر",
+      hint: "من آخر تقييم للمخاطر",
     },
     {
       label: "نتائج التحليل",
@@ -391,11 +391,11 @@ export function RiskPage() {
               disabled={aiLoading || !artifacts.riskRunId || aiBlocked}
             >
               <Sparkles className="ms-2 h-4 w-4" />
-              توليد ملخص الذكاء الاصطناعي
+              إعداد ملخص المخاطر
             </Button>
             {!hasFile ? (
               <Button variant="ghost" asChild>
-                <Link href={navRouteMap.data}>مستودع البيانات</Link>
+                <Link href={navRouteMap.data}>مركز البيانات المالية</Link>
               </Button>
             ) : null}
           </section>
@@ -526,12 +526,16 @@ export function RiskPage() {
             {recommendations.length === 0 ? (
               <EmptyState
                 title="لا توجد توصيات"
-                description="ولّد ملخص الذكاء الاصطناعي بعد اكتمال التحليل"
+                description="ولّد ملخص المخاطر بعد اكتمال التحليل"
               />
             ) : (
               <div className="grid gap-5 lg:grid-cols-3">
                 {recommendations.map((item) => {
-                  const display = formatRecommendationDisplay(item);
+                  const display = parseExecutiveRecommendation({
+                    title: item.title,
+                    description: item.description,
+                    source_context: item.source_context as Record<string, unknown> | null,
+                  });
                   return (
                     <RiskRecommendationCard
                       key={item.id}

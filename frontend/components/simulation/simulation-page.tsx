@@ -9,15 +9,14 @@ import { SimulationActionPanel } from "@/components/simulation/simulation-action
 import { SimulationAssumptions } from "@/components/simulation/simulation-assumptions";
 import { SimulationComparisonChart } from "@/components/simulation/simulation-comparison-chart";
 import { SimulationImpactBreakdown } from "@/components/simulation/simulation-impact-breakdown";
-import { SimulationScenarioCard } from "@/components/simulation/simulation-scenario-card";
 import { DemoHeaderActions } from "@/components/notifications/notification-bell";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { Input } from "@/components/ui/input";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageHero } from "@/components/ui/page-hero";
+import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import {
   executivePageContainerClassName,
@@ -36,19 +35,29 @@ import {
 } from "@/lib/auth/auth-context";
 import { useOrganizationDisplay } from "@/lib/org-lookups";
 import {
-  createScenario,
-  executeScenario,
+  executeAISimulation,
+  getAnalysisRun,
   getForecastSummary,
   listActionItems,
   listChartPoints,
   listComparisonMetrics,
   listImpactItems,
-  listScenarioAssumptions,
-  listScenarios,
 } from "@/lib/api/khazina-api";
+import type {
+  InterpretedScenarioPayload,
+  SimulationExplanationPayload,
+} from "@/lib/api/types";
+import { mapScenarioType } from "@/lib/executive-language";
 import { writeDemoArtifacts } from "@/lib/demo/state";
 import { useDemoArtifacts } from "@/lib/demo/hooks";
-import { mapSimulationStatus } from "@/lib/format";
+
+const SCENARIO_PLACEHOLDER =
+  "اكتب سيناريوك باللغة الطبيعية، مثل:\n" +
+  "• أريد زيادة الأرباح 200 ألف ريال\n" +
+  "• خفض ميزانية التسويق 15%\n" +
+  "• إغلاق فرعين\n" +
+  "• رفع الرواتب 8%\n" +
+  "• تقليل تكلفة الموردين الرئيسيين";
 
 function mapImpactDirection(
   direction: string,
@@ -59,24 +68,38 @@ function mapImpactDirection(
   return "neutral";
 }
 
+function parseInterpretedScenario(
+  value: unknown,
+): InterpretedScenarioPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (typeof record.title_ar !== "string" || !Array.isArray(record.actions)) {
+    return null;
+  }
+  return value as InterpretedScenarioPayload;
+}
+
+function parseExplanation(value: unknown): SimulationExplanationPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (typeof record.executive_summary !== "string") return null;
+  return value as SimulationExplanationPayload;
+}
+
 export function SimulationPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
   const artifacts = useDemoArtifacts();
-  const [loading, setLoading] = React.useState(true);
   const [executing, setExecuting] = React.useState(false);
-  const [creating, setCreating] = React.useState(false);
+  const [hydrating, setHydrating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
-  const [newName, setNewName] = React.useState("");
-  const [newDescription, setNewDescription] = React.useState("");
-  const [scenarios, setScenarios] = React.useState<
-    { id: string; name: string; description: string; status: string }[]
-  >([]);
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [assumptions, setAssumptions] = React.useState<
-    { id: string; label: string; value: string }[]
-  >([]);
+  const [userRequest, setUserRequest] = React.useState("");
+  const [lastRequest, setLastRequest] = React.useState<string | null>(null);
+  const [interpreted, setInterpreted] =
+    React.useState<InterpretedScenarioPayload | null>(null);
+  const [explanation, setExplanation] =
+    React.useState<SimulationExplanationPayload | null>(null);
   const [hasRunResults, setHasRunResults] = React.useState(false);
   const [forecast, setForecast] = React.useState<{
     baseline: string;
@@ -103,63 +126,6 @@ export function SimulationPage() {
   const [actionItems, setActionItems] = React.useState<
     { id: string; title: string; description: string; status: string }[]
   >([]);
-
-  const loadScenarios = React.useCallback(async () => {
-    if (!auth.session) return;
-    setLoading(true);
-    try {
-      const rows = await listScenarios(
-        auth.session.organizationId,
-        auth.session.token,
-      );
-      setScenarios(rows);
-      setActiveId((current) => {
-        if (current && rows.some((row) => row.id === current)) {
-          return current;
-        }
-        return rows[0]?.id ?? null;
-      });
-    } catch (err) {
-      setError(formatApiError(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [auth.session]);
-
-  React.useEffect(() => {
-    if (auth.session) void loadScenarios();
-  }, [auth.session, loadScenarios]);
-
-  const loadAssumptions = React.useCallback(
-    async (scenarioId: string) => {
-      if (!auth.session) return;
-      try {
-        const rows = await listScenarioAssumptions(
-          auth.session.organizationId,
-          auth.session.token,
-          scenarioId,
-        );
-        setAssumptions(
-          rows.map((item) => ({
-            id: item.id,
-            label: item.label,
-            value: item.value,
-          })),
-        );
-      } catch {
-        setAssumptions([]);
-      }
-    },
-    [auth.session],
-  );
-
-  React.useEffect(() => {
-    if (activeId) {
-      void loadAssumptions(activeId);
-    } else {
-      setAssumptions([]);
-    }
-  }, [activeId, loadAssumptions]);
 
   const loadRunResults = React.useCallback(
     async (runId: string) => {
@@ -224,33 +190,30 @@ export function SimulationPage() {
     [auth.session],
   );
 
-  const handleCreate = async () => {
-    if (!auth.session) return;
-    const name = newName.trim();
-    const description = newDescription.trim();
-    if (!name || !description) {
-      setError("أدخل اسم السيناريو ووصفه");
-      return;
-    }
-    setCreating(true);
-    setError(null);
-    try {
-      const created = await createScenario(
-        auth.session.organizationId,
-        auth.session.token,
-        { name, description },
-      );
-      setNewName("");
-      setNewDescription("");
-      setActiveId(created.id);
-      setMessage("تم إنشاء السيناريو");
-      await loadScenarios();
-    } catch (err) {
-      setError(formatApiError(err));
-    } finally {
-      setCreating(false);
-    }
-  };
+  const hydrateFromAnalysisRun = React.useCallback(
+    async (analysisRunId: string) => {
+      if (!auth.session) return;
+      setHydrating(true);
+      try {
+        const run = await getAnalysisRun(
+          auth.session.organizationId,
+          auth.session.token,
+          analysisRunId,
+        );
+        const metadata = run.runtime_metadata ?? {};
+        setLastRequest(
+          typeof metadata.user_request === "string" ? metadata.user_request : null,
+        );
+        setInterpreted(parseInterpretedScenario(metadata.interpreted_scenario));
+        setExplanation(parseExplanation(metadata.ai_explanation));
+      } catch {
+        /* keep partial UI */
+      } finally {
+        setHydrating(false);
+      }
+    },
+    [auth.session],
+  );
 
   const resetRunResults = React.useCallback(() => {
     setHasRunResults(false);
@@ -259,38 +222,54 @@ export function SimulationPage() {
     setComparisons([]);
     setImpactItems([]);
     setActionItems([]);
+    setInterpreted(null);
+    setExplanation(null);
+    setLastRequest(null);
   }, []);
 
   const runScenario = async () => {
-    if (!auth.session || !activeId) return;
-    if (!artifacts.fileId || !artifacts.snapshotId || !artifacts.snapshotVersion) {
+    if (!auth.session) return;
+    const request = userRequest.trim();
+    if (!request) {
+      setError("اكتب سيناريوك باللغة الطبيعية أولاً");
+      return;
+    }
+    if (!artifacts.fileId || !artifacts.snapshotId) {
       setError("ارفع ملفاً وشغّل تحليل الهدر أولاً");
       return;
     }
     setExecuting(true);
     setError(null);
     try {
-      const scenarioBody: {
+      const body: {
+        user_request: string;
         source_file_id: string;
         source_snapshot_id?: string;
         snapshot_version?: number;
         baseline_analysis_run_id?: string;
       } = {
+        user_request: request,
         source_file_id: artifacts.fileId,
         baseline_analysis_run_id: artifacts.wasteRunId ?? undefined,
       };
       if (artifacts.snapshotId) {
-        scenarioBody.source_snapshot_id = artifacts.snapshotId;
+        body.source_snapshot_id = artifacts.snapshotId;
       } else if (artifacts.snapshotVersion) {
-        scenarioBody.snapshot_version = artifacts.snapshotVersion;
+        body.snapshot_version = artifacts.snapshotVersion;
       }
-      const outcome = await executeScenario(
+      const outcome = await executeAISimulation(
         auth.session.organizationId,
         auth.session.token,
-        activeId,
-        scenarioBody,
+        body,
       );
-      writeDemoArtifacts({ simulationRunId: outcome.simulation_run.id });
+      writeDemoArtifacts({
+        simulationRunId: outcome.simulation_run.id,
+        simulationAnalysisRunId: outcome.analysis_run.id,
+        lastReportId: null,
+      });
+      setLastRequest(outcome.user_request);
+      setInterpreted(outcome.interpreted_scenario);
+      setExplanation(outcome.ai_explanation);
       await loadRunResults(outcome.simulation_run.id);
       setMessage("اكتملت المحاكاة بنجاح");
     } catch (err) {
@@ -307,12 +286,41 @@ export function SimulationPage() {
       return;
     }
     void loadRunResults(artifacts.simulationRunId).catch(() => undefined);
-  }, [auth.session, artifacts.simulationRunId, resetRunResults, loadRunResults]);
+    if (artifacts.simulationAnalysisRunId) {
+      void hydrateFromAnalysisRun(artifacts.simulationAnalysisRunId).catch(
+        () => undefined,
+      );
+    }
+  }, [
+    auth.session,
+    artifacts.simulationRunId,
+    artifacts.simulationAnalysisRunId,
+    resetRunResults,
+    loadRunResults,
+    hydrateFromAnalysisRun,
+  ]);
 
   if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
-  const activeScenario = scenarios.find((scenario) => scenario.id === activeId);
+  const assumptionRows = [
+    ...(interpreted?.actions.map((action) => ({
+      label: action.description || action.action_type,
+      value: [
+        action.mode === "percent" && action.value != null
+          ? `${action.value}%`
+          : null,
+        action.amount != null ? `${action.amount.toLocaleString("ar-SA")} SAR` : null,
+        action.category ?? action.department ?? null,
+      ]
+        .filter(Boolean)
+        .join(" | "),
+    })) ?? []),
+    ...(interpreted?.assumptions?.map((item) => ({
+      label: "افتراض",
+      value: item,
+    })) ?? []),
+  ];
 
   return (
     <AppLayout
@@ -328,7 +336,7 @@ export function SimulationPage() {
         <div className={executivePageSpacingClassName}>
           <PageHero
             title="محاكاة السيناريوهات"
-            description="مقارنة السيناريوهات التشغيلية مقابل خط الأساس من بيانات حقيقية."
+            description="صف السيناريو الذي تريد اختباره — سنحسب أثره المالي ونشرح النتائج."
             period={org.reportingPeriod}
           />
 
@@ -338,52 +346,36 @@ export function SimulationPage() {
             {EXECUTIVE_MESSAGES.simulationDemoHint}
           </Alert>
 
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-[200px] flex-1 space-y-1.5">
-              <label className="text-sm text-muted">اسم السيناريو</label>
-              <Input
-                value={newName}
-                onChange={(event) => setNewName(event.target.value)}
-                placeholder="مثال: خفض المشتريات 10%"
-              />
-            </div>
-            <div className="min-w-[260px] flex-[2] space-y-1.5">
-              <label className="text-sm text-muted">الوصف</label>
-              <Input
-                value={newDescription}
-                onChange={(event) => setNewDescription(event.target.value)}
-                placeholder="وصف مختصر للسيناريو"
-              />
-            </div>
-            <Button
-              variant="secondary"
-              disabled={creating}
-              onClick={() => void handleCreate()}
-            >
-              {creating ? "جاري الإنشاء..." : "إنشاء سيناريو"}
-            </Button>
-            <Button
-              disabled={executing || !activeId}
-              onClick={() => void runScenario()}
-            >
-              {executing
-                ? "جاري التنفيذ..."
-                : activeScenario
-                  ? `تشغيل: ${activeScenario.name}`
-                  : "تشغيل السيناريو"}
-            </Button>
-            {hasRunResults ? (
-              <Button asChild variant="secondary">
-                <Link href={navRouteMap.reports}>التالي: إنشاء التقرير</Link>
+          <section className="space-y-3">
+            <label className="text-sm text-muted">سيناريوك</label>
+            <Textarea
+              value={userRequest}
+              onChange={(event) => setUserRequest(event.target.value)}
+              placeholder={SCENARIO_PLACEHOLDER}
+              rows={5}
+              className="min-h-[140px] resize-y"
+            />
+            <div className="flex flex-wrap gap-3">
+              <Button disabled={executing} onClick={() => void runScenario()}>
+                {executing ? "جاري التنفيذ..." : "تشغيل السيناريو"}
               </Button>
-            ) : null}
-          </div>
+              {hasRunResults ? (
+                <Button asChild variant="secondary">
+                  <Link href={navRouteMap.reports}>التالي: إنشاء التقرير</Link>
+                </Button>
+              ) : null}
+            </div>
+          </section>
 
           {executing ? (
             <OperationLoadingPanel
               title="جاري تشغيل محاكاة السيناريو"
-              description="حساب التوقعات والمقارنات بناءً على نتائج تحليل الهدر."
+              description="نحلّل طلبك، نحسب الأثر المالي، ثم نعرض النتائج."
             />
+          ) : null}
+
+          {hydrating ? (
+            <LoadingSkeleton className="min-h-[120px] rounded-2xl" />
           ) : null}
 
           {message ? <Alert variant="success" title="تم">{message}</Alert> : null}
@@ -395,71 +387,67 @@ export function SimulationPage() {
             />
           ) : null}
 
-          {loading ? (
-            <LoadingSkeleton className="min-h-[240px] rounded-2xl" />
-          ) : scenarios.length === 0 ? (
-            <EmptyState
-              title="لا توجد سيناريوهات"
-              description="أنشئ سيناريوًا جديدًا للبدء."
-            />
-          ) : (
-            <section className="grid gap-4 md:grid-cols-3">
-              {scenarios.map((scenario) => (
-                <SimulationScenarioCard
-                  key={scenario.id}
-                  scenario={{
-                    id: scenario.id,
-                    name: scenario.name,
-                    description: scenario.description,
-                    status: mapSimulationStatus(scenario.status),
-                  }}
-                  active={scenario.id === activeId}
-                  onSelect={() => setActiveId(scenario.id)}
-                />
-              ))}
+          {lastRequest ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="الطلب الأصلي" />
+              <p className="rounded-2xl border border-border/60 bg-surface/40 p-4 text-sm leading-relaxed">
+                {lastRequest}
+              </p>
             </section>
-          )}
+          ) : null}
 
-          {activeId ? (
-            assumptions.length > 0 ? (
-              <SimulationAssumptions
-                assumptions={assumptions.map(({ label, value }) => ({ label, value }))}
-              />
-            ) : (
-              <EmptyState
-                title="لا توجد افتراضات مسجّلة"
-                description="لم يُعرّف هذا السيناريو أي افتراضات بعد."
-              />
-            )
+          {interpreted ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="السيناريو كما فُهم" />
+              <div className="space-y-2 rounded-2xl border border-border/60 bg-surface/40 p-4">
+                <p className="font-medium">{interpreted.title_ar}</p>
+                <p className="text-sm text-muted">{interpreted.summary_ar}</p>
+                <p className="text-xs text-muted">
+                  النوع: {mapScenarioType(interpreted.scenario_type)}
+                  {interpreted.target_amount != null
+                    ? ` | الهدف: ${interpreted.target_amount.toLocaleString("ar-SA")} ${interpreted.currency ?? "SAR"}`
+                    : null}
+                  {interpreted.confidence != null
+                    ? ` | الثقة: ${interpreted.confidence}%`
+                    : null}
+                </p>
+              </div>
+            </section>
+          ) : null}
+
+          {assumptionRows.length > 0 ? (
+            <SimulationAssumptions assumptions={assumptionRows} />
           ) : null}
 
           {hasRunResults && forecast ? (
             <section className="grid gap-5 sm:grid-cols-3">
               <DashboardStatCard
-                label="الأساس"
+                label="قبل (الأساس)"
                 value={forecast.baseline}
                 hint="خط الأساس"
                 dense
               />
               <DashboardStatCard
-                label="المتوقع"
+                label="بعد (المتوقع)"
                 value={forecast.projected}
                 hint="بعد المحاكاة"
                 dense
                 emphasis
               />
               <DashboardStatCard
-                label="التغير"
+                label="الأثر المالي"
                 value={forecast.delta}
                 hint={forecast.confidence ?? "بدون تصنيف ثقة"}
                 dense
               />
             </section>
           ) : (
-            <EmptyState
-              title="لا توجد نتائج محاكاة بعد"
-              description="شغّل السيناريو النشط لعرض ملخص التوقعات والمقارنات."
-            />
+            !executing && (
+              <EmptyState
+                title="لا توجد نتائج محاكاة بعد"
+                description="اكتب سيناريوك واضغط «تشغيل السيناريو» لعرض التأثير المالي."
+              />
+            )
           )}
 
           {chartPoints.length > 0 ? (
@@ -471,7 +459,7 @@ export function SimulationPage() {
 
           {comparisons.length > 0 ? (
             <section className={executiveSectionSpacingClassName}>
-              <DashboardSectionHeader dense title="مؤشرات المقارنة" />
+              <DashboardSectionHeader dense title="المؤشرات الرئيسية" />
               <div className="grid gap-4 md:grid-cols-3">
                 {comparisons.map((item) => (
                   <DashboardStatCard
@@ -493,14 +481,39 @@ export function SimulationPage() {
             </section>
           ) : null}
 
+          {explanation ? (
+            <section className={executiveSectionSpacingClassName}>
+              <DashboardSectionHeader dense title="شرح النتائج" />
+              <div className="grid gap-4 md:grid-cols-2">
+                <InsightBlock title="الملخص التنفيذي" body={explanation.executive_summary} />
+                <InsightBlock title="الأثر المتوقع" body={explanation.expected_impact} />
+                <InsightBlock title="التغيرات المالية" body={explanation.financial_changes} />
+                <InsightBlock title="المخاطر" body={explanation.risks} />
+                <InsightBlock title="الفوائد" body={explanation.benefits} />
+                <InsightBlock title="التوصية للمجلس" body={explanation.board_recommendation} />
+                <InsightBlock title="الافتراضات" body={explanation.assumptions} />
+                <InsightBlock title="مستوى الثقة" body={explanation.confidence} />
+              </div>
+            </section>
+          ) : null}
+
           {actionItems.length > 0 ? (
             <section className={executiveSectionSpacingClassName}>
-              <DashboardSectionHeader dense title="إجراءات مقترحة" />
+              <DashboardSectionHeader dense title="الخطوات التالية" />
               <SimulationActionPanel items={actionItems} />
             </section>
           ) : null}
         </div>
       </PageContainer>
     </AppLayout>
+  );
+}
+
+function InsightBlock({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-surface/40 p-4">
+      <p className="mb-2 text-sm font-medium">{title}</p>
+      <p className="text-sm leading-relaxed text-muted">{body}</p>
+    </div>
   );
 }

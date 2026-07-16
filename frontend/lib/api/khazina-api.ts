@@ -15,6 +15,7 @@ import type {
   ReportResponse,
   ReportingPeriodResponse,
   ResolvedSettingsResponse,
+  AISimulationExecuteResponse,
   ScenarioExecuteResponse,
   SettingsPatchPayload,
   SimulationChartPointResponse,
@@ -668,6 +669,34 @@ export async function createScenario(
   );
 }
 
+export async function executeAISimulation(
+  orgId: string,
+  token: string,
+  body: {
+    user_request: string;
+    source_file_id: string;
+    source_snapshot_id?: string;
+    snapshot_version?: number;
+    baseline_analysis_run_id?: string;
+  },
+): Promise<AISimulationExecuteResponse> {
+  return apiRequest<AISimulationExecuteResponse>(
+    `/organizations/${orgId}/simulation/ai/execute`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function getAnalysisRun(
+  orgId: string,
+  token: string,
+  runId: string,
+): Promise<AnalysisRunResponse> {
+  return apiRequest<AnalysisRunResponse>(
+    `/organizations/${orgId}/analysis-runs/${runId}`,
+    { token },
+  );
+}
+
 export async function executeScenario(
   orgId: string,
   token: string,
@@ -775,7 +804,7 @@ export async function generateReport(
   orgId: string,
   token: string,
   analysisRunId: string,
-  title?: string,
+  title: string,
 ): Promise<ReportGenerateResponse> {
   return apiRequest<ReportGenerateResponse>(
     `/organizations/${orgId}/reports/generate`,
@@ -784,7 +813,7 @@ export async function generateReport(
       token,
       body: JSON.stringify({
         analysis_run_id: analysisRunId,
-        title: title ?? "تقرير تنفيذي — كشف الهدر",
+        title,
       }),
     },
   );

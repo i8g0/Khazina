@@ -38,16 +38,18 @@ import {
   generateWasteAi,
   getAiHealth,
   getWasteResult,
+  listRecommendations,
   listVendorFindings,
   listWasteBreakdowns,
   uploadFinancialFile,
 } from "@/lib/api/khazina-api";
+import { MAX_LIST_LIMIT } from "@/lib/api/pagination";
 import { useDemoArtifacts } from "@/lib/demo/hooks";
-import { beginNewFinancialDataset, writeDemoArtifacts } from "@/lib/demo/state";
+import { beginNewFinancialDataset, readDemoArtifacts, writeDemoArtifacts } from "@/lib/demo/state";
 import {
   formatCurrency,
   formatPercent,
-  formatRecommendationDisplay,
+  parseExecutiveRecommendation,
   formatWasteCategoryName,
   mapRecommendationPriority,
 } from "@/lib/format";
@@ -122,13 +124,25 @@ export function WastePage() {
   }, [checkAiHealth]);
 
   const loadResults = React.useCallback(
-    async (runId: string) => {
+    async (runId: string, signal?: AbortSignal) => {
       if (!auth.session) return;
-      const [result, breakdowns, vendors] = await Promise.all([
-        getWasteResult(auth.session.organizationId, auth.session.token, runId),
-        listWasteBreakdowns(auth.session.organizationId, auth.session.token, runId),
-        listVendorFindings(auth.session.organizationId, auth.session.token, runId),
+      const orgId = auth.session.organizationId;
+      const token = auth.session.token;
+      const [result, breakdowns, vendors, recRows] = await Promise.all([
+        getWasteResult(orgId, token, runId),
+        listWasteBreakdowns(orgId, token, runId),
+        listVendorFindings(orgId, token, runId),
+        listRecommendations(orgId, token, {
+          domain_source: "waste",
+          limit: MAX_LIST_LIMIT,
+        }),
       ]);
+      if (signal?.aborted) return;
+
+      const runRecommendations = recRows.filter(
+        (rec) => rec.analysis_run_id === runId,
+      );
+
       setSummary({
         total: formatCurrency(result.total_waste_amount),
         wastePct: formatPercent(result.waste_percentage),
@@ -162,7 +176,14 @@ export function WastePage() {
           status: item.status,
         })),
       );
+      setRecommendations(runRecommendations);
       setReady(true);
+
+      const artifacts = readDemoArtifacts();
+      const aiReady = runRecommendations.length > 0;
+      if (artifacts.aiRecommendationsReady !== aiReady) {
+        writeDemoArtifacts({ aiRecommendationsReady: aiReady });
+      }
     },
     [auth.session, departmentName],
   );
@@ -173,11 +194,24 @@ export function WastePage() {
       resetResults();
       return;
     }
+    const runId = artifacts.wasteRunId;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void loadResults(artifacts.wasteRunId)
-      .catch((err) => setError(formatApiError(err)))
-      .finally(() => setLoading(false));
+    void loadResults(runId, controller.signal)
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          setError(formatApiError(err));
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      controller.abort();
+    };
   }, [auth.session, artifacts.wasteRunId, loadResults, resetResults]);
 
   const runPipeline = async (file?: File) => {
@@ -205,7 +239,7 @@ export function WastePage() {
         resetResults();
       }
       if (!current.fileId || !current.snapshotId || !current.snapshotVersion) {
-        throw new Error("ارفع ملفاً من مستودع البيانات أولاً");
+        throw new Error("ارفع ملفاً من مركز البيانات المالية أولاً");
       }
       const decisionBody: {
         title: string;
@@ -225,7 +259,9 @@ export function WastePage() {
       writeDemoArtifacts({
         wasteRunId: decision.analysis_run.id,
         aiRecommendationsReady: false,
+        lastReportId: null,
       });
+      setRecommendations([]);
       await loadResults(decision.analysis_run.id);
       setMessage("اكتمل تحليل الهدر بنجاح");
     } catch (err) {
@@ -245,14 +281,9 @@ export function WastePage() {
     setAiLoading(true);
     setError(null);
     try {
-      const health = await getAiHealth();
-      if (!health.ollama_reachable) {
-        setAiReady(false);
-        setAiHealthMessage(EXECUTIVE_MESSAGES.aiUnavailable);
-        throw new Error(EXECUTIVE_MESSAGES.aiUnavailable);
+      if (aiReady === false) {
+        throw new Error(aiHealthMessage ?? EXECUTIVE_MESSAGES.aiUnavailable);
       }
-      setAiReady(true);
-      setAiHealthMessage(null);
       const outcome = await generateWasteAi(
         auth.session.organizationId,
         auth.session.token,
@@ -260,7 +291,7 @@ export function WastePage() {
       );
       setRecommendations(outcome.recommendations);
       writeDemoArtifacts({ aiRecommendationsReady: true });
-      setMessage(`تم توليد ${outcome.recommendation_count} توصية بالذكاء الاصطناعي`);
+      setMessage(`تم إعداد ${outcome.recommendation_count} توصية تنفيذياً`);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -282,7 +313,7 @@ export function WastePage() {
   const hasUploadedFile = Boolean(artifacts.fileId);
 
   const kpis = [
-    { label: "إجمالي الهدر", value: summary.total, hint: "من محرك القرار" },
+    { label: "إجمالي الهدر", value: summary.total, hint: "من نتائج التحليل" },
     { label: "نسبة الهدر", value: summary.wastePct, hint: "من الإنفاق" },
     {
       label: "التوفير المحتمل",
@@ -330,7 +361,7 @@ export function WastePage() {
                 disabled={loading}
                 onClick={() => fileInputRef.current?.click()}
               >
-                رفع سريع وتحليل
+                رفع مباشر وتحليل
               </Button>
               <Button
                 variant="secondary"
@@ -338,7 +369,7 @@ export function WastePage() {
                 onClick={() => void runAi()}
               >
                 <Sparkles className="h-4 w-4" />
-                {aiLoading ? "جاري توليد التوصيات..." : "توليد توصيات الذكاء الاصطناعي"}
+                {aiLoading ? "جاري توليد التوصيات..." : "توليد التوصيات التنفيذية"}
               </Button>
               {ready && artifacts.aiRecommendationsReady ? (
                 <Button asChild variant="secondary">
@@ -352,16 +383,16 @@ export function WastePage() {
                 : "للبدء، ارفع ملفك من "}
               {!hasUploadedFile ? (
                 <Link href={navRouteMap.data} className="font-medium text-gold-dark underline-offset-2 hover:underline">
-                  مستودع البيانات
+                  مركز البيانات المالية
                 </Link>
               ) : (
                 <Link href={navRouteMap.data} className="font-medium text-gold-dark underline-offset-2 hover:underline">
-                  مستودع البيانات
+                  مركز البيانات المالية
                 </Link>
               )}
               {hasUploadedFile
                 ? "."
-                : " — «رفع سريع وتحليل» للمستخدمين المتقدمين فقط."}
+                : " — «رفع مباشر وتحليل» للمستخدمين المتقدمين فقط."}
             </p>
             {!hasUploadedFile ? (
               <p className="text-xs text-muted">{EXECUTIVE_MESSAGES.uploadQuickHint}</p>
@@ -369,7 +400,7 @@ export function WastePage() {
           </div>
 
           {aiHealthMessage && !ready ? (
-            <Alert variant="warning" title="الذكاء الاصطناعي">
+            <Alert variant="warning" title="التوصيات الذكية">
               {aiHealthMessage}
             </Alert>
           ) : null}
@@ -400,7 +431,7 @@ export function WastePage() {
 
           {loading ? (
             <OperationLoadingPanel
-              title="جاري تشغيل محرك تحليل الهدر"
+              title="جاري تحليل أنماط الهدر"
               description="تحليل أنماط الهدر في البيانات المالية — عادةً يستغرق ثوانٍ قليلة."
             />
           ) : ready ? (
@@ -434,26 +465,41 @@ export function WastePage() {
               </section>
 
               <section className={executiveSectionSpacingClassName}>
-                <DashboardSectionHeader dense title="توصيات الذكاء الاصطناعي" />
+                <DashboardSectionHeader dense title="التوصيات التنفيذية" />
                 {aiHealthMessage && aiBlocked ? (
                   <EmptyState
-                    title="الذكاء الاصطناعي غير جاهز"
+                    title="التوصيات غير متاحة حالياً"
                     description={aiHealthMessage}
                   />
                 ) : recommendations.length === 0 ? (
                   <EmptyState
                     title="لا توجد توصيات بعد"
-                    description="اضغط «توليد توصيات الذكاء الاصطناعي» لإنشاء توصيات مبنية على نتائج هذا التحليل."
+                    description="اضغط «توليد التوصيات التنفيذية» لإنشاء توصيات مبنية على نتائج هذا التحليل."
                   />
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
                     {recommendations.map((rec) => {
-                      const display = formatRecommendationDisplay(rec);
+                      const display = parseExecutiveRecommendation({
+                        title: rec.title,
+                        description: rec.description,
+                        source_context: rec.source_context as Record<string, unknown> | null,
+                      });
                       return (
                         <RecommendationCard
                           key={rec.id}
                           title={display.title}
                           description={display.description}
+                          problem={display.problem}
+                          executiveAngle={display.executiveAngle}
+                          priorityRationale={display.priorityRationale}
+                          evidence={display.evidence}
+                          why={display.why}
+                          rootCause={display.rootCause}
+                          businessImpact={display.businessImpact}
+                          expectedSavings={display.expectedSavings}
+                          timeline={display.timeline}
+                          ownerDepartment={display.ownerDepartment}
+                          successKpi={display.successKpi}
                           badge={mapRecommendationPriority(rec.priority)}
                         />
                       );

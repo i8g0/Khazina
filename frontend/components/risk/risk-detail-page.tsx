@@ -319,7 +319,7 @@ function RiskDetailMitigation({
         {loading ? (
           <LoadingSkeleton className="min-h-[120px] rounded-2xl" />
         ) : recommendations.length === 0 ? (
-          <EmptyState title="لا توصيات" description="لا توجد توصيات AI مرتبطة بهذا الخطر" />
+          <EmptyState title="لا توصيات" description="لا توجد توصيات تنفيذية مرتبطة بهذا الخطر" />
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
             {recommendations.map((item) => {

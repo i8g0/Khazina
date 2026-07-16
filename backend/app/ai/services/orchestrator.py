@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from app.ai.client import OllamaClient
+from app.ai.providers.factory import create_ai_provider
 from app.ai.context.builder import ContextBuilder
 from app.ai.context.types import ContextBuildOptions
 from app.ai.parsers.response_parser import ResponseParser
@@ -34,6 +34,7 @@ class AiOrchestrator:
         prompt_composer: PromptComposer | None = None,
         conversation_service: ConversationService | None = None,
         response_parser: ResponseParser | None = None,
+        llm_client: _ChatClient | None = None,
         ollama_client: _ChatClient | None = None,
         engine_resolver: Any | None = None,
     ) -> None:
@@ -41,7 +42,7 @@ class AiOrchestrator:
         self._prompt_composer = prompt_composer or PromptComposer()
         self._conversations = conversation_service or ConversationService()
         self._response_parser = response_parser or ResponseParser()
-        self._ollama = ollama_client or OllamaClient()
+        self._llm = llm_client or ollama_client or create_ai_provider()
         self._resolve_engine = engine_resolver or get_engine
 
     @property
@@ -78,7 +79,7 @@ class AiOrchestrator:
             {"role": "user", "content": composed_prompt.user_prompt},
         ]
 
-        llm_response = self._ollama.chat(
+        llm_response = self._llm.chat(
             messages,
             format_json=request.request_json_response,
         )

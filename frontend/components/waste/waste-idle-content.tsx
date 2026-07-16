@@ -105,7 +105,7 @@ export function WasteIdleContent({
           </span>
           <h2 className="text-xl font-semibold tracking-tight text-black-primary md:text-[1.35rem]">
             {preferDataManagement
-              ? "ارفع ملفك من مستودع البيانات أولاً"
+              ? "ارفع ملفك من مركز البيانات المالية أولاً"
               : "ابدأ بتحليل ملفاتك المالية"}
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted md:text-[15px]">
@@ -117,7 +117,7 @@ export function WasteIdleContent({
             <Button asChild type="button" variant="primary" size="lg" className="mt-6">
               <Link href={navRouteMap.data}>
                 <Upload className="h-4 w-4" strokeWidth={1.75} />
-                الانتقال إلى مستودع البيانات
+                الانتقال إلى مركز البيانات المالية
               </Link>
             </Button>
           ) : (
@@ -129,13 +129,13 @@ export function WasteIdleContent({
               onClick={onUploadClick}
             >
               <Upload className="h-4 w-4" strokeWidth={1.75} />
-              رفع سريع وتحليل
+              رفع مباشر وتحليل
             </Button>
           )}
           <p className="mt-4 text-xs text-muted">
             {preferDataManagement
               ? EXECUTIVE_MESSAGES.uploadQuickHint
-              : "أو ارفع من مستودع البيانات — الطريقة الموصى بها للمستخدمين الجدد."}
+              : "أو ارفع من مركز البيانات المالية — الطريقة الموصى بها للمستخدمين الجدد."}
           </p>
         </div>
       </section>

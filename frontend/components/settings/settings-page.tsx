@@ -163,7 +163,7 @@ export function SettingsPage() {
         <div className={executivePageSpacingClassName}>
           <PageHero
             title="إعدادات المؤسسة"
-            description="ضبط الهوية، اللغات، الذكاء الاصطناعي، التحليلات، التقارير، والإشعارات."
+            description="ضبط الهوية، اللغات، التوصيات، التحليلات، التقارير، والإشعارات."
             period={org.reportingPeriod}
           />
 
@@ -294,9 +294,9 @@ export function SettingsPage() {
                 />
               </SettingsSection>
 
-              <SettingsSection title="3 — تكوين الذكاء الاصطناعي">
+              <SettingsSection title="التوصيات الذكية">
                 <Toggle
-                  label="تفعيل توصيات الذكاء الاصطناعي"
+                  label="تفعيل التوصيات التنفيذية"
                   checked={draft.ai_configuration.ai_recommendations_enabled}
                   onChange={(checked) =>
                     setDraft({
@@ -375,7 +375,7 @@ export function SettingsPage() {
                   }
                 />
                 <Toggle
-                  label="اشتراط رؤى الذكاء الاصطناعي قبل التقرير"
+                  label="اشتراط التوصيات قبل التقرير"
                   checked={
                     draft.analysis_configuration.require_ai_insights_before_report
                   }
@@ -421,7 +421,7 @@ export function SettingsPage() {
                   }
                 />
                 <Toggle
-                  label="تضمين أقسام الذكاء الاصطناعي عند التوفر"
+                  label="تضمين ملخص التوصيات عند التوفر"
                   checked={
                     draft.report_preferences.include_ai_sections_when_available
                   }

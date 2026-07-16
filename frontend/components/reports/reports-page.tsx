@@ -40,7 +40,12 @@ import {
 } from "@/lib/api/khazina-api";
 import { writeDemoArtifacts } from "@/lib/demo/state";
 import { useDemoArtifacts } from "@/lib/demo/hooks";
-import { formatDate, mapReportStatus, mapReportType } from "@/lib/format";
+import { formatDate, mapReportStatus, mapReportType, sanitizeExecutiveText } from "@/lib/format";
+import {
+  canExportPdf,
+  REPORT_TITLES,
+  resolveExportReportId,
+} from "@/lib/reports/report-export";
 import { cn } from "@/lib/utils";
 
 function extractPreviewText(
@@ -50,7 +55,7 @@ function extractPreviewText(
   const executive = content?.sections?.find((s) => s.key === "executive_summary");
   const text = executive?.payload?.text;
   if (typeof text === "string" && text.trim()) {
-    return text;
+    return sanitizeExecutiveText(text);
   }
   return summary;
 }
@@ -65,6 +70,8 @@ function toReportItem(
     created_at: string;
     department_id?: string | null;
     source_file_id?: string | null;
+    analysis_run_id?: string | null;
+    has_content?: boolean;
   },
   previewText: string,
   resolveDepartment: (id: string | null | undefined) => string | null,
@@ -83,6 +90,8 @@ function toReportItem(
     date: row.created_at,
     status: mapReportStatus(row.status),
     previewText,
+    analysisRunId: row.analysis_run_id ?? null,
+    hasContent: row.has_content ?? false,
   };
 }
 
@@ -100,7 +109,29 @@ export function ReportsPage() {
   const [typeFilter, setTypeFilter] = React.useState("الكل");
   const [departmentFilter, setDepartmentFilter] = React.useState("الكل");
   const [showCompletion, setShowCompletion] = React.useState(false);
+  const [selectedReportId, setSelectedReportId] = React.useState<string | null>(null);
   const reportsSectionRef = React.useRef<HTMLElement>(null);
+
+  const exportCandidates = React.useMemo(
+    () =>
+      reports.map((report) => ({
+        id: report.id,
+        analysisRunId: report.analysisRunId ?? null,
+        hasContent: report.hasContent ?? false,
+      })),
+    [reports],
+  );
+
+  const resolvedExportReportId = React.useMemo(
+    () => resolveExportReportId(exportCandidates, artifacts, selectedReportId),
+    [exportCandidates, artifacts, selectedReportId],
+  );
+
+  const pdfExportEnabled = canExportPdf(
+    exportCandidates,
+    artifacts,
+    selectedReportId,
+  );
 
   const loadReports = React.useCallback(async () => {
     if (!auth.session) return;
@@ -138,7 +169,11 @@ export function ReportsPage() {
     if (auth.session) void loadReports();
   }, [auth.session, loadReports]);
 
-  const handleGenerate = async (runId: string, label: string) => {
+  const handleGenerate = async (
+    runId: string,
+    label: string,
+    title: string,
+  ) => {
     if (!auth.session) return;
     setGenerating(true);
     setError(null);
@@ -147,8 +182,10 @@ export function ReportsPage() {
         auth.session.organizationId,
         auth.session.token,
         runId,
+        title,
       );
       writeDemoArtifacts({ lastReportId: outcome.report.id });
+      setSelectedReportId(outcome.report.id);
       setMessage(`تم إنشاء ${label}`);
       setShowCompletion(true);
       await loadReports();
@@ -164,7 +201,11 @@ export function ReportsPage() {
       setError("شغّل تحليل الهدر أولاً قبل إنشاء التقرير");
       return;
     }
-    void handleGenerate(artifacts.wasteRunId, "تقرير الهدر");
+    void handleGenerate(
+      artifacts.wasteRunId,
+      "تقرير الهدر",
+      REPORT_TITLES.waste,
+    );
   };
 
   const handleGenerateRisk = () => {
@@ -172,14 +213,33 @@ export function ReportsPage() {
       setError("شغّل تحليل المخاطر أولاً قبل إنشاء التقرير");
       return;
     }
-    void handleGenerate(artifacts.riskRunId, "تقرير المخاطر");
+    void handleGenerate(
+      artifacts.riskRunId,
+      "تقرير المخاطر",
+      REPORT_TITLES.risk,
+    );
   };
 
-  const handlePdfExport = async () => {
+  const handleGenerateSimulation = () => {
+    if (!artifacts.simulationAnalysisRunId) {
+      setError("شغّل محاكاة السيناريو أولاً قبل إنشاء التقرير");
+      return;
+    }
+    void handleGenerate(
+      artifacts.simulationAnalysisRunId,
+      "تقرير المحاكاة",
+      REPORT_TITLES.simulation,
+    );
+  };
+
+  const handlePdfExport = async (reportIdOverride?: string) => {
     if (!auth.session) return;
-    const reportId = artifacts.lastReportId;
+    const reportId =
+      reportIdOverride ?? resolvedExportReportId ?? artifacts.lastReportId;
     if (!reportId) {
-      setError("لا يوجد تقرير مرتبط بالتحليل الحالي — أنشئ تقريراً بعد إكمال كشف الهدر");
+      setError(
+        "لا يوجد تقرير جاهز للتصدير — أنشئ تقريراً من تحليل الهدر أو المخاطر أو المحاكاة",
+      );
       return;
     }
     setExporting(true);
@@ -190,12 +250,19 @@ export function ReportsPage() {
         auth.session.token,
         reportId,
       );
+      const selected = reports.find((row) => row.id === reportId);
+      const safeTitle = (selected?.title ?? "khazina-report")
+        .replace(/[^\w\u0600-\u06FF\s-]+/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 80);
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "khazina-report.pdf";
+      anchor.download = `${safeTitle || "khazina-report"}.pdf`;
       anchor.click();
       URL.revokeObjectURL(url);
+      setSelectedReportId(reportId);
       setMessage("تم تنزيل ملف PDF");
     } catch (err) {
       setError(formatApiError(err));
@@ -272,6 +339,13 @@ export function ReportsPage() {
               onClick={() => void handleGenerateRisk()}
             >
               إنشاء تقرير من تحليل المخاطر
+            </Button>
+            <Button
+              variant="outline"
+              disabled={generating || !artifacts.simulationAnalysisRunId}
+              onClick={() => void handleGenerateSimulation()}
+            >
+              إنشاء تقرير من المحاكاة
             </Button>
           </div>
 
@@ -380,7 +454,14 @@ export function ReportsPage() {
             ) : (
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-5">
                 {filteredReports.map((report) => (
-                  <ReportsCard key={report.id} report={report} />
+                  <ReportsCard
+                    key={report.id}
+                    report={report}
+                    selected={selectedReportId === report.id}
+                    onSelect={() => setSelectedReportId(report.id)}
+                    onExportPdf={() => void handlePdfExport(report.id)}
+                    pdfExporting={exporting && resolvedExportReportId === report.id}
+                  />
                 ))}
               </div>
             )}
@@ -403,7 +484,7 @@ export function ReportsPage() {
             <ReportsExportPanel
               onPdfExport={() => void handlePdfExport()}
               pdfExporting={exporting}
-              pdfEnabled={readyCount > 0}
+              pdfEnabled={pdfExportEnabled}
             />
           </section>
         </div>

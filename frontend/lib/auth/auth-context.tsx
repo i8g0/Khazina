@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { humanizeErrorMessage } from "@/lib/workflow/messages";
+import { stripTechnicalLanguage } from "@/lib/executive-language";
 import { ApiError } from "@/lib/api/client";
 import { getActiveOrganization, login } from "@/lib/api/khazina-api";
 import {
@@ -162,10 +163,10 @@ export function formatApiError(error: unknown): string {
         error.message || "تعذّر إتمام العملية. أعد المحاولة بعد قليل.",
       );
     }
-    return humanizeErrorMessage(error.message);
+    return stripTechnicalLanguage(humanizeErrorMessage(error.message));
   }
   if (error instanceof Error) {
-    return humanizeErrorMessage(error.message);
+    return stripTechnicalLanguage(humanizeErrorMessage(error.message));
   }
   return "حدث خطأ غير متوقع. حاول مجدداً.";
 }

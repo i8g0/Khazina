@@ -30,7 +30,7 @@ export const PIPELINE_STAGES: PipelineStage[] = [
   },
   {
     id: "ai",
-    label: "توصيات الذكاء الاصطناعي",
+    label: "التوصيات التنفيذية",
     shortLabel: "التوصيات",
     href: navRouteMap.waste,
   },
@@ -118,7 +118,7 @@ export function getContinueTarget(
   if (!artifacts.aiRecommendationsReady) {
     return {
       href: navRouteMap.waste,
-      label: "متابعة: توصيات الذكاء الاصطناعي",
+      label: "متابعة: التوصيات التنفيذية",
     };
   }
   if (!artifacts.simulationRunId) {

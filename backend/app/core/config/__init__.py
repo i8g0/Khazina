@@ -65,7 +65,7 @@ class Settings:
 
     @property
     def ollama_model(self) -> str:
-        return self.ai.ollama_model
+        return self.ai.ollama_model or ""
 
     @property
     def ai_timeout(self) -> float:

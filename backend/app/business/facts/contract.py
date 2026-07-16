@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-CONTRACT_VERSION = "1.0"
+CONTRACT_VERSION = "1.1"
+SUPPORTED_CONTRACT_VERSIONS: frozenset[str] = frozenset({"1.0", "1.1"})
 
 
 @dataclass(frozen=True, slots=True)

@@ -54,6 +54,7 @@ export interface RiskRecommendationView {
   description: string;
   priority: string;
   category?: string;
+  source_context?: Record<string, unknown> | null;
 }
 
 export interface RiskFindingView {

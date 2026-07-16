@@ -1,0 +1,97 @@
+{
+  "base": "http://127.0.0.1:8000",
+  "scenarios": [
+    {
+      "index": 1,
+      "user_request": "أريد زيادة الأرباح 200 ألف ريال",
+      "status_code": 201,
+      "ms": 7899.68,
+      "scenario_type": "increase_profit",
+      "title_ar": "زيادة الأرباح بمقدار 200 ألف ريال",
+      "run_id": "939bd26d-eb75-4311-8bbd-03b54dbc366a"
+    },
+    {
+      "index": 2,
+      "user_request": "خفض المصاريف التشغيلية 15%",
+      "status_code": 201,
+      "ms": 7434.55,
+      "scenario_type": "reduce_expense",
+      "title_ar": "خفض المصاريف التشغيلية بنسبة 15%",
+      "run_id": "64764bea-f403-413c-a7bd-9efe65196fe9"
+    },
+    {
+      "index": 3,
+      "user_request": "رفع ميزانية التسويق مليون ريال",
+      "status_code": 201,
+      "ms": 8410.34,
+      "scenario_type": "budget_increase",
+      "title_ar": "رفع ميزانية التسويق",
+      "run_id": "0458d7d0-c650-4007-8eee-e8932e3ff461"
+    },
+    {
+      "index": 4,
+      "user_request": "تقليل الموردين إلى النصف",
+      "status_code": 201,
+      "ms": 8143.42,
+      "scenario_type": "reduce_suppliers",
+      "title_ar": "تقليل عدد الموردين إلى النصف",
+      "run_id": "9cd36be4-f8d5-41c7-89a9-88c7be4556f0"
+    },
+    {
+      "index": 5,
+      "user_request": "إغلاق أحد الفروع",
+      "status_code": 201,
+      "ms": 6628.81,
+      "scenario_type": "branch_closure",
+      "title_ar": "إغلاق فرع",
+      "run_id": "31db9392-dfa5-4c76-8614-ccfadd118b1f"
+    },
+    {
+      "index": 6,
+      "user_request": "توظيف 20 موظفاً",
+      "status_code": 201,
+      "ms": 6596.99,
+      "scenario_type": "employee_hiring",
+      "title_ar": "توظيف موظفين جدد",
+      "run_id": "fab7fabe-babe-41d7-ac5e-60664d43b815"
+    },
+    {
+      "index": 7,
+      "user_request": "زيادة الرواتب 8%",
+      "status_code": 201,
+      "ms": 7411.74,
+      "scenario_type": "increase_payroll",
+      "title_ar": "زيادة الرواتب بنسبة 8%",
+      "run_id": "57fda595-5590-4f34-b976-70cc6b68fc26"
+    },
+    {
+      "index": 8,
+      "user_request": "رفع الأسعار 3%",
+      "status_code": 201,
+      "ms": 7176.89,
+      "scenario_type": "price_increase",
+      "title_ar": "رفع الأسعار بنسبة 3%",
+      "run_id": "fc246bbf-2d7d-425c-be18-6f0460d02291"
+    },
+    {
+      "index": 9,
+      "user_request": "خفض تكلفة النقل",
+      "status_code": 201,
+      "ms": 7121.42,
+      "scenario_type": "reduce_expense",
+      "title_ar": "خفض تكلفة النقل",
+      "run_id": "6ef3b165-7780-4a8d-b81b-524e9625aa89"
+    },
+    {
+      "index": 10,
+      "user_request": "تقليل الهدر المالي 40%",
+      "status_code": 201,
+      "ms": 7397.2,
+      "scenario_type": "reduce_waste",
+      "title_ar": "تقليل الهدر المالي بنسبة 40%",
+      "run_id": "4197c526-333d-47f6-bc09-50c5cca16b8b"
+    }
+  ],
+  "passed": true,
+  "distinct_scenario_types": 9
+}

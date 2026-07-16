@@ -302,4 +302,10 @@ def format_analysis_title(
 
 
 def format_report_title(template: str, *, analysis_type: str) -> str:
-    return template.format(analysis_type=analysis_type)
+    labels = {
+        "financial_waste": "كشف الهدر",
+        "risk": "المخاطر المالية",
+        "simulation": "محاكاة السيناريو",
+    }
+    label = labels.get(analysis_type, analysis_type)
+    return template.format(analysis_type=label)

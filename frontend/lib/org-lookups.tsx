@@ -7,6 +7,7 @@ import {
   listFinancialFiles,
   listReportingPeriods,
 } from "@/lib/api/khazina-api";
+import { MAX_LIST_LIMIT } from "@/lib/api/pagination";
 import type {
   DepartmentResponse,
   FinancialFileResponse,
@@ -44,12 +45,12 @@ export function OrgLookupsProvider({ children }: { children: React.ReactNode }) 
     try {
       const [deptRows, fileRows, periodRows] = await Promise.all([
         listDepartments(session.organizationId, session.token, {
-          limit: 200,
+          limit: MAX_LIST_LIMIT,
           active_only: true,
         }),
         listFinancialFiles(session.organizationId, session.token),
         listReportingPeriods(session.organizationId, session.token, {
-          limit: 100,
+          limit: MAX_LIST_LIMIT,
         }),
       ]);
       setDepartments(deptRows);

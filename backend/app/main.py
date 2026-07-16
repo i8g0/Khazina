@@ -25,6 +25,15 @@ _DEMO_CORS_ORIGINS = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    ai_cfg = settings.ai
+    logger.info(
+        "AI configuration loaded: AI_PROVIDER=%s CLOUD_AI_MODEL=%s CLOUD_AI_BASE_URL=%s "
+        "parallel_tasks=%s",
+        ai_cfg.ai_provider,
+        ai_cfg.cloud_ai_model or "(not set)",
+        str(ai_cfg.cloud_ai_base_url) if ai_cfg.cloud_ai_base_url else "(not set)",
+        ai_cfg.parallel_tasks_enabled,
+    )
     initialize_business_engines()
     health = check_system_health()
     log_pipeline_event(

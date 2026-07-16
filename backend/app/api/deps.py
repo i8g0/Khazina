@@ -11,6 +11,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.ai.client import OllamaClient
+from app.ai.providers.base import AIProvider
+from app.ai.exceptions import AIConfigurationError
+from app.ai.providers.factory import create_ai_provider
 from app.core.config import settings
 from app.core.jwt import decode_access_token
 from app.db.models import User
@@ -41,6 +44,7 @@ from app.reports.export_service import ReportExportService
 from app.reports.export_storage import ReportExportStorage
 from app.reports.service import ReportBuilderService
 from app.decision.service import DecisionService
+from app.scenario.ai_simulation_service import AISimulationService
 from app.scenario.service import ScenarioService
 from app.ai_recommendations.service import AiRecommendationService
 from app.settings.service import SettingsService
@@ -245,6 +249,32 @@ def get_scenario_service(
     )
 
 
+def get_ai_simulation_service(
+    db: Annotated[Session, Depends(get_db)],
+    analysis_service: Annotated[AnalysisService, Depends(get_analysis_service)],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    simulation_repo: Annotated[SimulationRepository, Depends(get_simulation_repository)],
+    snapshot_repo: Annotated[
+        FinancialSnapshotRepository, Depends(get_financial_snapshot_repository)
+    ],
+    financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    waste_repo: Annotated[WasteRepository, Depends(get_waste_repository)],
+) -> AISimulationService:
+    return AISimulationService(
+        db,
+        analysis_service,
+        analysis_repo,
+        simulation_repo,
+        snapshot_repo,
+        financial_repo,
+        organization_repo,
+        waste_repo,
+    )
+
+
 def get_ai_recommendation_service(
     db: Annotated[Session, Depends(get_db)],
     analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
@@ -255,7 +285,7 @@ def get_ai_recommendation_service(
     recommendation_repo: Annotated[
         RecommendationRepository, Depends(get_recommendation_repository)
     ],
-    ollama_client: Annotated[OllamaClient, Depends(get_ollama_client)],
+    ai_provider: Annotated[AIProvider, Depends(get_ai_provider)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     notification_builder: Annotated[
         NotificationBuilder, Depends(get_notification_builder)
@@ -267,7 +297,7 @@ def get_ai_recommendation_service(
         waste_repo,
         recommendation_repo,
         risk_analysis_repository=risk_analysis_repo,
-        ollama_client=ollama_client,
+        ai_provider=ai_provider,
         settings_service=settings_service,
         notification_builder=notification_builder,
     )
@@ -713,6 +743,7 @@ FinancialServiceDep = Annotated[FinancialService, Depends(get_financial_service)
 IngestionServiceDep = Annotated[IngestionService, Depends(get_ingestion_service)]
 DecisionServiceDep = Annotated[DecisionService, Depends(get_decision_service)]
 ScenarioServiceDep = Annotated[ScenarioService, Depends(get_scenario_service)]
+AISimulationServiceDep = Annotated[AISimulationService, Depends(get_ai_simulation_service)]
 AiRecommendationServiceDep = Annotated[
     AiRecommendationService, Depends(get_ai_recommendation_service)
 ]
@@ -742,9 +773,22 @@ AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
 
+def get_ai_provider() -> AIProvider:
+    return create_ai_provider(settings.ai)
+
+
 def get_ollama_client() -> OllamaClient:
-    return OllamaClient(settings.ai)
+    """Backward-compatible factory — only valid when AI_PROVIDER=ollama."""
+    if settings.ai.ai_provider != "ollama":
+        raise AIConfigurationError(
+            "get_ollama_client() is unavailable when AI_PROVIDER="
+            f"{settings.ai.ai_provider!r}. Use get_ai_provider() instead."
+        )
+    provider = create_ai_provider(settings.ai)
+    assert isinstance(provider, OllamaClient)
+    return provider
 
 
+AIProviderDep = Annotated[AIProvider, Depends(get_ai_provider)]
 OllamaClientDep = Annotated[OllamaClient, Depends(get_ollama_client)]
 PaginationDep = Annotated[PaginationParams, Depends()]

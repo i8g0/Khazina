@@ -12,6 +12,11 @@ from app.ai_recommendations.recommendation_parser import (
     _NUMBERED_PREFIX_STRIP,
     _NUMBERED_SPLIT,
 )
+from app.presentation.executive_recommendation import parse_executive_recommendation
+from app.presentation.executive_sanitize import (
+    extract_recommendation_executive_text,
+    sanitize_executive_text,
+)
 from app.ai_recommendations.risk_constants import (
     CATEGORY_LABEL_TO_CODE,
     MAX_RISK_RECOMMENDATION_ITEMS,
@@ -57,20 +62,38 @@ def parse_risk_mitigation_text(text: str) -> tuple[ParsedRiskRecommendationItem,
                 {"item_index": index},
             )
         category_code = _extract_category(body)
-        action_match = _ACTION_LINE.search(body)
-        if action_match:
-            title = action_match.group(1).strip()
-            description = body.strip()
+        if "المشكلة:" in body:
+            fields = parse_executive_recommendation(body)
+            title = fields.recommendation or fields.executive_decision
+            description = fields.to_description()
+            if not title:
+                raise AiRecommendationError(
+                    "missing_recommendation_title",
+                    "Risk recommendation item missing action/title",
+                    {"item_index": index},
+                )
         else:
-            title, description = _split_title_and_description(body)
-        if not title:
-            raise AiRecommendationError(
-                "missing_recommendation_title",
-                "Risk recommendation item missing action/title",
-                {"item_index": index},
-            )
+            action_match = _ACTION_LINE.search(body)
+            if action_match:
+                title = action_match.group(1).strip()
+                description = body.strip()
+            else:
+                title, description = _split_title_and_description(body)
+            if not title:
+                raise AiRecommendationError(
+                    "missing_recommendation_title",
+                    "Risk recommendation item missing action/title",
+                    {"item_index": index},
+                )
+            action, rationale = extract_recommendation_executive_text(body)
+            if action:
+                title = action[: MAX_TITLE_LENGTH - 3].rstrip() + "..." if len(action) > MAX_TITLE_LENGTH else action
+            if rationale:
+                description = rationale
         if len(title) > MAX_TITLE_LENGTH:
             title = title[: MAX_TITLE_LENGTH - 3].rstrip() + "..."
+        title = sanitize_executive_text(title)
+        description = sanitize_executive_text(description)
         items.append(
             ParsedRiskRecommendationItem(
                 index=index,

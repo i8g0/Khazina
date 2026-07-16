@@ -13,7 +13,7 @@ def test_load_valid_facts_contract() -> None:
     contract = sample_facts_contract()
     loaded = load_facts_contract({"facts_contract": contract.to_dict()})
     assert loaded.engine_id == "waste"
-    assert loaded.contract_version == "1.0"
+    assert loaded.contract_version == "1.1"
 
 
 def test_rejects_missing_facts_contract() -> None:

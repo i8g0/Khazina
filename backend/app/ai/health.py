@@ -1,40 +1,53 @@
-"""AI infrastructure health checks (Sprint 5.1)."""
+"""AI infrastructure health checks."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.ai.client import OllamaClient
 from app.ai.exceptions import AIConnectionError, AITimeoutError
+from app.ai.providers.base import AIProvider
+from app.ai.providers.factory import create_ai_provider
 
 
 @dataclass(frozen=True, slots=True)
 class AiHealthResult:
     status: str
-    ollama_reachable: bool
+    provider: str
+    provider_reachable: bool
     configured_model: str
     message: str
+    ollama_reachable: bool
 
 
-def check_ollama_health(client: OllamaClient | None = None) -> AiHealthResult:
-    """Check whether the configured Ollama endpoint is reachable.
+def check_ai_provider_health(provider: AIProvider | None = None) -> AiHealthResult:
+    """Check whether the configured AI provider is reachable.
 
-    Does not perform model generation or inference.
+    Does not perform model generation or inference. Never exposes API keys.
     """
-    ollama = client or OllamaClient()
+    active = provider or create_ai_provider()
     try:
-        ollama.check_connectivity()
+        active.check_connectivity()
     except (AIConnectionError, AITimeoutError) as exc:
         return AiHealthResult(
             status="unavailable",
+            provider=active.provider_name,
+            provider_reachable=False,
             ollama_reachable=False,
-            configured_model=ollama.configured_model,
+            configured_model=active.configured_model,
             message=str(exc),
         )
 
     return AiHealthResult(
         status="ok",
+        provider=active.provider_name,
+        provider_reachable=True,
+        # Backward compat: frontend waste/risk pages gate on ollama_reachable.
         ollama_reachable=True,
-        configured_model=ollama.configured_model,
-        message="Ollama endpoint is reachable",
+        configured_model=active.configured_model,
+        message=f"{active.provider_name} provider is reachable",
     )
+
+
+def check_ollama_health(provider: AIProvider | None = None) -> AiHealthResult:
+    """Backward-compatible health check entry point."""
+    return check_ai_provider_health(provider)
