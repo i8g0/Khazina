@@ -78,8 +78,12 @@ class SimulationService(BaseService):
             raise BusinessValidationError(
                 "Scenario name and description must not be empty"
             )
+        if not assumptions:
+            raise BusinessValidationError(
+                "لا يمكن إنشاء سيناريو بدون افتراضات — أضف افتراضاً واحداً على الأقل"
+            )
 
-        assumption_rows = self._build_assumptions(assumptions or [])
+        assumption_rows = self._build_assumptions(assumptions)
         scenario = SimulationScenario(
             organization_id=organization_id,
             name=name,

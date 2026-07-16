@@ -198,8 +198,8 @@ class AISimulationService(BaseService):
             organization_id,
             name=interpreted.title_ar[:200],
             description=cleaned,
+            assumptions=_assumption_payloads_from_interpretation(interpreted),
         )
-        self._persist_assumptions_from_interpretation(scenario.id, interpreted)
 
         run = self._analysis.create_run(
             organization_id,
@@ -351,38 +351,39 @@ class AISimulationService(BaseService):
     def _persist_assumptions_from_interpretation(
         self, scenario_id: uuid.UUID, interpreted: InterpretedScenario
     ) -> None:
-        from app.db.models import SimulationAssumption
+        """Legacy helper — assumptions are persisted at scenario creation."""
+        _ = scenario_id, interpreted
 
-        order = 0
-        for action in interpreted.actions:
-            label = action.description or action.action_type
-            value_parts: list[str] = []
-            if action.mode == "percent" and action.value is not None:
-                value_parts.append(f"{action.value}%")
-            if action.amount is not None:
-                value_parts.append(f"{action.amount:,.0f} SAR")
-            if action.category:
-                value_parts.append(action.category)
-            self._simulations.add_assumptions(
-                [
-                    SimulationAssumption(
-                        scenario_id=scenario_id,
-                        label=label[:200],
-                        value=" | ".join(value_parts) or action.action_type,
-                        display_order=order,
-                    )
-                ]
-            )
-            order += 1
-        for assumption in interpreted.assumptions:
-            self._simulations.add_assumptions(
-                [
-                    SimulationAssumption(
-                        scenario_id=scenario_id,
-                        label="افتراض",
-                        value=assumption[:500],
-                        display_order=order,
-                    )
-                ]
-            )
-            order += 1
+
+def _assumption_payloads_from_interpretation(
+    interpreted: InterpretedScenario,
+) -> list[dict[str, Any]]:
+    payloads: list[dict[str, Any]] = []
+    order = 0
+    for action in interpreted.actions:
+        label = action.description or action.action_type
+        value_parts: list[str] = []
+        if action.mode == "percent" and action.value is not None:
+            value_parts.append(f"{action.value}%")
+        if action.amount is not None:
+            value_parts.append(f"{action.amount:,.0f} SAR")
+        if action.category:
+            value_parts.append(action.category)
+        payloads.append(
+            {
+                "label": label[:200],
+                "value": " | ".join(value_parts) or action.action_type,
+                "display_order": order,
+            }
+        )
+        order += 1
+    for assumption in interpreted.assumptions:
+        payloads.append(
+            {
+                "label": "افتراض",
+                "value": assumption[:500],
+                "display_order": order,
+            }
+        )
+        order += 1
+    return payloads

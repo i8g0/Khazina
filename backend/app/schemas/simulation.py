@@ -18,7 +18,7 @@ class SimulationAssumptionInput(SchemaBase):
 class SimulationScenarioCreate(SchemaBase):
     name: str = Field(..., min_length=1, max_length=300)
     description: str = Field(..., min_length=1)
-    assumptions: list[SimulationAssumptionInput] | None = None
+    assumptions: list[SimulationAssumptionInput] = Field(..., min_length=1)
 
 
 class SimulationScenarioUpdate(SchemaBase):

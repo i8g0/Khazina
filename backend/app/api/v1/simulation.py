@@ -44,9 +44,7 @@ def create_scenario(
     service: SimulationServiceDep,
     _current_user: RequireOrgExecutive,
 ) -> ApiResponse[SimulationScenarioResponse]:
-    assumptions = (
-        [a.model_dump() for a in body.assumptions] if body.assumptions else None
-    )
+    assumptions = [a.model_dump() for a in body.assumptions]
     scenario = service.create_scenario(
         organization_id,
         name=body.name,
