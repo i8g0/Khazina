@@ -18,7 +18,7 @@ def test_login_requires_email_and_password(client: TestClient) -> None:
     assert response.status_code == 422
     payload = response.json()
     assert payload["success"] is False
-    assert payload["message"] == "Validation failed"
+    assert payload["message"] == "يرجى مراجعة البيانات المدخلة وإكمال الحقول المطلوبة"
 
 
 def test_login_rejects_empty_password(client: TestClient) -> None:
@@ -67,4 +67,4 @@ def test_login_invalid_credentials_returns_401() -> None:
     assert response.status_code == 401
     payload = response.json()
     assert payload["success"] is False
-    assert payload["message"] == "Invalid email or password"
+    assert payload["message"] == "البريد الإلكتروني أو كلمة المرور غير صحيحة"

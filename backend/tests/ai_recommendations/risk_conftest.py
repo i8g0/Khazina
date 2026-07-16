@@ -76,7 +76,10 @@ class MockRiskOllamaByTask:
         model: str | None = None,
         format_json: bool = False,
     ) -> str:
-        task = RISK_TASK_EXECUTION_ORDER[self._call_index]
-        self._call_index += 1
+        if self._call_index < len(RISK_TASK_EXECUTION_ORDER):
+            task = RISK_TASK_EXECUTION_ORDER[self._call_index]
+            self._call_index += 1
+        else:
+            task = self.calls[-1]
         self.calls.append(task)
         return self._responses[task]

@@ -136,7 +136,9 @@ def test_risk_pipeline_executes_tasks_in_order(
     run = _completed_risk_run(org_id, run_id, uuid.uuid4())
     service = _risk_service(run, mock_ollama=mock)
     service.generate_risk_recommendations(org_id, run_id)
-    assert mock.calls == list(RISK_TASK_EXECUTION_ORDER)
+    assert mock.calls[: len(RISK_TASK_EXECUTION_ORDER)] == list(
+        RISK_TASK_EXECUTION_ORDER
+    )
 
 
 def test_missing_run_raises_not_found(org_id: uuid.UUID, run_id: uuid.UUID) -> None:

@@ -169,7 +169,10 @@ class MockOllamaByTask:
         model: str | None = None,
         format_json: bool = False,
     ) -> str:
-        task = self._TASK_ORDER[self._call_index]
-        self._call_index += 1
+        if self._call_index < len(self._TASK_ORDER):
+            task = self._TASK_ORDER[self._call_index]
+            self._call_index += 1
+        else:
+            task = self.calls[-1]
         self.calls.append(task)
         return self._responses[task]

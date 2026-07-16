@@ -38,6 +38,7 @@ def test_risk_fact_assembler_empty_findings() -> None:
         top_category_name=None,
         top_category_concentration=None,
         category_count=1,
+        category_breakdown=(),
         organization_id="org",
         snapshot_id="snap",
         reporting_period="2026-Q2",

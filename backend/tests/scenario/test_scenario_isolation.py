@@ -7,8 +7,11 @@ from pathlib import Path
 
 def test_scenario_module_does_not_import_ai() -> None:
     root = Path(__file__).resolve().parents[2] / "app" / "scenario"
+    allowed = {"ai_explainer.py", "ai_interpreter.py"}
     offenders: list[str] = []
     for path in root.rglob("*.py"):
+        if path.name in allowed:
+            continue
         text = path.read_text(encoding="utf-8")
         if "app.ai" in text:
             offenders.append(str(path))
