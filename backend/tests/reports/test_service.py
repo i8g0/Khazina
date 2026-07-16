@@ -119,9 +119,91 @@ def test_generate_rejects_incomplete_run(org_id: uuid.UUID, run_id: uuid.UUID) -
 def test_generate_rejects_unsupported_type(org_id: uuid.UUID, run_id: uuid.UUID) -> None:
     service = _build_service(org_id, run_id)
     run = service._analyses.get.return_value
-    run.analysis_type = AnalysisType.RISK
+    run.analysis_type = "legacy_unknown"
     with pytest.raises(InvalidStateError):
         service.generate_report(org_id, run_id)
+
+
+def test_generate_risk_report_success(org_id: uuid.UUID, run_id: uuid.UUID) -> None:
+    session = MagicMock()
+    report_repo = MagicMock()
+    analysis_repo = MagicMock()
+    waste_repo = MagicMock()
+    simulation_repo = MagicMock()
+    recommendation_repo = MagicMock()
+    organization_repo = MagicMock()
+    financial_repo = MagicMock()
+    risk_analysis_repo = MagicMock()
+    risk_repo = MagicMock()
+
+    run = MagicMock()
+    run.id = run_id
+    run.organization_id = org_id
+    run.analysis_type = AnalysisType.RISK
+    run.status = AnalysisRunStatus.COMPLETED
+    run.title = "Risk Run"
+    run.source_file_id = uuid.uuid4()
+    run.source_snapshot_id = uuid.uuid4()
+    run.reporting_period_id = None
+    run.completed_at = datetime(2026, 7, 16, tzinfo=UTC)
+    run.runtime_metadata = {
+        "facts_contract": sample_waste_facts().to_dict() | {"engine_id": "risk"},
+    }
+    analysis_repo.get.return_value = run
+
+    risk_result = MagicMock()
+    risk_result.id = uuid.uuid4()
+    risk_result.overall_posture_level = "elevated"
+    risk_result.total_findings = 3
+    risk_result.high_priority_count = 1
+    risk_result.medium_priority_count = 1
+    risk_result.low_priority_count = 1
+    risk_result.top_category_code = "financial"
+    risk_analysis_repo.get_result_for_run.return_value = risk_result
+    risk_analysis_repo.list_findings.return_value = []
+    risk_repo.list_for_organization.return_value = []
+    risk_repo.list_mitigation_plans_for_organization.return_value = []
+    recommendation_repo.list_for_analysis_run.return_value = []
+
+    org = MagicMock()
+    org.name = "Khazina Org"
+    organization_repo.get_organization.return_value = org
+    financial_repo.get_file.return_value = MagicMock(file_name="Budget.xlsx")
+
+    fixed_report_id = uuid.uuid4()
+    report_repo.create.side_effect = lambda report: setattr(report, "id", fixed_report_id) or report
+
+    facts = sample_waste_facts().to_dict()
+    facts["engine_id"] = "risk"
+    run.runtime_metadata = {"facts_contract": facts}
+
+    loader = ReportInputLoader(
+        analysis_repo,
+        waste_repo,
+        simulation_repo,
+        recommendation_repo,
+        organization_repo,
+        financial_repo,
+        risk_analysis_repo,
+        risk_repo,
+    )
+    service = ReportBuilderService(
+        session,
+        report_repo,
+        analysis_repo,
+        waste_repo,
+        simulation_repo,
+        recommendation_repo,
+        organization_repo,
+        financial_repo,
+        risk_analysis_repository=risk_analysis_repo,
+        risk_repository=risk_repo,
+        input_loader=loader,
+    )
+    fixed_ts = datetime(2026, 7, 16, 12, 0, tzinfo=UTC)
+    outcome = service.generate_report(org_id, run_id, generated_at=fixed_ts)
+    assert outcome.content.profile == "risk"
+    assert "risk_summary" in [s.key for s in outcome.content.sections]
 
 
 def test_generate_rejects_missing_run(org_id: uuid.UUID, run_id: uuid.UUID) -> None:

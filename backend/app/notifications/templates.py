@@ -54,6 +54,28 @@ def risk_ai_recommendations_completed_message(
     return title, body
 
 
+def risk_analysis_completed_message(
+    *,
+    run_title: str,
+    period_label: str | None,
+) -> tuple[str, str]:
+    period = period_label or "—"
+    title = f"اكتمل تحليل المخاطر: {run_title}"
+    body = f"اكتمل تحليل المخاطر المالي «{run_title}» للفترة {period}."
+    return title, body
+
+
+def risk_analysis_failed_message(
+    *,
+    run_title: str,
+    error_code: str | None,
+) -> tuple[str, str]:
+    code = error_code or "unknown"
+    title = f"فشل تحليل المخاطر: {run_title}"
+    body = f"تعذّر إكمال تحليل المخاطر «{run_title}» (رمز الخطأ: {code})."
+    return title, body
+
+
 def report_generated_message(*, report_title: str, report_type: str) -> tuple[str, str]:
     title = f"تم إنشاء التقرير: {report_title}"
     body = f"التقرير «{report_title}» ({report_type}) جاهز كمسودة."

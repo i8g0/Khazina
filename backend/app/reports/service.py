@@ -16,6 +16,7 @@ from app.db.models.enums import AnalysisRunStatus, AnalysisType, ReportStatus
 from app.reports.constants import (
     ANALYSIS_TYPE_TO_PROFILE,
     ANALYSIS_TYPE_TO_REPORT_TYPE,
+    PROFILE_RISK,
     PROFILE_SCENARIO,
     PROFILE_WASTE_DECISION,
     SUPPORTED_ANALYSIS_TYPES,
@@ -31,10 +32,12 @@ from app.reports.exceptions import ReportBuilderError
 from app.reports.preferences import ReportAssemblyPreferences
 from app.reports.loaders import (
     ReportInputLoader,
+    risk_input_fingerprint,
     scenario_input_fingerprint,
     waste_input_fingerprint,
 )
 from app.reports.sections import (
+    assemble_risk_sections,
     assemble_scenario_sections,
     assemble_waste_sections,
     derive_department_id,
@@ -45,6 +48,8 @@ from app.repositories import (
     OrganizationRepository,
     RecommendationRepository,
     ReportRepository,
+    RiskAnalysisRepository,
+    RiskRepository,
     SimulationRepository,
     WasteRepository,
 )
@@ -85,6 +90,8 @@ class ReportBuilderService(BaseService):
         organization_repository: OrganizationRepository,
         financial_repository: FinancialRepository,
         *,
+        risk_analysis_repository: RiskAnalysisRepository | None = None,
+        risk_repository: RiskRepository | None = None,
         input_loader: ReportInputLoader | None = None,
         settings_service: SettingsService | None = None,
         notification_builder: NotificationBuilder | None = None,
@@ -102,6 +109,8 @@ class ReportBuilderService(BaseService):
             recommendation_repository,
             organization_repository,
             financial_repository,
+            risk_analysis_repository,
+            risk_repository,
         )
 
     def generate_report(
@@ -225,6 +234,42 @@ class ReportBuilderService(BaseService):
                         )
                 else:
                     default_title = f"{inputs.run.title} — تقرير محاكاة"
+                source_file_id = inputs.run.source_file_id
+                reporting_period_id = inputs.run.reporting_period_id
+            elif profile == PROFILE_RISK:
+                inputs = self._input_loader.load_risk_inputs(
+                    organization_id, analysis_run_id, run=run
+                )
+                sections = assemble_risk_sections(
+                    inputs,
+                    include_ai_sections=assembly_prefs.include_ai_sections_when_available,
+                    include_recommendations=assembly_prefs.include_recommendations_section,
+                    report_language=assembly_prefs.report_language,
+                    date_display_format=assembly_prefs.date_display_format,
+                    currency_display_code=assembly_prefs.currency_display_code,
+                )
+                input_fp = risk_input_fingerprint(inputs)
+                ai_consumed = bool(
+                    inputs.ai_insights
+                    and inputs.ai_insights.get("risk_executive_summary")
+                )
+                ai_generated_at = (
+                    str(inputs.ai_insights.get("generated_at"))
+                    if inputs.ai_insights and inputs.ai_insights.get("generated_at")
+                    else None
+                )
+                baseline_run_id = None
+                resolved_department = department_id
+                if title is None:
+                    if self._settings is None:
+                        default_title = f"{inputs.run.title} — تقرير مخاطر"
+                    else:
+                        default_title = format_report_title(
+                            assembly_prefs.default_report_title_template,
+                            analysis_type=run.analysis_type,
+                        )
+                else:
+                    default_title = f"{inputs.run.title} — تقرير مخاطر"
                 source_file_id = inputs.run.source_file_id
                 reporting_period_id = inputs.run.reporting_period_id
             else:

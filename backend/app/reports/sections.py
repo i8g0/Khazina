@@ -10,6 +10,10 @@ from typing import Any
 from app.business.facts.contract import FactsContract
 from app.db.models import (
     Recommendation,
+    Risk,
+    RiskAnalysisResult,
+    RiskFinding,
+    RiskMitigationPlan,
     SimulationActionItem,
     SimulationAssumption,
     SimulationChartPoint,
@@ -22,8 +26,10 @@ from app.db.models import (
     WasteVendorFinding,
 )
 from app.reports.constants import (
+    PROFILE_RISK,
     PROFILE_SCENARIO,
     PROFILE_WASTE_DECISION,
+    RISK_SECTION_ORDER,
     SCENARIO_SECTION_ORDER,
     WASTE_SECTION_ORDER,
 )
@@ -31,6 +37,7 @@ from app.reports.content import ReportSection
 from app.reports.loaders import (
     BaselineWasteContext,
     OrganizationContext,
+    RiskReportInputs,
     ScenarioReportInputs,
     WasteReportInputs,
 )
@@ -447,6 +454,211 @@ def assemble_scenario_sections(
     if baseline_section is not None:
         sections.insert(6, baseline_section)
     order = {key: index for index, key in enumerate(SCENARIO_SECTION_ORDER)}
+    sections.sort(key=lambda s: order.get(s.key, 999))
+    return tuple(sections)
+
+
+def build_risk_executive_summary(
+    inputs: RiskReportInputs,
+    *,
+    allow_ai: bool = True,
+) -> ReportSection:
+    if (
+        allow_ai
+        and inputs.ai_insights
+        and inputs.ai_insights.get("risk_executive_summary")
+    ):
+        text = str(inputs.ai_insights["risk_executive_summary"]).strip()
+        source = "ai_insights"
+    else:
+        result = inputs.risk_result
+        text = (
+            f"تحليل المخاطر المالية: الوضع العام {result.overall_posture_level}. "
+            f"إجمالي النتائج {result.total_findings} "
+            f"(عالية: {result.high_priority_count}, "
+            f"متوسطة: {result.medium_priority_count}, "
+            f"منخفضة: {result.low_priority_count})."
+        )
+        source = "risk_gold_fallback"
+    return ReportSection(
+        key="executive_summary",
+        payload={"text": text, "source": source},
+    )
+
+
+def build_risk_summary_section(result: RiskAnalysisResult) -> ReportSection:
+    return ReportSection(
+        key="risk_summary",
+        payload={
+            "overall_posture_level": result.overall_posture_level,
+            "total_findings": result.total_findings,
+            "high_priority_count": result.high_priority_count,
+            "medium_priority_count": result.medium_priority_count,
+            "low_priority_count": result.low_priority_count,
+            "top_category_code": result.top_category_code,
+        },
+    )
+
+
+def build_top_risks_section(findings: tuple[RiskFinding, ...]) -> ReportSection:
+    ordered = sorted(
+        findings,
+        key=lambda f: (-f.score, f.priority),
+    )[:10]
+    return ReportSection(
+        key="top_risks",
+        payload={
+            "items": [
+                {
+                    "name": f.name,
+                    "category_code": f.category_code,
+                    "score": f.score,
+                    "priority": f.priority,
+                    "likelihood": f.likelihood,
+                    "impact": f.impact,
+                    "finding_status": f.finding_status,
+                }
+                for f in ordered
+            ]
+        },
+    )
+
+
+def build_mitigation_status_section(
+    plans: tuple[RiskMitigationPlan, ...],
+    register_risks: tuple[Risk, ...],
+) -> ReportSection:
+    risk_ids = {r.id for r in register_risks}
+    related = [p for p in plans if p.risk_id in risk_ids]
+    by_status: dict[str, int] = {}
+    for plan in related:
+        by_status[plan.status] = by_status.get(plan.status, 0) + 1
+    return ReportSection(
+        key="mitigation_status",
+        payload={
+            "total_plans": len(related),
+            "by_status": by_status,
+            "plans": [
+                {
+                    "title": p.title,
+                    "status": p.status,
+                    "target_date": p.target_date.isoformat(),
+                    "risk_id": str(p.risk_id),
+                }
+                for p in related[:20]
+            ],
+        },
+    )
+
+
+def build_register_statistics_section(
+    register_risks: tuple[Risk, ...],
+    findings: tuple[RiskFinding, ...],
+) -> ReportSection:
+    by_lifecycle: dict[str, int] = {}
+    for risk in register_risks:
+        key = risk.lifecycle_status or risk.status
+        by_lifecycle[key] = by_lifecycle.get(key, 0) + 1
+    promoted = sum(1 for f in findings if f.finding_status == "promoted")
+    return ReportSection(
+        key="register_statistics",
+        payload={
+            "register_count": len(register_risks),
+            "promoted_findings": promoted,
+            "by_lifecycle": by_lifecycle,
+            "items": [
+                {
+                    "name": r.name,
+                    "priority": r.priority,
+                    "score": r.score,
+                    "lifecycle_status": r.lifecycle_status,
+                    "status": r.status,
+                }
+                for r in register_risks[:20]
+            ],
+        },
+    )
+
+
+def build_risk_provenance_section(
+    inputs: RiskReportInputs,
+    *,
+    ai_insights_consumed: bool,
+) -> ReportSection:
+    run = inputs.run
+    facts = inputs.facts
+    ai_meta: dict[str, Any] = {}
+    if inputs.ai_insights:
+        for key in (
+            "generated_at",
+            "model",
+            "prompt_version",
+            "tasks_executed",
+            "traceability",
+            "domain",
+        ):
+            if key in inputs.ai_insights:
+                ai_meta[key] = inputs.ai_insights[key]
+    return ReportSection(
+        key="provenance",
+        payload={
+            "source_snapshot_id": str(run.source_snapshot_id)
+            if run.source_snapshot_id
+            else None,
+            "facts_contract_version": facts.contract_version,
+            "engine_id": facts.engine_id,
+            "engine_version": facts.engine_version,
+            "ai_insights_consumed": ai_insights_consumed,
+            "ai_metadata": ai_meta,
+            "profile": PROFILE_RISK,
+        },
+    )
+
+
+def assemble_risk_sections(
+    inputs: RiskReportInputs,
+    *,
+    include_ai_sections: bool = True,
+    include_recommendations: bool = True,
+    report_language: str | None = None,
+    date_display_format: str | None = None,
+    currency_display_code: str | None = None,
+) -> tuple[ReportSection, ...]:
+    ai_consumed = bool(
+        include_ai_sections
+        and inputs.ai_insights
+        and inputs.ai_insights.get("risk_executive_summary")
+    )
+    headline = {
+        "overall_posture_level": inputs.risk_result.overall_posture_level,
+        "total_findings": inputs.risk_result.total_findings,
+        "high_priority_count": inputs.risk_result.high_priority_count,
+    }
+    sections: list[ReportSection] = [
+        build_cover_section(
+            context=inputs.context,
+            run_title=inputs.run.title,
+            completed_at=inputs.run.completed_at,
+            source_file_id=inputs.run.source_file_id,
+            report_language=report_language,
+            date_display_format=date_display_format,
+            currency_display_code=currency_display_code,
+        ),
+        build_risk_executive_summary(inputs, allow_ai=include_ai_sections),
+        build_key_metrics_section(inputs.facts, headline=headline),
+        build_risk_summary_section(inputs.risk_result),
+        build_top_risks_section(inputs.findings),
+        build_mitigation_status_section(
+            inputs.mitigation_plans, inputs.register_risks
+        ),
+        build_register_statistics_section(inputs.register_risks, inputs.findings),
+    ]
+    if include_recommendations and inputs.recommendations:
+        sections.append(build_recommendations_section(inputs.recommendations))
+    sections.append(
+        build_risk_provenance_section(inputs, ai_insights_consumed=ai_consumed)
+    )
+    order = {key: index for index, key in enumerate(RISK_SECTION_ORDER)}
     sections.sort(key=lambda s: order.get(s.key, 999))
     return tuple(sections)
 

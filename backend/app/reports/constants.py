@@ -9,6 +9,7 @@ EXPORT_FORMAT_PDF = "pdf"
 
 PROFILE_WASTE_DECISION = "waste_decision"
 PROFILE_SCENARIO = "scenario"
+PROFILE_RISK = "risk"
 
 WASTE_SECTION_ORDER: tuple[str, ...] = (
     "cover",
@@ -31,16 +32,31 @@ SCENARIO_SECTION_ORDER: tuple[str, ...] = (
     "provenance",
 )
 
-SUPPORTED_ANALYSIS_TYPES: frozenset[str] = frozenset({"financial_waste", "simulation"})
+RISK_SECTION_ORDER: tuple[str, ...] = (
+    "cover",
+    "executive_summary",
+    "risk_summary",
+    "top_risks",
+    "mitigation_status",
+    "register_statistics",
+    "recommendations",
+    "provenance",
+)
+
+SUPPORTED_ANALYSIS_TYPES: frozenset[str] = frozenset(
+    {"financial_waste", "simulation", "risk"}
+)
 
 ANALYSIS_TYPE_TO_REPORT_TYPE: dict[str, str] = {
     "financial_waste": "analysis",
     "simulation": "simulation",
+    "risk": "risk",
 }
 
 ANALYSIS_TYPE_TO_PROFILE: dict[str, str] = {
     "financial_waste": PROFILE_WASTE_DECISION,
     "simulation": PROFILE_SCENARIO,
+    "risk": PROFILE_RISK,
 }
 
-SUPPORTED_ENGINE_IDS: frozenset[str] = frozenset({"waste", "scenario"})
+SUPPORTED_ENGINE_IDS: frozenset[str] = frozenset({"waste", "scenario", "risk"})

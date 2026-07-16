@@ -16,6 +16,8 @@ from app.db.models.notification import NotificationReadReceipt
 from app.notifications.constants import (
     KIND_AI_RECOMMENDATIONS_COMPLETED,
     KIND_RISK_AI_RECOMMENDATIONS_COMPLETED,
+    KIND_RISK_ANALYSIS_COMPLETED,
+    KIND_RISK_ANALYSIS_FAILED,
     KIND_ANALYSIS_COMPLETED,
     KIND_ANALYSIS_FAILED,
     KIND_REPORT_GENERATED,
@@ -36,6 +38,8 @@ from app.notifications.user_preferences_resolver import (
 from app.notifications.templates import (
     ai_recommendations_completed_message,
     risk_ai_recommendations_completed_message,
+    risk_analysis_completed_message,
+    risk_analysis_failed_message,
     analysis_completed_message,
     analysis_failed_message,
     build_payload_representation,
@@ -110,6 +114,8 @@ class NotificationBuilder(BaseService):
             kind = KIND_ANALYSIS_COMPLETED
         elif run.analysis_type == AnalysisType.SIMULATION:
             kind = KIND_SCENARIO_COMPLETED
+        elif run.analysis_type == AnalysisType.RISK:
+            kind = KIND_RISK_ANALYSIS_COMPLETED
         else:
             return None
         if not self._gate_allows(organization_id, kind, initiating_user_id):
@@ -118,6 +124,12 @@ class NotificationBuilder(BaseService):
         if kind == KIND_SCENARIO_COMPLETED:
             title, body = self._scenario_templates(run, period_label)
             metadata = self._scenario_metadata(run)
+        elif kind == KIND_RISK_ANALYSIS_COMPLETED:
+            title, body = risk_analysis_completed_message(
+                run_title=run.title,
+                period_label=period_label,
+            )
+            metadata = {"analysis_type": run.analysis_type}
         else:
             title, body = analysis_completed_message(
                 run_title=run.title,
@@ -307,6 +319,8 @@ class NotificationBuilder(BaseService):
             kind = KIND_ANALYSIS_FAILED
         elif run.analysis_type == AnalysisType.SIMULATION:
             kind = KIND_SCENARIO_FAILED
+        elif run.analysis_type == AnalysisType.RISK:
+            kind = KIND_RISK_ANALYSIS_FAILED
         else:
             return None
         if not self._gate_allows(organization_id, kind, initiating_user_id):
@@ -316,6 +330,11 @@ class NotificationBuilder(BaseService):
         error_code = failure.get("error_code")
         if kind == KIND_SCENARIO_FAILED:
             title, body = scenario_failed_message(
+                run_title=run.title,
+                error_code=str(error_code) if error_code else None,
+            )
+        elif kind == KIND_RISK_ANALYSIS_FAILED:
+            title, body = risk_analysis_failed_message(
                 run_title=run.title,
                 error_code=str(error_code) if error_code else None,
             )

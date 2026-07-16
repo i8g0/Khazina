@@ -9,6 +9,8 @@ KIND_ANALYSIS_COMPLETED = "analysis_completed"
 KIND_SCENARIO_COMPLETED = "scenario_completed"
 KIND_AI_RECOMMENDATIONS_COMPLETED = "ai_recommendations_completed"
 KIND_RISK_AI_RECOMMENDATIONS_COMPLETED = "risk_ai_recommendations_completed"
+KIND_RISK_ANALYSIS_COMPLETED = "risk_analysis_completed"
+KIND_RISK_ANALYSIS_FAILED = "risk_analysis_failed"
 KIND_REPORT_GENERATED = "report_generated"
 KIND_REPORT_PUBLISHED = "report_published"
 KIND_ANALYSIS_FAILED = "analysis_failed"
@@ -20,6 +22,8 @@ ALL_PLATFORM_EVENT_KINDS: frozenset[str] = frozenset(
         KIND_SCENARIO_COMPLETED,
         KIND_AI_RECOMMENDATIONS_COMPLETED,
         KIND_RISK_AI_RECOMMENDATIONS_COMPLETED,
+        KIND_RISK_ANALYSIS_COMPLETED,
+        KIND_RISK_ANALYSIS_FAILED,
         KIND_REPORT_GENERATED,
         KIND_REPORT_PUBLISHED,
         KIND_ANALYSIS_FAILED,

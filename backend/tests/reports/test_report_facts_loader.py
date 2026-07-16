@@ -23,6 +23,13 @@ def test_load_scenario_facts() -> None:
     assert contract.engine_id == "scenario"
 
 
+def test_load_risk_facts() -> None:
+    payload = sample_waste_facts().to_dict()
+    payload["engine_id"] = "risk"
+    contract = load_facts_contract({"facts_contract": payload})
+    assert contract.engine_id == "risk"
+
+
 def test_missing_facts_raises() -> None:
     with pytest.raises(ReportBuilderError) as exc:
         load_facts_contract({})

@@ -65,7 +65,7 @@ const kpiIcons = [
 const dashboardKpiLabels = [
   "إجمالي الهدر المالي المكتشف",
   "عدد المخاطر الحرجة",
-  "التوفير المتوقع",
+  "المخاطر النشطة",
   "آخر توصية من الذكاء الاصطناعي",
   "حالة آخر تحليل",
 ];
@@ -90,6 +90,7 @@ export function DashboardPage() {
     null,
     null,
   ]);
+  const [riskSummary, setRiskSummary] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     if (!auth.session) return;
@@ -135,16 +136,26 @@ export function DashboardPage() {
       const riskHigh = risks.filter(
         (r) => r.priority === "high" && r.status !== "closed",
       ).length;
+      const activeRisks = risks.filter((r) => r.status !== "closed").length;
+      const latestRiskRun = runs.find((run) => run.analysis_type === "risk");
+      const riskInsights = latestRiskRun?.runtime_metadata?.ai_insights as
+        | Record<string, unknown>
+        | undefined;
+      const riskExecutiveSummary =
+        typeof riskInsights?.risk_executive_summary === "string"
+          ? riskInsights.risk_executive_summary.slice(0, 120)
+          : null;
       const latestRec = recs[0];
       const latestRun = runs[0];
 
       setKpiValues([
         null,
         riskHigh > 0 ? String(riskHigh) : null,
-        null,
+        activeRisks > 0 ? String(activeRisks) : null,
         latestRec ? latestRec.title.slice(0, 40) : null,
         latestRun ? mapRunStatus(latestRun.status) : null,
       ]);
+      setRiskSummary(riskExecutiveSummary);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -229,6 +240,17 @@ export function DashboardPage() {
               })}
             </section>
           </section>
+
+          {riskSummary ? (
+            <section className="rounded-2xl border border-border/60 bg-surface px-5 py-4 md:px-6 md:py-5">
+              <DashboardSectionHeader
+                dense
+                title="ملخص المخاطر التنفيذي"
+                description="من آخر تحليل مخاطر مكتمل — للمراجعة فقط"
+              />
+              <p className="text-sm leading-7 text-muted md:text-[15px]">{riskSummary}…</p>
+            </section>
+          ) : null}
 
           <section className="space-y-3">
             <DashboardSectionHeader dense title="الرسوم البيانية" />

@@ -552,6 +552,10 @@ def get_report_builder_service(
         OrganizationRepository, Depends(get_organization_repository)
     ],
     financial_repo: Annotated[FinancialRepository, Depends(get_financial_repository)],
+    risk_analysis_repo: Annotated[
+        RiskAnalysisRepository, Depends(get_risk_analysis_repository)
+    ],
+    risk_repo: Annotated[RiskRepository, Depends(get_risk_repository)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     notification_builder: Annotated[
         NotificationBuilder, Depends(get_notification_builder)
@@ -566,6 +570,8 @@ def get_report_builder_service(
         recommendation_repo,
         organization_repo,
         financial_repo,
+        risk_analysis_repository=risk_analysis_repo,
+        risk_repository=risk_repo,
         settings_service=settings_service,
         notification_builder=notification_builder,
     )

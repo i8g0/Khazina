@@ -14,6 +14,7 @@ from app.notifications.builder import NotificationBuilder
 from app.notifications.constants import (
     KIND_AI_RECOMMENDATIONS_COMPLETED,
     KIND_ANALYSIS_COMPLETED,
+    KIND_RISK_ANALYSIS_COMPLETED,
     KIND_REPORT_GENERATED,
     KIND_REPORT_PUBLISHED,
     KIND_SCENARIO_COMPLETED,
@@ -138,6 +139,27 @@ def test_ai_recommendations_completion_materializes(
 
     assert result is not None
     assert result.notification.platform_event_kind == KIND_AI_RECOMMENDATIONS_COMPLETED
+
+
+def test_risk_analysis_completion_materializes(
+    org_id: uuid.UUID, user_id: uuid.UUID
+) -> None:
+    run_id = uuid.uuid4()
+    builder, repos = _builder()
+    run = mock_waste_run(org_id, run_id)
+    run.analysis_type = AnalysisType.RISK
+    repos["analyses"].get.return_value = run
+    repos["organizations"].get_reporting_period.return_value = mock_period()
+    repos["users"].get_by_id.return_value = mock_active_user(org_id, user_id)
+
+    result = builder.materialize_analysis_completion(
+        org_id,
+        run_id,
+        initiating_user_id=user_id,
+    )
+
+    assert result is not None
+    assert result.notification.platform_event_kind == KIND_RISK_ANALYSIS_COMPLETED
 
 
 def test_report_generated_materializes(org_id: uuid.UUID, user_id: uuid.UUID) -> None:

@@ -16,6 +16,10 @@ from app.db.models import (
     Organization,
     Recommendation,
     ReportingPeriod,
+    Risk,
+    RiskAnalysisResult,
+    RiskFinding,
+    RiskMitigationPlan,
     SimulationActionItem,
     SimulationAssumption,
     SimulationChartPoint,
@@ -37,6 +41,8 @@ from app.repositories import (
     FinancialRepository,
     OrganizationRepository,
     RecommendationRepository,
+    RiskAnalysisRepository,
+    RiskRepository,
     SimulationRepository,
     WasteRepository,
 )
@@ -100,6 +106,19 @@ class ScenarioReportInputs:
     context: OrganizationContext
 
 
+@dataclass(frozen=True, slots=True)
+class RiskReportInputs:
+    run: AnalysisRun
+    facts: FactsContract
+    risk_result: RiskAnalysisResult
+    findings: tuple[RiskFinding, ...]
+    register_risks: tuple[Risk, ...]
+    mitigation_plans: tuple[RiskMitigationPlan, ...]
+    recommendations: tuple[Recommendation, ...]
+    ai_insights: dict[str, Any] | None
+    context: OrganizationContext
+
+
 class ReportInputLoader:
     """Loads persisted artifacts for report profiles — read-only."""
 
@@ -111,6 +130,8 @@ class ReportInputLoader:
         recommendation_repository: RecommendationRepository,
         organization_repository: OrganizationRepository,
         financial_repository: FinancialRepository,
+        risk_analysis_repository: RiskAnalysisRepository | None = None,
+        risk_repository: RiskRepository | None = None,
     ) -> None:
         self._analyses = analysis_repository
         self._waste = waste_repository
@@ -118,6 +139,8 @@ class ReportInputLoader:
         self._recommendations = recommendation_repository
         self._organizations = organization_repository
         self._financials = financial_repository
+        self._risk_analysis = risk_analysis_repository
+        self._risks = risk_repository
 
     def load_waste_inputs(
         self,
@@ -255,6 +278,77 @@ class ReportInputLoader:
             context=context,
         )
 
+    def load_risk_inputs(
+        self,
+        organization_id: uuid.UUID,
+        analysis_run_id: uuid.UUID,
+        *,
+        run: AnalysisRun | None = None,
+    ) -> RiskReportInputs:
+        if self._risk_analysis is None or self._risks is None:
+            raise ReportBuilderError(
+                "risk_loader_unavailable",
+                "Risk repositories are not configured for report generation",
+            )
+        if run is not None:
+            if run.id != analysis_run_id or run.organization_id != organization_id:
+                raise ReportBuilderError(
+                    "analysis_run_not_found",
+                    f"Analysis run '{analysis_run_id}' not found",
+                )
+            if run.status != AnalysisRunStatus.COMPLETED:
+                raise ReportBuilderError(
+                    "analysis_run_not_completed",
+                    f"Analysis run must be completed (current status: '{run.status}')",
+                )
+            resolved_run = run
+        else:
+            resolved_run = self._require_completed_run(organization_id, analysis_run_id)
+        if resolved_run.analysis_type != AnalysisType.RISK:
+            raise ReportBuilderError(
+                "unsupported_analysis_type",
+                f"Analysis type '{resolved_run.analysis_type}' is not supported for risk reports",
+            )
+        metadata = dict(resolved_run.runtime_metadata or {})
+        facts = load_facts_contract(metadata)
+        risk_result = self._risk_analysis.get_result_for_run(resolved_run.id)
+        if risk_result is None:
+            raise ReportBuilderError(
+                "missing_risk_gold",
+                "Analysis run has no risk_analysis_results Gold record",
+            )
+        findings = tuple(self._risk_analysis.list_findings(resolved_run.id))
+        register_risks = tuple(
+            r
+            for r in self._risks.list_for_organization(organization_id, limit=500)
+            if r.source_analysis_run_id == resolved_run.id
+        )
+        mitigation_plans = tuple(
+            self._risks.list_mitigation_plans_for_organization(
+                organization_id, limit=200
+            )
+        )
+        recommendations = tuple(
+            rec
+            for rec in self._recommendations.list_for_analysis_run(resolved_run.id)
+            if rec.domain_source == RecommendationDomain.RISK
+        )
+        ai_insights = metadata.get("ai_insights")
+        if ai_insights is not None and not isinstance(ai_insights, dict):
+            ai_insights = None
+        context = self._load_context(organization_id, resolved_run)
+        return RiskReportInputs(
+            run=resolved_run,
+            facts=facts,
+            risk_result=risk_result,
+            findings=findings,
+            register_risks=register_risks,
+            mitigation_plans=mitigation_plans,
+            recommendations=recommendations,
+            ai_insights=ai_insights,
+            context=context,
+        )
+
     def _require_completed_run(
         self, organization_id: uuid.UUID, analysis_run_id: uuid.UUID
     ) -> AnalysisRun:
@@ -375,5 +469,20 @@ def scenario_input_fingerprint(inputs: ScenarioReportInputs) -> str:
             "action_item_ids": [str(a.id) for a in inputs.action_items],
             "scenario_provenance": inputs.scenario_provenance,
             "baseline": baseline_key,
+        }
+    )
+
+
+def risk_input_fingerprint(inputs: RiskReportInputs) -> str:
+    return compute_input_fingerprint(
+        {
+            "run_id": str(inputs.run.id),
+            "facts": inputs.facts.to_dict(),
+            "risk_result_id": str(inputs.risk_result.id),
+            "finding_ids": [str(f.id) for f in inputs.findings],
+            "register_risk_ids": [str(r.id) for r in inputs.register_risks],
+            "mitigation_plan_ids": [str(p.id) for p in inputs.mitigation_plans],
+            "recommendation_ids": [str(r.id) for r in inputs.recommendations],
+            "ai_insights": inputs.ai_insights,
         }
     )

@@ -255,7 +255,7 @@ export function RiskPage() {
       setAiInsights(outcome.ai_insights);
       setRecommendations(outcome.recommendations.map(mapRecommendation));
       writeDemoArtifacts({ riskAiReady: true });
-      setMessage(`تم توليد ${outcome.recommendation_count} توصية للمخاطr`);
+      setMessage(`تم توليد ${outcome.recommendation_count} توصية للمخاطر`);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -515,7 +515,7 @@ export function RiskPage() {
           <section className={executiveSectionSpacingClassName}>
             <DashboardSectionHeader dense title="سجل التحليلات" />
             {history.length === 0 ? (
-              <EmptyState title="لا توجد تحليلات" description="لم يُنفَّذ أي تحليل مخاطr بعد" />
+              <EmptyState title="لا توجد تحليلات" description="لم يُنفَّذ أي تحليل مخاطر بعد" />
             ) : (
               <RiskAnalysesTable data={history} />
             )}

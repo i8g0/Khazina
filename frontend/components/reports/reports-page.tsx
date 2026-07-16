@@ -138,22 +138,18 @@ export function ReportsPage() {
     if (auth.session) void loadReports();
   }, [auth.session, loadReports]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (runId: string, label: string) => {
     if (!auth.session) return;
-    if (!artifacts.wasteRunId) {
-      setError("شغّل تحليل الهدر أولاً قبل إنشاء التقرير");
-      return;
-    }
     setGenerating(true);
     setError(null);
     try {
       const outcome = await generateReport(
         auth.session.organizationId,
         auth.session.token,
-        artifacts.wasteRunId,
+        runId,
       );
       writeDemoArtifacts({ lastReportId: outcome.report.id });
-      setMessage("تم إنشاء التقرير التنفيذي");
+      setMessage(`تم إنشاء ${label}`);
       setShowCompletion(true);
       await loadReports();
     } catch (err) {
@@ -161,6 +157,22 @@ export function ReportsPage() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleGenerateWaste = () => {
+    if (!artifacts.wasteRunId) {
+      setError("شغّل تحليل الهدر أولاً قبل إنشاء التقرير");
+      return;
+    }
+    void handleGenerate(artifacts.wasteRunId, "تقرير الهدر");
+  };
+
+  const handleGenerateRisk = () => {
+    if (!artifacts.riskRunId) {
+      setError("شغّل تحليل المخاطر أولاً قبل إنشاء التقرير");
+      return;
+    }
+    void handleGenerate(artifacts.riskRunId, "تقرير المخاطر");
   };
 
   const handlePdfExport = async () => {
@@ -251,8 +263,15 @@ export function ReportsPage() {
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <Button disabled={generating} onClick={() => void handleGenerate()}>
+            <Button disabled={generating} onClick={() => void handleGenerateWaste()}>
               {generating ? "جاري إنشاء التقرير..." : "إنشاء تقرير من تحليل الهدر"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={generating || !artifacts.riskRunId}
+              onClick={() => void handleGenerateRisk()}
+            >
+              إنشاء تقرير من تحليل المخاطر
             </Button>
           </div>
 
