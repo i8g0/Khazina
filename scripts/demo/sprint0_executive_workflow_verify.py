@@ -16,7 +16,7 @@ API_BASE = os.environ.get("KHAZINA_API_URL", "http://127.0.0.1:8000").rstrip("/"
 DEMO_EMAIL = "demo@khazina.sa"
 DEMO_PASSWORD = "DemoExec2026!"
 AI_TIMEOUT = 180
-WORKBOOK = Path(__file__).resolve().parents[2] / "Khazina_Demo_Dataset_v2.xlsx"
+WORKBOOK = Path(__file__).resolve().parent / "Khazina_Demo_Dataset_v2.xlsx"
 RESULTS = Path(__file__).resolve().parent / "sprint0_workflow_results.json"
 
 

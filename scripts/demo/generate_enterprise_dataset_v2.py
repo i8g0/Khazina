@@ -16,7 +16,7 @@ sys.path.insert(0, str(BACKEND_ROOT))
 from app.ingestion.orchestrator import IngestionOrchestrator  # noqa: E402
 from app.ingestion.exceptions import ValidationFailure, ParseError  # noqa: E402
 
-OUTPUT = Path(__file__).resolve().parents[2] / "Demo_Enterprise_Dataset_v2.xlsx"
+OUTPUT = Path(__file__).resolve().parent / "Demo_Enterprise_Dataset_v2.xlsx"
 ROW_COUNT = 20_500
 TOTAL_SPEND = 285_000_000
 SEED = 20260717

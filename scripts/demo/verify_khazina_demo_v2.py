@@ -14,7 +14,7 @@ API_BASE = "http://127.0.0.1:8000"
 DEMO_EMAIL = "demo@khazina.sa"
 DEMO_PASSWORD = "DemoExec2026!"
 AI_TIMEOUT = 180
-WORKBOOK = Path(__file__).resolve().parents[2] / "Khazina_Demo_Dataset_v2.xlsx"
+WORKBOOK = Path(__file__).resolve().parent / "Khazina_Demo_Dataset_v2.xlsx"
 RESULTS = Path(__file__).resolve().parent / "khazina_demo_v2_verify.json"
 
 

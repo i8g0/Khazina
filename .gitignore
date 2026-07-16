@@ -38,3 +38,6 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Runtime upload storage (never commit)
+backend/data/

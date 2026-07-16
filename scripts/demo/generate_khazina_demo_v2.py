@@ -16,7 +16,7 @@ sys.path.insert(0, str(BACKEND_ROOT))
 from app.ingestion.orchestrator import IngestionOrchestrator  # noqa: E402
 from app.ingestion.exceptions import ValidationFailure, ParseError  # noqa: E402
 
-OUTPUT = Path(__file__).resolve().parents[2] / "Khazina_Demo_Dataset_v2.xlsx"
+OUTPUT = Path(__file__).resolve().parent / "Khazina_Demo_Dataset_v2.xlsx"
 TOTAL_SPEND = 78_500_000
 ROW_COUNT = 420
 SEED = 20260717
