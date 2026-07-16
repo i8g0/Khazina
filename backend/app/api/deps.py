@@ -27,6 +27,9 @@ from app.repositories import (
     ReportExportRepository,
     ReportRepository,
     RiskRepository,
+    RiskAnalysisRepository,
+    RiskCategoryRepository,
+    RiskEventRepository,
     SettingsRepository,
     SimulationRepository,
     TimelineRepository,
@@ -54,6 +57,8 @@ from app.services import (
     RecommendationService,
     ReportService,
     RiskService,
+    RiskAnalysisService,
+    RiskRegisterService,
     SimulationService,
     TimelineService,
     UserService,
@@ -107,6 +112,24 @@ def get_risk_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> RiskRepository:
     return RiskRepository(db)
+
+
+def get_risk_analysis_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> RiskAnalysisRepository:
+    return RiskAnalysisRepository(db)
+
+
+def get_risk_category_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> RiskCategoryRepository:
+    return RiskCategoryRepository(db)
+
+
+def get_risk_event_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> RiskEventRepository:
+    return RiskEventRepository(db)
 
 
 def get_simulation_repository(
@@ -226,6 +249,9 @@ def get_ai_recommendation_service(
     db: Annotated[Session, Depends(get_db)],
     analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
     waste_repo: Annotated[WasteRepository, Depends(get_waste_repository)],
+    risk_analysis_repo: Annotated[
+        RiskAnalysisRepository, Depends(get_risk_analysis_repository)
+    ],
     recommendation_repo: Annotated[
         RecommendationRepository, Depends(get_recommendation_repository)
     ],
@@ -240,6 +266,7 @@ def get_ai_recommendation_service(
         analysis_repo,
         waste_repo,
         recommendation_repo,
+        risk_analysis_repository=risk_analysis_repo,
         ollama_client=ollama_client,
         settings_service=settings_service,
         notification_builder=notification_builder,
@@ -455,6 +482,52 @@ def get_risk_service(
     return RiskService(db, risk_repo, organization_repo, department_repo)
 
 
+def get_risk_analysis_service(
+    db: Annotated[Session, Depends(get_db)],
+    risk_analysis_repo: Annotated[
+        RiskAnalysisRepository, Depends(get_risk_analysis_repository)
+    ],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    analysis_service: Annotated[AnalysisService, Depends(get_analysis_service)],
+    decision_service: Annotated[DecisionService, Depends(get_decision_service)],
+) -> RiskAnalysisService:
+    return RiskAnalysisService(
+        db,
+        risk_analysis_repo,
+        analysis_repo,
+        organization_repo,
+        analysis_service,
+        decision_service,
+    )
+
+
+def get_risk_register_service(
+    db: Annotated[Session, Depends(get_db)],
+    risk_repo: Annotated[RiskRepository, Depends(get_risk_repository)],
+    risk_analysis_repo: Annotated[
+        RiskAnalysisRepository, Depends(get_risk_analysis_repository)
+    ],
+    risk_event_repo: Annotated[RiskEventRepository, Depends(get_risk_event_repository)],
+    analysis_repo: Annotated[AnalysisRepository, Depends(get_analysis_repository)],
+    organization_repo: Annotated[
+        OrganizationRepository, Depends(get_organization_repository)
+    ],
+    department_repo: Annotated[DepartmentRepository, Depends(get_department_repository)],
+) -> RiskRegisterService:
+    return RiskRegisterService(
+        db,
+        risk_repo,
+        risk_analysis_repo,
+        risk_event_repo,
+        analysis_repo,
+        organization_repo,
+        department_repo,
+    )
+
+
 def get_simulation_service(
     db: Annotated[Session, Depends(get_db)],
     simulation_repo: Annotated[SimulationRepository, Depends(get_simulation_repository)],
@@ -640,6 +713,8 @@ AiRecommendationServiceDep = Annotated[
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 WasteServiceDep = Annotated[WasteService, Depends(get_waste_service)]
 RiskServiceDep = Annotated[RiskService, Depends(get_risk_service)]
+RiskAnalysisServiceDep = Annotated[RiskAnalysisService, Depends(get_risk_analysis_service)]
+RiskRegisterServiceDep = Annotated[RiskRegisterService, Depends(get_risk_register_service)]
 SimulationServiceDep = Annotated[SimulationService, Depends(get_simulation_service)]
 ReportServiceDep = Annotated[ReportService, Depends(get_report_service)]
 ReportBuilderServiceDep = Annotated[

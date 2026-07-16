@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from app.db.models.recommendation import Recommendation
     from app.db.models.repository import FinancialFile
     from app.db.models.reporting import Report
+    from app.db.models.risk_analysis import RiskAnalysisResult, RiskFinding
     from app.db.models.simulation import SimulationRun
     from app.db.models.snapshot import FinancialSnapshot
     from app.db.models.waste import (
@@ -114,4 +115,15 @@ class AnalysisRun(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     recommendations: Mapped[list[Recommendation]] = relationship(
         back_populates="analysis_run",
+    )
+    risk_analysis_result: Mapped[RiskAnalysisResult | None] = relationship(
+        back_populates="analysis_run",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        uselist=False,
+    )
+    risk_findings: Mapped[list[RiskFinding]] = relationship(
+        back_populates="analysis_run",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

@@ -26,6 +26,8 @@ const EMPTY: DemoArtifacts = {
   snapshotVersion: null,
   wasteRunId: null,
   aiRecommendationsReady: false,
+  riskRunId: null,
+  riskAiReady: false,
   simulationRunId: null,
   lastReportId: null,
 };

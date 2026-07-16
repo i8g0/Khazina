@@ -13,7 +13,9 @@ This document formally freezes the Khazina Phase 7 frontend layer as delivered i
 - [SPRINT_7.1_INTEGRATION_REPORT.md](SPRINT_7.1_INTEGRATION_REPORT.md)
 - [SPRINT_7.2_COMPLETION_REPORT.md](SPRINT_7.2_COMPLETION_REPORT.md)
 - [progress.md](progress.md) — authoritative sprint / phase tracker
-- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) — Phase 8+ planning
+- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) — Phase 9+ planning
+
+> **Documentation sync (2026-07-16):** Product Polish (transition) and Phase 8 (Testing & QA, Sprints 8.1–8.5) completed after this freeze. The frontend freeze declaration below remains the authoritative Phase 7 record. Current project status: Phase 8 **ACCEPTED**; next phase is **Phase 9 — Financial Risk Intelligence** (`docs/PHASE_8_COMPLETION_REPORT.md`, `docs/progress.md`).
 
 ---
 
@@ -126,14 +128,14 @@ Sprints **7.1–7.2** are **implementation-complete**. Sprint **7.3** certifies 
 
 ---
 
-## Deferred Features (Phase 8+)
+## Deferred Features (Phase 9+)
 
 | Item | Target |
 |------|--------|
-| Executive Dashboard aggregation + live KPI/charts | Phase 8 — Reports and Analytics |
-| Repository Summary API + UI | Phase 8+ |
-| Excel / PowerPoint export | Phase 8+ |
-| Risk engine product UI (when engine certified) | Future engine sprint |
+| Executive Dashboard aggregation + live KPI/charts | Phase 10 — Reports, Analytics & Production |
+| Repository Summary API + UI | Phase 10 |
+| Excel / PowerPoint export | Phase 10 |
+| Risk engine product UI (when engine certified) | Phase 9 — Financial Risk Intelligence |
 | Token refresh / server logout | Auth hardening |
 | Settings PDF preference API exposure + UI | Backend contract then FE |
 | User invite / reactivate flows | Future UM sprint |
@@ -219,11 +221,11 @@ Trivial copy fix only in 7.3 (dashboard KPI deferral wording).
 
 **Phase 7 – Frontend Features is officially COMPLETE and FROZEN as of 2026-07-15.**
 
-The frontend application represents the frozen Phase 6 backend for the certified executive product path (auth through PDF/notifications/settings/org/users). Remaining limitations and deferred items are documented above and require future backend work and/or Phase 8+ sprints.
+The frontend application represents the frozen Phase 6 backend for the certified executive product path (auth through PDF/notifications/settings/org/users). Remaining limitations and deferred items are documented above and require future backend work and/or Phase 9+ sprints.
 
-**Repository status:** Ready to begin **Phase 8 — Reports and Analytics** under a new sprint charter.
+**Repository status (2026-07-15, historical):** Ready to begin Phase 8 under a new sprint charter.
 
-**Next phase:** Phase 8 (do not start under Sprint 7.3).
+**Current status (2026-07-16):** Product Polish and Phase 8 (Testing & QA) are complete. Next phase: **Phase 9 — Financial Risk Intelligence** — see [progress.md](progress.md) and [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ---
 

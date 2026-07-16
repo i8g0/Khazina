@@ -4,6 +4,8 @@ export interface DemoArtifacts {
   snapshotVersion: number | null;
   wasteRunId: string | null;
   aiRecommendationsReady: boolean;
+  riskRunId: string | null;
+  riskAiReady: boolean;
   simulationRunId: string | null;
   lastReportId: string | null;
 }
@@ -18,6 +20,8 @@ const EMPTY: DemoArtifacts = {
   snapshotVersion: null,
   wasteRunId: null,
   aiRecommendationsReady: false,
+  riskRunId: null,
+  riskAiReady: false,
   simulationRunId: null,
   lastReportId: null,
 };
@@ -60,6 +64,8 @@ export function clearAnalysisArtifacts(): DemoArtifacts {
   return writeDemoArtifacts({
     wasteRunId: null,
     aiRecommendationsReady: false,
+    riskRunId: null,
+    riskAiReady: false,
     simulationRunId: null,
     lastReportId: null,
   });
@@ -80,6 +86,8 @@ export function beginNewFinancialDataset(patch: {
     snapshotVersion: patch.snapshotVersion,
     wasteRunId: null,
     aiRecommendationsReady: false,
+    riskRunId: null,
+    riskAiReady: false,
     simulationRunId: null,
     lastReportId: null,
   });

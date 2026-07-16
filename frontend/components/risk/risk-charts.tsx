@@ -2,7 +2,11 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 import { ChartContainer, chartTheme } from "@/components/ui/chart-container";
-import { riskByDepartment, riskBySeverity } from "@/lib/placeholder-data";
+import type {
+  RiskCategoryChartItem,
+  RiskDepartmentChartItem,
+  RiskSeverityChartItem,
+} from "@/lib/risk/view-types";
 import { cn } from "@/lib/utils";
 
 interface RiskChartCardProps {
@@ -24,9 +28,7 @@ function RiskChartCard({
         <h3 className="text-base font-semibold tracking-tight text-black-primary md:text-[1.1rem]">
           {title}
         </h3>
-        <p className="text-sm leading-relaxed text-muted">
-          {description}
-        </p>
+        <p className="text-sm leading-relaxed text-muted">{description}</p>
       </div>
       <div className="px-2 py-2 md:px-2.5 md:py-2.5">
         <div
@@ -48,17 +50,27 @@ const severityColors: Record<string, string> = {
   منخفضة: "#27AE60",
 };
 
-export function RiskCharts() {
+export interface RiskChartsProps {
+  byDepartment: RiskDepartmentChartItem[];
+  bySeverity: RiskSeverityChartItem[];
+  byCategory?: RiskCategoryChartItem[];
+}
+
+export function RiskCharts({
+  byDepartment,
+  bySeverity,
+  byCategory = [],
+}: RiskChartsProps) {
   return (
     <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
       <RiskChartCard
         title="توزيع المخاطر حسب القسم"
-        description="مؤشر خطورة المخاطر النشطة لكل إدارة"
+        description="متوسط درجة المخاطر المسجّلة لكل إدارة"
         height={360}
       >
         <ChartContainer height={360}>
           <BarChart
-            data={riskByDepartment}
+            data={byDepartment}
             layout="vertical"
             margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           >
@@ -91,12 +103,12 @@ export function RiskCharts() {
 
       <RiskChartCard
         title="توزيع المخاطر حسب مستوى الخطورة"
-        description="عدد المخاطر النشطة لكل مستوى أولوية"
+        description="عدد النتائج حسب الأولوية من آخر تحليل"
         height={360}
       >
         <ChartContainer height={360}>
           <BarChart
-            data={riskBySeverity}
+            data={bySeverity}
             margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           >
             <CartesianGrid stroke={chartTheme.grid} vertical={false} />
@@ -113,7 +125,7 @@ export function RiskCharts() {
               tickLine={false}
             />
             <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={48} name="عدد المخاطر">
-              {riskBySeverity.map((entry) => (
+              {bySeverity.map((entry) => (
                 <Cell
                   key={entry.level}
                   fill={severityColors[entry.level] ?? chartTheme.primary}
@@ -123,6 +135,42 @@ export function RiskCharts() {
           </BarChart>
         </ChartContainer>
       </RiskChartCard>
+
+      {byCategory.length > 0 ? (
+        <RiskChartCard
+          title="توزيع المخاطر حسب الفئة"
+          description="متوسط درجة النتائج لكل فئة مخاطر"
+          height={360}
+        >
+          <ChartContainer height={360}>
+            <BarChart
+              data={byCategory}
+              margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={chartTheme.grid} vertical={false} />
+              <XAxis
+                dataKey="category"
+                tick={{ fill: chartTheme.text, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                domain={[0, 100]}
+                tick={{ fill: chartTheme.text, fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Bar
+                dataKey="score"
+                fill={chartTheme.primary}
+                radius={[6, 6, 0, 0]}
+                barSize={40}
+                name="متوسط الدرجة"
+              />
+            </BarChart>
+          </ChartContainer>
+        </RiskChartCard>
+      ) : null}
     </div>
   );
 }

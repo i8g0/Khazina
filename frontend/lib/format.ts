@@ -33,6 +33,7 @@ export function mapProcessingStatus(status: string): string {
 export function mapAnalysisType(type: string): string {
   if (type === "financial_waste") return "هدر مالي";
   if (type === "simulation") return "محاكاة";
+  if (type === "risk") return "مخاطر";
   return type;
 }
 
@@ -77,7 +78,83 @@ export function mapRunStatus(status: string): string {
 export function mapRecommendationPriority(priority: string): string {
   if (priority === "high") return "عالية";
   if (priority === "medium") return "متوسطة";
+  if (priority === "low") return "منخفضة";
   return priority;
+}
+
+export function mapRiskLevel(level: string): string {
+  if (level === "high") return "مرتفع";
+  if (level === "medium") return "متوسط";
+  if (level === "low") return "منخفض";
+  return level;
+}
+
+export function mapRiskPriority(priority: string): string {
+  return mapRecommendationPriority(priority);
+}
+
+export function mapRiskPosture(level: string): string {
+  if (level === "elevated") return "مرتفع";
+  if (level === "moderate") return "متوسط";
+  if (level === "low") return "منخفض";
+  return level;
+}
+
+const RISK_CATEGORY_LABELS: Record<string, string> = {
+  financial: "مخاطر مالية",
+  liquidity: "مخاطر السيولة",
+  operational: "مخاطر تشغيلية",
+  compliance: "مخاطر امتثال",
+  vendor: "مخاطر الموردين",
+  fraud: "مخاطر احتيال",
+  strategic: "مخاطر استراتيجية",
+  budget: "مخاطر الميزانية",
+  forecast: "مخاطر التوقعات",
+};
+
+export function mapRiskCategoryCode(code: string | null | undefined): string {
+  if (!code) return "غير مصنّف";
+  return RISK_CATEGORY_LABELS[code] ?? code.replace(/_/g, " ");
+}
+
+export function mapFindingStatus(status: string): string {
+  if (status === "detected") return "مكتشف";
+  if (status === "under_review") return "قيد المراجعة";
+  if (status === "reviewed") return "تمت المراجعة";
+  if (status === "promoted") return "مُرقّى للسجل";
+  if (status === "dismissed") return "مرفوض";
+  return status;
+}
+
+export function mapLifecycleStatus(status: string | null | undefined): string {
+  if (!status) return "—";
+  if (status === "accepted") return "مقبول";
+  if (status === "monitoring") return "مراقبة";
+  if (status === "mitigated") return "مُخفَّف";
+  if (status === "resolved") return "محلول";
+  if (status === "archived") return "مؤرشف";
+  return status;
+}
+
+export function mapLegacyRiskStatus(status: string): string {
+  if (status === "active") return "نشط";
+  if (status === "in_progress") return "قيد المعالجة";
+  if (status === "closed") return "مغلق";
+  return status;
+}
+
+export function mapMitigationPlanStatus(status: string): string {
+  if (status === "in_progress") return "قيد التنفيذ";
+  if (status === "pending_review") return "قيد المراجعة";
+  if (status === "completed") return "مكتمل";
+  return status;
+}
+
+export function mapRiskSourceType(source: string | null | undefined): string {
+  if (source === "engine") return "محرك المخاطر";
+  if (source === "manual") return "يدوي";
+  if (source === "import") return "استيراد";
+  return source ?? "—";
 }
 
 const WASTE_CATEGORY_LABELS: Record<string, string> = {

@@ -22,3 +22,16 @@ class WasteAiRecommendationsGenerateResponse(SchemaBase):
     recommendation_count: int
     ai_insights: dict[str, Any]
     recommendations: list[RecommendationResponse]
+
+
+class RiskAiRecommendationsGenerateRequest(SchemaBase):
+    analysis_run_id: UUID
+    regenerate: bool = False
+
+
+class RiskAiRecommendationsGenerateResponse(SchemaBase):
+    analysis_run: AnalysisRunResponse
+    recommendation_count: int
+    ai_insights: dict[str, Any]
+    recommendations: list[RecommendationResponse]
+    traceability: dict[str, Any]

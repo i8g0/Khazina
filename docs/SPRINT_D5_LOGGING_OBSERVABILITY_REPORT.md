@@ -234,7 +234,7 @@ Without exposing stack traces or building a developer console:
 
 ## 8. Remaining Limitations
 
-1. **Logs are stdout-only** — no log shipping, aggregation, or retention (Phase 9).
+1. **Logs are stdout-only** — no log shipping, aggregation, or retention (Phase 10).
 2. **Timelines are metadata-embedded** — not queryable across org without loading runs/files.
 3. **Simulation timeline on baseline run** — copied from scenario execute when `baseline_analysis_run_id` is provided; standalone simulation runs keep their own timeline.
 4. **No request correlation ID in API responses** — internal logs only.

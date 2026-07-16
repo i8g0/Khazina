@@ -2,10 +2,6 @@
 
 from app.ingestion.constants import PARSER_VERSION, SCHEMA_VERSION
 from app.ingestion.exceptions import IngestionError, ParseError, ValidationFailure
-from app.ingestion.orchestrator import IngestionOrchestrator
-from app.ingestion.parser import FinancialFileParser
-from app.ingestion.quality import DatasetQualityAssessor
-from app.ingestion.storage import BronzeStorage
 from app.ingestion.types import (
     IngestionResult,
     ParsedDataset,
@@ -13,7 +9,6 @@ from app.ingestion.types import (
     QualityAssessment,
     ValidationResult,
 )
-from app.ingestion.validator import DatasetValidator
 
 __all__ = [
     "PARSER_VERSION",
@@ -32,3 +27,28 @@ __all__ = [
     "ValidationFailure",
     "ValidationResult",
 ]
+
+
+def __getattr__(name: str):
+    """Lazy exports to avoid import cycles with observability (Sprint 8.1)."""
+    if name == "BronzeStorage":
+        from app.ingestion.storage import BronzeStorage
+
+        return BronzeStorage
+    if name == "DatasetQualityAssessor":
+        from app.ingestion.quality import DatasetQualityAssessor
+
+        return DatasetQualityAssessor
+    if name == "DatasetValidator":
+        from app.ingestion.validator import DatasetValidator
+
+        return DatasetValidator
+    if name == "FinancialFileParser":
+        from app.ingestion.parser import FinancialFileParser
+
+        return FinancialFileParser
+    if name == "IngestionOrchestrator":
+        from app.ingestion.orchestrator import IngestionOrchestrator
+
+        return IngestionOrchestrator
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

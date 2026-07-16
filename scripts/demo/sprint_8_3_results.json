@@ -1,0 +1,156 @@
+{
+  "sprint": "8.3",
+  "timestamp": "2026-07-16T16:11:23",
+  "scenarios": {
+    "backend_available": {
+      "ok": true
+    },
+    "health": {
+      "system_health": {
+        "status": "ok"
+      },
+      "ai_health": {
+        "status": "ok",
+        "ollama_reachable": true,
+        "configured_model": "qwen3.5:4b",
+        "message": "Ollama endpoint is reachable"
+      },
+      "ai_reachable": true
+    },
+    "auth_failures": {
+      "invalid_token": {
+        "status": 401,
+        "success": false,
+        "graceful": true
+      },
+      "missing_token": {
+        "status": 401,
+        "graceful": true
+      }
+    },
+    "e2e_pipeline": {
+      "label": "dataset_a",
+      "accepted": true,
+      "file_id": "66bea9df-7679-4ef1-9f27-0fb16c92808a",
+      "processing_status": "ready_for_analysis",
+      "snapshot_id": "4f6d1ece-1e4c-4094-8373-190d6715dff5",
+      "run_id": "d1888cda-9f9a-4b88-8beb-40d7b1ab653e",
+      "run_source_file_id": "66bea9df-7679-4ef1-9f27-0fb16c92808a",
+      "run_source_snapshot_id": "4f6d1ece-1e4c-4094-8373-190d6715dff5",
+      "waste_total": 2340000.0,
+      "simulation_run_id": "6a54fcb8-1cef-45c6-b853-96997d419587",
+      "recommendation_count": 5,
+      "ai_run_id": "d1888cda-9f9a-4b88-8beb-40d7b1ab653e",
+      "report_id": "0958f349-786f-496b-96a8-1448914dc0ac",
+      "report_analysis_run_id": "d1888cda-9f9a-4b88-8beb-40d7b1ab653e",
+      "report_has_content": false,
+      "pdf_bytes": 3296,
+      "pdf_content_type": "application/pdf",
+      "integrity": {
+        "run_matches_file": true,
+        "run_matches_snapshot": true,
+        "ai_run_matches": true,
+        "report_run_matches": true,
+        "pdf_nonempty": true
+      }
+    },
+    "multiple_datasets": {
+      "dataset_a": {
+        "label": "dataset_a",
+        "accepted": true,
+        "file_id": "658ad4b8-d43e-4726-854c-948e695e6425",
+        "processing_status": "ready_for_analysis",
+        "snapshot_id": "28a2b507-a5ad-4dfc-9beb-4f2a5fa0f791",
+        "run_id": "2f8d7888-c41a-43a0-8d18-d71716e07718",
+        "run_source_file_id": "658ad4b8-d43e-4726-854c-948e695e6425",
+        "run_source_snapshot_id": "28a2b507-a5ad-4dfc-9beb-4f2a5fa0f791",
+        "waste_total": 2340000.0,
+        "simulation_run_id": "8895af83-c790-4e97-939b-c05dc67a41dd",
+        "recommendation_count": 5,
+        "ai_run_id": "2f8d7888-c41a-43a0-8d18-d71716e07718",
+        "report_id": "d5435f63-1fd6-47cd-a666-fbfe8d5d2966",
+        "report_analysis_run_id": "2f8d7888-c41a-43a0-8d18-d71716e07718",
+        "report_has_content": false,
+        "pdf_bytes": 3296,
+        "pdf_content_type": "application/pdf",
+        "integrity": {
+          "run_matches_file": true,
+          "run_matches_snapshot": true,
+          "ai_run_matches": true,
+          "report_run_matches": true,
+          "pdf_nonempty": true
+        }
+      },
+      "dataset_b": {
+        "label": "dataset_b",
+        "accepted": true,
+        "file_id": "a968c68e-c2b0-472e-b58e-3e25cac54bfc",
+        "processing_status": "ready_for_analysis",
+        "snapshot_id": "da98af36-0c2a-4d5b-a82d-54b582f8471b",
+        "run_id": "85f861b8-4809-4eb4-92be-8aa7980a11c5",
+        "run_source_file_id": "a968c68e-c2b0-472e-b58e-3e25cac54bfc",
+        "run_source_snapshot_id": "da98af36-0c2a-4d5b-a82d-54b582f8471b",
+        "waste_total": 1950000.0,
+        "simulation_run_id": "c3f43686-e653-4d12-a0bb-4d924739ede8",
+        "recommendation_count": 5,
+        "ai_run_id": "85f861b8-4809-4eb4-92be-8aa7980a11c5",
+        "report_id": "e9c8910f-d4f8-46bc-bb1a-4173ac7b3785",
+        "report_analysis_run_id": "85f861b8-4809-4eb4-92be-8aa7980a11c5",
+        "report_has_content": false,
+        "pdf_bytes": 3293,
+        "pdf_content_type": "application/pdf",
+        "integrity": {
+          "run_matches_file": true,
+          "run_matches_snapshot": true,
+          "ai_run_matches": true,
+          "report_run_matches": true,
+          "pdf_nonempty": true
+        }
+      },
+      "isolation": {
+        "waste_totals_differ": true,
+        "waste_totals": [
+          2340000.0,
+          1950000.0
+        ],
+        "ids_all_unique": {
+          "file_id": 2,
+          "snapshot_id": 2,
+          "run_id": 2,
+          "report_id": 2
+        }
+      }
+    },
+    "failure_uploads": {
+      "invalid_layout": {
+        "http_status": 201,
+        "api_success": true,
+        "processing_status": "failed",
+        "rejected": true,
+        "message": "Financial file ingestion failed"
+      },
+      "empty_sheet": {
+        "http_status": 201,
+        "api_success": true,
+        "processing_status": "failed",
+        "rejected": true,
+        "message": "Financial file ingestion failed"
+      },
+      "corrupted": {
+        "http_status": 201,
+        "api_success": true,
+        "processing_status": "failed",
+        "rejected": true,
+        "message": "Financial file ingestion failed"
+      }
+    },
+    "concurrent_uploads": {
+      "requested": 3,
+      "succeeded": 3,
+      "unique_file_ids": 3,
+      "all_unique": true,
+      "errors": []
+    }
+  },
+  "org_id": "7dd234e7-58dd-4844-a38e-92a4fa67d0ed"
+}

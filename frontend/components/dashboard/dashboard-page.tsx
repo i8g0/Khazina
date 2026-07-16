@@ -39,6 +39,7 @@ import { useOrganizationDisplay, useOrgLookups } from "@/lib/org-lookups";
 import {
   listRecentAnalyses,
   listRecommendations,
+  listRisks,
   listTimeline,
 } from "@/lib/api/khazina-api";
 import {
@@ -82,16 +83,24 @@ export function DashboardPage() {
   const [recommendations, setRecommendations] = React.useState<
     { id: string; title: string; description: string; badge: string; confidence: string }[]
   >([]);
+  const [kpiValues, setKpiValues] = React.useState<(string | null)[]>([
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
 
   const load = React.useCallback(async () => {
     if (!auth.session) return;
     setLoading(true);
     setError(null);
     try {
-      const [events, runs, recs] = await Promise.all([
+      const [events, runs, recs, risks] = await Promise.all([
         listTimeline(auth.session.organizationId, auth.session.token),
         listRecentAnalyses(auth.session.organizationId, auth.session.token),
         listRecommendations(auth.session.organizationId, auth.session.token),
+        listRisks(auth.session.organizationId, auth.session.token, { limit: 50 }),
       ]);
       setTimeline(
         events.slice(0, 5).map((event) => ({
@@ -122,6 +131,20 @@ export function DashboardPage() {
           confidence: rec.confidence_label ?? "بدون تصنيف ثقة",
         })),
       );
+
+      const riskHigh = risks.filter(
+        (r) => r.priority === "high" && r.status !== "closed",
+      ).length;
+      const latestRec = recs[0];
+      const latestRun = runs[0];
+
+      setKpiValues([
+        null,
+        riskHigh > 0 ? String(riskHigh) : null,
+        null,
+        latestRec ? latestRec.title.slice(0, 40) : null,
+        latestRun ? mapRunStatus(latestRun.status) : null,
+      ]);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -181,16 +204,23 @@ export function DashboardPage() {
             <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
               {dashboardKpiLabels.map((label, index) => {
                 const Icon = kpiIcons[index];
+                const liveValue = kpiValues[index];
                 return (
                   <DashboardStatCard
                     key={label}
                     label={label}
                     value={
-                      <span className="text-sm font-normal leading-relaxed text-muted">
-                        {dashboardKpiEmptyMessage}
-                      </span>
+                      liveValue ? (
+                        <span className="text-2xl font-semibold tabular-nums text-black-primary">
+                          {liveValue}
+                        </span>
+                      ) : (
+                        <span className="text-sm font-normal leading-relaxed text-muted">
+                          {dashboardKpiEmptyMessage}
+                        </span>
+                      )
                     }
-                    hint={EXECUTIVE_MESSAGES.dashboardKpiHint}
+                    hint={liveValue ? undefined : EXECUTIVE_MESSAGES.dashboardKpiHint}
                     emphasis
                     dense
                     icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}

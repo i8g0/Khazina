@@ -45,9 +45,17 @@ def test_classify_exception(exc: Exception, expected: ErrorCategory) -> None:
     assert classify_exception(exc) == expected
 
 
+def test_classify_snapshot_adapter_error_by_name() -> None:
+    from app.decision.exceptions import SnapshotAdapterError
+
+    exc = SnapshotAdapterError(error_code="W1_MISSING_COLUMN", message="missing category")
+    assert classify_exception(exc) == ErrorCategory.VALIDATION
+
+
 def test_system_health_returns_components() -> None:
     result = check_system_health()
     assert result.backend.status == "ok"
     assert result.database.status in {"ok", "unavailable"}
     assert result.ai.status in {"ok", "unavailable"}
     assert result.status in {"ok", "degraded", "unavailable"}
+

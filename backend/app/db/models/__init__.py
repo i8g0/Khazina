@@ -17,6 +17,8 @@ from app.db.models.repository import (
     ImportRecord,
 )
 from app.db.models.risk import Risk, RiskMitigationPlan
+from app.db.models.risk_analysis import RiskAnalysisResult, RiskCategory, RiskFinding
+from app.db.models.risk_event import RiskEvent
 from app.db.models.simulation import (
     SimulationActionItem,
     SimulationAssumption,
@@ -56,6 +58,10 @@ __all__ = [
     "Report",
     "ReportingPeriod",
     "Risk",
+    "RiskAnalysisResult",
+    "RiskCategory",
+    "RiskEvent",
+    "RiskFinding",
     "RiskMitigationPlan",
     "SimulationActionItem",
     "SimulationAssumption",

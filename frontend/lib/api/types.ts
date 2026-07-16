@@ -126,6 +126,10 @@ export interface RecommendationResponse {
   priority: string;
   confidence_label: string | null;
   estimated_savings_amount: number | null;
+  domain_source?: string;
+  analysis_run_id?: string | null;
+  risk_id?: string | null;
+  source_context?: Record<string, unknown> | null;
 }
 
 export interface WasteAiRecommendationsResponse {
@@ -385,3 +389,147 @@ export type SettingsPatchPayload = {
     ResolvedSettingsResponse["platform_default_notification_preferences"]
   >;
 };
+
+// ---------------------------------------------------------------------------
+// Risk (Sprint 9.6)
+// ---------------------------------------------------------------------------
+
+export interface RiskAnalysisExecuteResponse {
+  analysis_run: AnalysisRunResponse;
+  result_summary: RiskAnalysisResultSummary;
+  facts_contract_version: string;
+  engine_id: string;
+  engine_version: string;
+  snapshot_id: string;
+  snapshot_version: number;
+}
+
+export interface RiskAnalysisResultSummary {
+  result_id: string;
+  total_findings: number;
+  high_priority_count: number;
+  medium_priority_count: number;
+  low_priority_count: number;
+  overall_posture_level: string;
+  top_category_code: string | null;
+  facts_contract_version: string;
+  source_snapshot_id: string | null;
+}
+
+export interface RiskAnalysisRunDetailResponse {
+  analysis_run: AnalysisRunResponse;
+  result_summary: RiskAnalysisResultSummary | null;
+}
+
+export interface RiskAnalysisResultResponse {
+  id: string;
+  analysis_run_id: string;
+  organization_id: string;
+  total_findings: number;
+  high_priority_count: number;
+  medium_priority_count: number;
+  low_priority_count: number;
+  overall_posture_level: string;
+  top_category_code: string | null;
+  facts_contract_version: string;
+  source_snapshot_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RiskFindingResponse {
+  id: string;
+  analysis_run_id: string;
+  organization_id: string;
+  category_code: string;
+  name: string;
+  description: string;
+  likelihood: string;
+  impact: string;
+  score: number;
+  priority: string;
+  detection_rule_id: string;
+  evidence: Record<string, unknown>;
+  finding_status: string;
+  promoted_risk_id: string | null;
+  department_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RiskResponse {
+  id: string;
+  organization_id: string;
+  department_id: string | null;
+  reporting_period_id: string | null;
+  name: string;
+  description: string;
+  priority: string;
+  score: number;
+  status: string;
+  lifecycle_status: string | null;
+  owner_label: string | null;
+  likelihood: string | null;
+  impact: string | null;
+  category_label: string | null;
+  category_code: string | null;
+  source_type: string | null;
+  source_analysis_run_id: string | null;
+  source_finding_id: string | null;
+  source_snapshot_id: string | null;
+  detected_at: string | null;
+  last_updated_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MitigationPlanResponse {
+  id: string;
+  risk_id: string;
+  title: string;
+  description: string;
+  status: string;
+  target_date: string;
+  owner_label: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RiskEventResponse {
+  id: string;
+  risk_id: string | null;
+  organization_id: string;
+  event_type: string;
+  from_status: string | null;
+  to_status: string | null;
+  actor_user_id: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RiskProvenanceResponse {
+  risk_id: string;
+  source_type: string | null;
+  source_snapshot_id: string | null;
+  source_analysis_run_id: string | null;
+  source_finding_id: string | null;
+  detected_at: string | null;
+  finding: Record<string, unknown> | null;
+  analysis_run: Record<string, unknown> | null;
+}
+
+export interface RiskPromotionResponse {
+  finding_id: string;
+  finding_status: string;
+  risk: RiskResponse;
+}
+
+export interface RiskAiRecommendationsResponse {
+  analysis_run: AnalysisRunResponse;
+  recommendation_count: number;
+  ai_insights: Record<string, unknown>;
+  recommendations: RecommendationResponse[];
+  traceability: Record<string, unknown>;
+}

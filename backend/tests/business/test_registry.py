@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.business.bootstrap import initialize_business_engines
+from app.business.engines.risk.manifest import ENGINE_ID as RISK_ENGINE_ID
 from app.business.engines.scenario.manifest import ENGINE_ID as SCENARIO_ENGINE_ID
 from app.business.engines.waste import WasteEngine
 from app.business.engines.waste.manifest import ENGINE_ID
@@ -43,6 +44,7 @@ def test_bootstrap_registers_and_freezes_engines() -> None:
     initialize_business_engines()
 
     assert is_registry_frozen()
-    assert registered_engine_ids() == (SCENARIO_ENGINE_ID, ENGINE_ID)
+    assert registered_engine_ids() == (RISK_ENGINE_ID, SCENARIO_ENGINE_ID, ENGINE_ID)
     assert get_engine_manifest(ENGINE_ID).supported_facts
     assert get_engine_manifest(SCENARIO_ENGINE_ID).supported_facts
+    assert get_engine_manifest(RISK_ENGINE_ID).supported_facts

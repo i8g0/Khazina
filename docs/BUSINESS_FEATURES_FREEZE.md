@@ -15,7 +15,9 @@ This document formally freezes the Khazina Phase 6 business features layer as im
 - [HACKATHON_READINESS_SPECIFICATION.md](HACKATHON_READINESS_SPECIFICATION.md)
 - [SPRINT_6.10_SPECIFICATION.md](SPRINT_6.10_SPECIFICATION.md)
 - [progress.md](progress.md) — authoritative sprint completion record
-- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) — Phase 7+ planning (named “Financial Core” / “Frontend Features”; Phase 6 tracker name is “Business Features”)
+- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) — Phase 9+ planning
+
+> **Documentation sync (2026-07-16):** Phases 7–8 and Product Polish are complete. Deferred targets below reflect the reconciled roadmap; see [progress.md](progress.md).
 
 ---
 
@@ -82,7 +84,7 @@ Sprints **6.1–6.9** are **implementation-complete**. Full demo critical path h
 | Frontend | Org Management, Settings UI, Notifications Center | Phase 7 |
 | Analytics | Executive Dashboard API | Phase 7 |
 | Analytics | Repository Summary API | Phase 7 |
-| Export | Excel / PowerPoint binary export | Phase 8+ |
+| Export | Excel / PowerPoint binary export | Phase 10 |
 | Notifications | Email, SMS, push, webhooks | Phase 7+ ops |
 | Notifications | Role / department / watcher recipients | Future sprint |
 | Notifications | Ingestion failure notifications | Future sprint |
@@ -90,11 +92,11 @@ Sprints **6.1–6.9** are **implementation-complete**. Full demo critical path h
 | AI | Number Guard / response regeneration | Future hardening |
 | AI | Simulation-domain AI (`SCENARIO_ANALYSIS` production pipeline) | Future sprint |
 | Engines | Financial Engine (ratios, liquidity, profitability) | Future engine sprint |
-| Engines | Risk, Revenue, Budget, Cost, Supplier, Liquidity engines | Future engine sprint |
+| Engines | Risk, Revenue, Budget, Cost, Supplier, Liquidity engines | Phase 9+ (Risk UI — Phase 9) |
 | Settings | Audit log for preference/export changes | Future sprint |
 | Reports | Background export jobs / scheduling | Future sprint |
 | Ingestion | Cloud blob storage; snapshot re-parse UX | ADR-010 deferred |
-| Quality | CI pipelines, coverage gates | Phase 9 |
+| Quality | CI pipelines, coverage gates | Phase 10 |
 | Ops | Production deployment, monitoring | Phase 10 |
 
 ---

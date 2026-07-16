@@ -41,6 +41,7 @@ import {
   useRequireAuth,
 } from "@/lib/auth/auth-context";
 import { formatDate } from "@/lib/format";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 
 export function OrganizationManagementPage() {
   const auth = useRequireAuth();
@@ -207,6 +208,7 @@ export function OrganizationManagementPage() {
     }
   };
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
   return (

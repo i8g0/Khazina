@@ -12,8 +12,10 @@ export default function ServerErrorExportPage() {
         padding: "2rem",
       }}
     >
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>500</h1>
-      <p style={{ color: "#666" }}>حدث خطأ في الخادم</p>
+      <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+        حدث خطأ غير متوقع
+      </h1>
+      <p style={{ color: "#666" }}>تعذّر تحميل الصفحة. أعد المحاولة بعد قليل.</p>
     </main>
   );
 }

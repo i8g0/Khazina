@@ -15,6 +15,7 @@ from app.db.models.enums import AnalysisType, RelatedEntityType
 from app.db.models.notification import NotificationReadReceipt
 from app.notifications.constants import (
     KIND_AI_RECOMMENDATIONS_COMPLETED,
+    KIND_RISK_AI_RECOMMENDATIONS_COMPLETED,
     KIND_ANALYSIS_COMPLETED,
     KIND_ANALYSIS_FAILED,
     KIND_REPORT_GENERATED,
@@ -34,6 +35,7 @@ from app.notifications.user_preferences_resolver import (
 )
 from app.notifications.templates import (
     ai_recommendations_completed_message,
+    risk_ai_recommendations_completed_message,
     analysis_completed_message,
     analysis_failed_message,
     build_payload_representation,
@@ -174,6 +176,49 @@ class NotificationBuilder(BaseService):
                 "recommendation_count": recommendation_count,
                 "model": ai_insights.get("model"),
                 "prompt_version": ai_insights.get("prompt_version"),
+            },
+        )
+
+    def materialize_risk_ai_recommendations_completion(
+        self,
+        organization_id: uuid.UUID,
+        analysis_run_id: uuid.UUID,
+        *,
+        initiating_user_id: uuid.UUID | None,
+        recommendation_count: int,
+    ) -> MaterializedNotification | None:
+        if initiating_user_id is None:
+            return None
+        if not self._gate_allows(
+            organization_id, KIND_RISK_AI_RECOMMENDATIONS_COMPLETED, initiating_user_id
+        ):
+            return None
+        run = self._analyses.get(analysis_run_id)
+        if run is None or run.organization_id != organization_id:
+            return None
+        metadata = run.runtime_metadata or {}
+        ai_insights = metadata.get("ai_insights") or {}
+        if not ai_insights or ai_insights.get("domain") != "risk":
+            return None
+        title, body = risk_ai_recommendations_completed_message(
+            run_title=run.title,
+            recommendation_count=recommendation_count,
+        )
+        return self._persist(
+            organization_id=organization_id,
+            recipient_user_id=initiating_user_id,
+            platform_event_kind=KIND_RISK_AI_RECOMMENDATIONS_COMPLETED,
+            title=title,
+            body=body,
+            source_entity_type=RelatedEntityType.ANALYSIS_RUN,
+            source_entity_id=run.id,
+            reporting_period_id=run.reporting_period_id,
+            source_marker=f"risk_ai:{ai_insights.get('generated_at', 'unknown')}",
+            metadata={
+                "recommendation_count": recommendation_count,
+                "model": ai_insights.get("model"),
+                "prompt_version": ai_insights.get("prompt_version"),
+                "domain": "risk",
             },
         )
 

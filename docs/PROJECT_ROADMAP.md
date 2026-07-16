@@ -4,6 +4,8 @@ This document is the master roadmap for the Khazina project. It defines the long
 
 For current sprint status, see [progress.md](progress.md).
 
+**Roadmap alignment (2026-07-16):** Phases 1–7, Product Polish, and Phase 8 (Testing & QA) are complete. Phase 9 (Financial Risk Intelligence) is the active next phase. Phase 10 combines remaining Reports/Analytics scope with Production Deployment. Prior roadmap labels "Phase 8 — Reports and Analytics" and "Phase 9 — Testing" reflected pre-execution planning; execution history is preserved in sprint reports and completion documents.
+
 ---
 
 ## Project Vision
@@ -245,6 +247,8 @@ Implement the core financial engines and domain services that power Khazina deci
 
 ### Phase 7 — Frontend Features
 
+**Status:** Completed (Sprints 7.1 through 7.3)
+
 **Purpose**
 
 Deliver user-facing application pages that consume backend and financial services.
@@ -269,81 +273,149 @@ Deliver user-facing application pages that consume backend and financial service
 
 ---
 
-### Phase 8 — Reports and Analytics
+### Transition Stage — Product Polish
+
+**Status:** Completed (Sprints D1 through D5; pre-polish Sprint 8.x mock removal and verification)
 
 **Purpose**
 
-Provide reporting, export, and analytics capabilities built on the financial core and stored data.
+Bridge the gap between a functionally complete MVP (Phases 6–7) and a presentation- and production-ready executive product before formal quality assurance.
 
 **Objectives**
 
-- Implement report generation and analytics endpoints
-- Build frontend report views and export workflows
-- Ensure performance and data accuracy for reporting queries
+- Audit and improve the executive user journey without redesigning core architecture
+- Remove mock data from the demo path; wire live APIs and intentional empty states
+- Optimize AI pipeline performance baseline; validate W-1 Excel ingestion
+- Establish operational observability (structured logging, health surfaces, error handling)
 
 **Expected Deliverables**
 
-- Report API endpoints and frontend report pages
-- Export formats as approved (PDF, CSV, or others per sprint scope)
-- Analytics queries optimized for production-scale data volumes
+- Product Polish completion report and sprint reports D1–D5
+- Verified executive pipeline: upload → waste → AI → simulation → report → PDF
+- Guided demo UX, workflow indicator, and health/status surfaces
 
 **Exit Criteria**
 
-- Reports validated against approved test datasets
-- Performance benchmarks met for agreed report types
-- Tech Lead sign-off on reporting accuracy
+- All Product Polish sprints reviewed and documented
+- Executive demo path verified with dynamic datasets
+- Ready to enter Phase 8 — Testing & Quality Assurance
+
+See [PRODUCT_POLISH_COMPLETION_REPORT.md](PRODUCT_POLISH_COMPLETION_REPORT.md).
 
 ---
 
-### Phase 9 — Testing and Quality
+### Phase 8 — Testing & Quality Assurance
+
+**Status:** Completed (Sprints 8.1 through 8.5) — **ACCEPTED** 2026-07-16
 
 **Purpose**
 
-Establish comprehensive automated testing, quality gates, and CI enforcement across the platform.
+Establish comprehensive validation, quality gates, and release readiness across the platform before advancing to the next product phase.
 
 **Objectives**
 
-- Introduce backend test suite (pytest) and frontend test suite
-- Configure CI pipelines for lint, build, and test on every pull request
-- Define coverage targets and quality thresholds
-- Automate regression detection for critical financial paths
+- Validate backend APIs, services, repositories, and migrations (Sprint 8.1)
+- Validate frontend routes, components, and executive UX regression (Sprint 8.2)
+- Prove end-to-end integration across the demo-critical path (Sprint 8.3)
+- Characterize performance and AI reliability (Sprint 8.4)
+- Execute QA freeze and release-readiness certification (Sprint 8.5)
 
 **Expected Deliverables**
 
-- CI configuration and test infrastructure
-- Documented testing standards and coverage expectations
-- Automated quality gates on pull requests
+- Expanded backend test suite (219 pytest tests passing)
+- Frontend TypeScript/lint validation; defect fixes documented
+- Integration and performance verification harnesses with JSON artifacts
+- Phase 8 completion report and sprint reports 8.1–8.5
 
 **Exit Criteria**
 
-- CI passes on `main` for all required checks
-- Critical paths covered by automated tests
-- Quality standards approved by Tech Lead
+- No critical defects blocking MVP / executive demo scope
+- Integration harness exit 0; QA checklist passed
+- Tech Lead sign-off on Phase 8 acceptance
+
+**Note:** Report generation and PDF export were delivered in Phase 6 (Sprint 6.6) and re-verified during Phase 8 integration testing. Phase 8 did **not** add new business features.
+
+See [PHASE_8_COMPLETION_REPORT.md](PHASE_8_COMPLETION_REPORT.md).
 
 ---
 
-### Phase 10 — Deployment and Production
+### Phase 9 — Financial Risk Intelligence
+
+**Status:** Next active phase
 
 **Purpose**
 
-Prepare Khazina for production deployment with hardened configuration, monitoring, and operational procedures.
+Integrate financial risk intelligence into the executive product path — connecting the existing backend risk engine and APIs to user-facing workflows.
+
+**Objectives**
+
+- Wire the Risk Management frontend to live backend risk capabilities
+- Deliver executive risk workflows aligned with frozen Phase 6 domain boundaries
+- Validate risk data accuracy and permissions on the executive demo path
+- Document risk engine product boundaries and deferred admin surfaces
+
+**Expected Deliverables**
+
+- Risk page and related UI consuming production APIs (replacing intentional empty states from Product Polish)
+- Executive risk views consistent with RTL and UX standards from Phase 7
+- Validation evidence and sprint reports under Phase 9 charter
+
+**Exit Criteria**
+
+- Risk workflows function against live backend APIs on the certified executive path
+- No regression to Phases 6–8 deliverables
+- Tech Lead approval before Phase 10 begins
+
+**Deferred context:** Risk engine backend exists; executive UI was intentionally deferred through Phase 7 freeze and Product Polish (see [FRONTEND_FREEZE.md](FRONTEND_FREEZE.md)).
+
+---
+
+### Phase 10 — Reports, Analytics & Production Deployment
+
+**Status:** Planned
+
+**Purpose**
+
+Complete remaining reporting and analytics scope, then prepare Khazina for production deployment with hardened configuration, monitoring, and operational procedures.
+
+#### Reports and Analytics (remaining scope)
+
+**Note:** Core report generation and PDF export were delivered in Phase 6 and verified in Phase 8. Remaining analytics scope includes:
+
+**Objectives**
+
+- Executive dashboard KPI/chart aggregation API and UI
+- Repository summary and advanced analytics queries as approved per sprint
+- Additional export formats (Excel, PowerPoint) where in charter
+
+**Expected Deliverables**
+
+- Dashboard aggregation endpoints and frontend wiring
+- Optimized analytics queries for production-scale data volumes
+- Export workflows beyond PDF where approved
+
+#### Production deployment
 
 **Objectives**
 
 - Define production Docker and deployment configuration
+- Introduce CI pipelines, coverage gates, and automated quality enforcement (smoke QA completed in Phase 8; full CI gates remain here)
 - Implement secrets management and environment separation
-- Configure logging, monitoring, and backup procedures
+- Configure logging aggregation, monitoring, and backup procedures
 - Document deployment runbooks and rollback procedures
 
 **Expected Deliverables**
 
 - Production-ready deployment configuration
+- CI configuration and documented testing standards
 - Environment-specific settings (development, staging, production)
 - Operational documentation and incident response guidelines
 
 **Exit Criteria**
 
+- Remaining analytics scope validated against approved requirements
 - Successful deployment to staging environment
+- CI passes on `main` for all required checks
 - Production checklist completed and approved
 - Tech Lead and operations sign-off before production release
 
@@ -494,9 +566,10 @@ For execution details, see [HACKATHON_PLAN.md](HACKATHON_PLAN.md).
 | Phase 5 | Core AI + Performance Validation | Optimization Later |
 | Phase 6 | MVP Features | Remaining Features |
 | Phase 7 | Basic Dashboard | Advanced Analytics |
-| Phase 8 | Smoke Tests | Full QA |
-| Phase 9 | Demo Deployment | Production |
-| Phase 10 | Future | Future |
+| Product Polish | Executive demo UX | Full analytics |
+| Phase 8 | Full QA (executed) | CI hardening in Phase 10 |
+| Phase 9 | Risk MVP | Full risk workflows |
+| Phase 10 | Dashboard analytics + demo deployment | Production |
 
 ---
 
@@ -505,3 +578,5 @@ For execution details, see [HACKATHON_PLAN.md](HACKATHON_PLAN.md).
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Official system architecture
 - [AI_GUIDELINES.md](AI_GUIDELINES.md) — AI-assisted development standards
 - [progress.md](progress.md) — Live sprint and phase tracker
+- [PRODUCT_POLISH_COMPLETION_REPORT.md](PRODUCT_POLISH_COMPLETION_REPORT.md) — Product Polish closure
+- [PHASE_8_COMPLETION_REPORT.md](PHASE_8_COMPLETION_REPORT.md) — Phase 8 acceptance

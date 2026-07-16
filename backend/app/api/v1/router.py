@@ -13,6 +13,8 @@ from app.api.v1.organization import router as organization_router
 from app.api.v1.recommendation import router as recommendation_router
 from app.api.v1.report import router as report_router
 from app.api.v1.risk import router as risk_router
+from app.api.v1.risk_analysis import router as risk_analysis_router
+from app.api.v1.risk_register import router as risk_register_router
 from app.api.v1.scenario import router as scenario_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.simulation import router as simulation_router
@@ -35,6 +37,8 @@ api_v1_router.include_router(financial_router)
 api_v1_router.include_router(analysis_router)
 api_v1_router.include_router(waste_router)
 api_v1_router.include_router(risk_router)
+api_v1_router.include_router(risk_analysis_router)
+api_v1_router.include_router(risk_register_router)
 api_v1_router.include_router(simulation_router)
 api_v1_router.include_router(scenario_router)
 api_v1_router.include_router(report_router)

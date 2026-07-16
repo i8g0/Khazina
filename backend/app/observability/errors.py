@@ -8,7 +8,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.ai.exceptions import AIConnectionError, AITimeoutError, AIError
 from app.business.exceptions import EngineError
-from app.decision.exceptions import SnapshotAdapterError
 from app.ingestion.exceptions import ParseError, ValidationFailure, IngestionError
 from app.reports.exceptions import ReportBuilderError
 from app.services.exceptions import BusinessValidationError, ServiceError
@@ -31,6 +30,8 @@ def classify_exception(exc: BaseException) -> ErrorCategory:
     exc_name = type(exc).__name__
 
     if isinstance(exc, ValidationFailure):
+        return ErrorCategory.VALIDATION
+    if exc_name == "SnapshotAdapterError":
         return ErrorCategory.VALIDATION
     if isinstance(exc, ParseError):
         return ErrorCategory.EXCEL_PARSING

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import Field
@@ -48,10 +48,17 @@ class RiskResponse(FullTimestampResponse):
     priority: str
     score: int
     status: str
+    lifecycle_status: str | None = None
     owner_label: str | None
     likelihood: str | None
     impact: str | None
     category_label: str | None
+    category_code: str | None = None
+    source_type: str | None = None
+    source_analysis_run_id: UUID | None = None
+    source_finding_id: UUID | None = None
+    source_snapshot_id: UUID | None = None
+    detected_at: datetime | None = None
     last_updated_at: date
 
 

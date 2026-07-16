@@ -10,7 +10,7 @@ A single unit of implementation work with one clearly defined objective. Sprints
 
 ## Phase
 
-A major development stage grouping related sprints toward a shared goal. Khazina is organized into ten phases from Foundation (Phase 1) through Production Deployment (Phase 10). Phases must complete in order unless Tech Lead approves otherwise.
+A major development stage grouping related sprints toward a shared goal. Khazina is organized into ten phases from Foundation (Phase 1) through Reports, Analytics & Production Deployment (Phase 10), plus the documented **Product Polish** transition stage between Phases 7 and 8. Phases must complete in order unless Tech Lead approves otherwise. See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for the reconciled phase plan (2026-07-16).
 
 ## ADR
 

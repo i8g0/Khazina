@@ -32,6 +32,7 @@ import {
 } from "@/lib/auth/auth-context";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 
 const PAGE_SIZE = 20;
 
@@ -137,6 +138,7 @@ export function NotificationsCenterPage() {
     }
   };
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
   return (

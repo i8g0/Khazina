@@ -1,21 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import type { RiskRecommendation } from "@/lib/placeholder-data";
+import type { RiskRecommendationView } from "@/lib/risk/view-types";
 import { cn } from "@/lib/utils";
 
-const recommendationDepartments: Record<string, string> = {
-  "rec-r01": "المشتريات",
-  "rec-r02": "الشؤون المالية",
-  "rec-r03": "الشؤون المالية",
-};
-
-const recommendationConfidence: Record<string, string> = {
-  "rec-r01": "91%",
-  "rec-r02": "88%",
-  "rec-r03": "84%",
-};
-
 export interface RiskRecommendationCardProps {
-  item: RiskRecommendation;
+  item: RiskRecommendationView;
   className?: string;
 }
 
@@ -23,8 +11,6 @@ export function RiskRecommendationCard({
   item,
   className,
 }: RiskRecommendationCardProps) {
-  const department = recommendationDepartments[item.id];
-  const confidence = recommendationConfidence[item.id];
   const isHigh = item.priority === "عالية";
 
   return (
@@ -45,24 +31,15 @@ export function RiskRecommendationCard({
         {item.title}
       </h3>
 
-      {department ? (
+      {item.category ? (
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-gold-dark">
-          {department}
+          {item.category}
         </p>
       ) : null}
 
       <p className="mb-4 flex-1 text-sm leading-6 text-muted md:text-[15px]">
         {item.description}
       </p>
-
-      {confidence ? (
-        <div className="border-t border-border/60 pt-3.5">
-          <p className="text-sm font-medium text-gray-medium">
-            ثقة{" "}
-            <span className="font-semibold text-black-primary">{confidence}</span>
-          </p>
-        </div>
-      ) : null}
     </article>
   );
 }

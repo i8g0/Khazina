@@ -36,6 +36,16 @@ import type {
   AiHealthResponse,
   SystemHealthResponse,
   WasteDecisionExecuteResponse,
+  RiskAnalysisExecuteResponse,
+  RiskAnalysisRunDetailResponse,
+  RiskAnalysisResultResponse,
+  RiskFindingResponse,
+  RiskResponse,
+  MitigationPlanResponse,
+  RiskEventResponse,
+  RiskProvenanceResponse,
+  RiskPromotionResponse,
+  RiskAiRecommendationsResponse,
 } from "@/lib/api/types";
 
 function toQuery(
@@ -407,9 +417,232 @@ export async function generateWasteAi(
 export async function listRecommendations(
   orgId: string,
   token: string,
+  options: ListQueryParams & { domain_source?: string; priority?: string } = {},
 ): Promise<RecommendationResponse[]> {
   return apiRequest<RecommendationResponse[]>(
-    `/organizations/${orgId}/recommendations`,
+    `/organizations/${orgId}/recommendations${toQuery(options)}`,
+    { token },
+  );
+}
+
+// -- Risk analysis (Sprint 9.6) ------------------------------------------------
+
+export async function executeRiskAnalysis(
+  orgId: string,
+  token: string,
+  body: {
+    title: string;
+    source_file_id: string;
+    source_snapshot_id?: string;
+    snapshot_version?: number;
+    reporting_period_id?: string;
+  },
+): Promise<RiskAnalysisExecuteResponse> {
+  return apiRequest<RiskAnalysisExecuteResponse>(
+    `/organizations/${orgId}/risk-analyses/execute`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function listRiskAnalyses(
+  orgId: string,
+  token: string,
+  options: ListQueryParams & { status?: string } = {},
+): Promise<AnalysisRunResponse[]> {
+  return apiRequest<AnalysisRunResponse[]>(
+    `/organizations/${orgId}/risk-analyses${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function getRiskAnalysis(
+  orgId: string,
+  token: string,
+  runId: string,
+): Promise<RiskAnalysisRunDetailResponse> {
+  return apiRequest<RiskAnalysisRunDetailResponse>(
+    `/organizations/${orgId}/risk-analyses/${runId}`,
+    { token },
+  );
+}
+
+export async function getRiskResult(
+  orgId: string,
+  token: string,
+  runId: string,
+): Promise<RiskAnalysisResultResponse> {
+  return apiRequest<RiskAnalysisResultResponse>(
+    `/organizations/${orgId}/risk-analyses/${runId}/result`,
+    { token },
+  );
+}
+
+export async function listRiskFindings(
+  orgId: string,
+  token: string,
+  runId: string,
+  options: ListQueryParams & {
+    priority?: string;
+    category_code?: string;
+    finding_status?: string;
+  } = {},
+): Promise<RiskFindingResponse[]> {
+  return apiRequest<RiskFindingResponse[]>(
+    `/organizations/${orgId}/risk-analyses/${runId}/findings${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function getRiskFinding(
+  orgId: string,
+  token: string,
+  runId: string,
+  findingId: string,
+): Promise<RiskFindingResponse> {
+  return apiRequest<RiskFindingResponse>(
+    `/organizations/${orgId}/risk-analyses/${runId}/findings/${findingId}`,
+    { token },
+  );
+}
+
+export async function generateRiskAi(
+  orgId: string,
+  token: string,
+  analysisRunId: string,
+  regenerate = false,
+): Promise<RiskAiRecommendationsResponse> {
+  return apiRequest<RiskAiRecommendationsResponse>(
+    `/organizations/${orgId}/ai-recommendations/risk/generate`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        analysis_run_id: analysisRunId,
+        regenerate,
+      }),
+    },
+  );
+}
+
+// -- Risk register & governance ------------------------------------------------
+
+export async function listRisks(
+  orgId: string,
+  token: string,
+  options: ListQueryParams & {
+    status?: string;
+    lifecycle_status?: string;
+    priority?: string;
+    department_id?: string;
+    category_code?: string;
+    source_type?: string;
+  } = {},
+): Promise<RiskResponse[]> {
+  return apiRequest<RiskResponse[]>(
+    `/organizations/${orgId}/risks${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function getRisk(
+  orgId: string,
+  token: string,
+  riskId: string,
+): Promise<RiskResponse> {
+  return apiRequest<RiskResponse>(`/organizations/${orgId}/risks/${riskId}`, {
+    token,
+  });
+}
+
+export async function reviewRiskFinding(
+  orgId: string,
+  token: string,
+  findingId: string,
+  body: { action: string; reason?: string },
+): Promise<RiskFindingResponse> {
+  return apiRequest<RiskFindingResponse>(
+    `/organizations/${orgId}/risk-findings/${findingId}/review`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function promoteRiskFinding(
+  orgId: string,
+  token: string,
+  findingId: string,
+  body: { owner_label?: string; department_id?: string; reason?: string } = {},
+): Promise<RiskPromotionResponse> {
+  return apiRequest<RiskPromotionResponse>(
+    `/organizations/${orgId}/risk-findings/${findingId}/promote`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function updateRiskLifecycleStatus(
+  orgId: string,
+  token: string,
+  riskId: string,
+  body: { lifecycle_status: string; reason?: string },
+): Promise<RiskResponse> {
+  return apiRequest<RiskResponse>(
+    `/organizations/${orgId}/risks/${riskId}/status`,
+    { method: "PATCH", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function reviewEnterpriseRisk(
+  orgId: string,
+  token: string,
+  riskId: string,
+  body: { action: string; reason?: string },
+): Promise<RiskResponse> {
+  return apiRequest<RiskResponse>(
+    `/organizations/${orgId}/risks/${riskId}/review`,
+    { method: "POST", token, body: JSON.stringify(body) },
+  );
+}
+
+export async function getRiskHistory(
+  orgId: string,
+  token: string,
+  riskId: string,
+  options: ListQueryParams = {},
+): Promise<RiskEventResponse[]> {
+  return apiRequest<RiskEventResponse[]>(
+    `/organizations/${orgId}/risks/${riskId}/history${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function getRiskProvenance(
+  orgId: string,
+  token: string,
+  riskId: string,
+): Promise<RiskProvenanceResponse> {
+  return apiRequest<RiskProvenanceResponse>(
+    `/organizations/${orgId}/risks/${riskId}/provenance`,
+    { token },
+  );
+}
+
+export async function listMitigationPlans(
+  orgId: string,
+  token: string,
+  options: ListQueryParams = {},
+): Promise<MitigationPlanResponse[]> {
+  return apiRequest<MitigationPlanResponse[]>(
+    `/organizations/${orgId}/mitigation-plans${toQuery(options)}`,
+    { token },
+  );
+}
+
+export async function listRiskMitigationPlans(
+  orgId: string,
+  token: string,
+  riskId: string,
+): Promise<MitigationPlanResponse[]> {
+  return apiRequest<MitigationPlanResponse[]>(
+    `/organizations/${orgId}/risks/${riskId}/mitigation-plans`,
     { token },
   );
 }

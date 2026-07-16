@@ -61,6 +61,7 @@ class AiTaskPipeline:
         *,
         domain: str = "waste",
         prompt_language: str | None = None,
+        prompt_supplement: str | None = None,
     ) -> TaskExecutionResult:
         if self._ollama is None:
             raise AiRecommendationError(
@@ -79,7 +80,14 @@ class AiTaskPipeline:
         )
         messages = [
             {"role": "system", "content": composed.system_prompt},
-            {"role": "user", "content": composed.user_prompt},
+            {
+                "role": "user",
+                "content": (
+                    f"{composed.user_prompt.rstrip()}\n\n{prompt_supplement.rstrip()}\n"
+                    if prompt_supplement
+                    else composed.user_prompt
+                ),
+            },
         ]
         llm_response = self._ollama.chat(messages, model=self._ollama_model)
         if not llm_response.strip():

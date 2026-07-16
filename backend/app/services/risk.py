@@ -8,7 +8,12 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.db.models import Risk, RiskMitigationPlan
-from app.db.models.enums import RiskPriority, RiskStatus
+from app.db.models.enums import (
+    EnterpriseRiskLifecycleStatus,
+    RiskPriority,
+    RiskSourceType,
+    RiskStatus,
+)
 from app.repositories import (
     DepartmentRepository,
     OrganizationRepository,
@@ -86,10 +91,12 @@ class RiskService(BaseService):
             priority=priority,
             score=score,
             status=RiskStatus.ACTIVE,
+            lifecycle_status=EnterpriseRiskLifecycleStatus.ACCEPTED,
             owner_label=owner_label,
             likelihood=likelihood,
             impact=impact,
             category_label=category_label,
+            source_type=RiskSourceType.MANUAL,
             last_updated_at=date.today(),
         )
         with self._transaction():
@@ -104,8 +111,11 @@ class RiskService(BaseService):
         organization_id: uuid.UUID,
         *,
         status: str | None = None,
+        lifecycle_status: str | None = None,
         priority: str | None = None,
         department_id: uuid.UUID | None = None,
+        category_code: str | None = None,
+        source_type: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
     ) -> list[Risk]:
@@ -113,8 +123,11 @@ class RiskService(BaseService):
         return self._risks.list_for_organization(
             organization_id,
             status=status,
+            lifecycle_status=lifecycle_status,
             priority=priority,
             department_id=department_id,
+            category_code=category_code,
+            source_type=source_type,
             limit=limit,
             offset=offset,
         )

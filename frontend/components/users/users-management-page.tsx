@@ -31,6 +31,7 @@ import {
   useRequireAuth,
 } from "@/lib/auth/auth-context";
 import { formatDate } from "@/lib/format";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 
 const PAGE_SIZE = 50;
 const ROLES: UserResponse["role"][] = ["admin", "executive", "analyst"];
@@ -142,6 +143,7 @@ export function UsersManagementPage() {
     }
   };
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
   return (

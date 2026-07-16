@@ -19,6 +19,17 @@ def _severity_rank(fact: Fact) -> tuple[int, str, str]:
     return (rank, fact.metric, fact.value)
 
 
+_RISK_DOMAIN_TASKS = frozenset(
+    {
+        PromptTask.RISK_EXECUTIVE_SUMMARY,
+        PromptTask.RISK_EXECUTIVE_BRIEF,
+        PromptTask.RISK_EXPLANATION,
+        PromptTask.RISK_MITIGATION_OPTIONS,
+        PromptTask.RISK_BOARD_REPORT,
+    }
+)
+
+
 class ContextBuilder:
     """Filters and orders Facts Contract records into Prompt Context."""
 
@@ -53,7 +64,7 @@ class ContextBuilder:
         """Task-aware selection without calculations — severity-bearing facts first."""
         if not facts:
             return facts
-        if task in {PromptTask.RISK_ANALYSIS, PromptTask.RECOMMENDATIONS}:
+        if task in {PromptTask.RISK_ANALYSIS, PromptTask.RECOMMENDATIONS} | _RISK_DOMAIN_TASKS:
             prioritized = [fact for fact in facts if fact.severity]
             remainder = [fact for fact in facts if not fact.severity]
             return prioritized + remainder

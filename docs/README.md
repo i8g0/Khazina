@@ -15,6 +15,20 @@ Official project documentation for the Khazina Enterprise Financial Decision Int
 | [progress.md](progress.md) | Sprint status and deliverables |
 | [AI_GUIDELINES.md](AI_GUIDELINES.md) | Rules for AI-assisted development tools |
 
+## Completion Reports
+
+| Document | Purpose |
+|----------|---------|
+| [PRODUCT_POLISH_COMPLETION_REPORT.md](PRODUCT_POLISH_COMPLETION_REPORT.md) | Product Polish transition stage closure (D1–D5) |
+| [PHASE_8_COMPLETION_REPORT.md](PHASE_8_COMPLETION_REPORT.md) | Phase 8 — Testing & Quality Assurance acceptance |
+| [SPRINT_8_1_BACKEND_TESTING_REPORT.md](SPRINT_8_1_BACKEND_TESTING_REPORT.md) | Sprint 8.1 backend QA |
+| [SPRINT_8_2_FRONTEND_TESTING_REPORT.md](SPRINT_8_2_FRONTEND_TESTING_REPORT.md) | Sprint 8.2 frontend QA |
+| [SPRINT_8_3_INTEGRATION_TESTING_REPORT.md](SPRINT_8_3_INTEGRATION_TESTING_REPORT.md) | Sprint 8.3 integration & E2E |
+| [SPRINT_8_4_PERFORMANCE_AI_REPORT.md](SPRINT_8_4_PERFORMANCE_AI_REPORT.md) | Sprint 8.4 performance & AI |
+| [SPRINT_8_5_QA_FREEZE_REPORT.md](SPRINT_8_5_QA_FREEZE_REPORT.md) | Sprint 8.5 QA freeze |
+
+> **Sprint numbering note:** Pre-polish work uses `SPRINT_8.1_*` / `SPRINT_8_2_*` filenames (mock removal, verification, demo polish). Phase 8 QA sprints use `SPRINT_8_1_*` through `SPRINT_8_5_*` (underscore form). Both sets are documented; see [progress.md](progress.md) sprint summary.
+
 ## Specifications
 
 | Document | Purpose |

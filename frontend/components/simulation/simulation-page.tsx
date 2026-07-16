@@ -161,65 +161,68 @@ export function SimulationPage() {
     }
   }, [activeId, loadAssumptions]);
 
-  const loadRunResults = async (runId: string) => {
-    if (!auth.session) return;
-    const [summary, points, metrics, impacts, actions] = await Promise.all([
-      getForecastSummary(auth.session.organizationId, auth.session.token, runId),
-      listChartPoints(auth.session.organizationId, auth.session.token, runId),
-      listComparisonMetrics(
-        auth.session.organizationId,
-        auth.session.token,
-        runId,
-      ),
-      listImpactItems(auth.session.organizationId, auth.session.token, runId),
-      listActionItems(auth.session.organizationId, auth.session.token, runId),
-    ]);
-    if (summary) {
-      setForecast({
-        baseline: summary.baseline_value,
-        projected: summary.projected_value,
-        delta: summary.delta_value,
-        confidence: summary.confidence_label,
-      });
-      setHasRunResults(true);
-    } else {
-      setForecast(null);
-      setHasRunResults(false);
-    }
-    setChartPoints(
-      points.map((p) => ({
-        quarter: p.quarter_label,
-        baseline: p.baseline_amount,
-        projected: p.projected_amount,
-      })),
-    );
-    setComparisons(
-      metrics.map((m) => ({
-        name: m.metric_name,
-        current: m.current_value,
-        simulated: m.simulated_value,
-        change: m.change_value,
-      })),
-    );
-    setImpactItems(
-      impacts.map((item) => ({
-        id: item.id,
-        category: item.category_label,
-        baseline: item.baseline_value,
-        projected: item.projected_value,
-        change: item.change_value,
-        direction: mapImpactDirection(item.direction),
-      })),
-    );
-    setActionItems(
-      actions.map((item) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        status: item.status,
-      })),
-    );
-  };
+  const loadRunResults = React.useCallback(
+    async (runId: string) => {
+      if (!auth.session) return;
+      const [summary, points, metrics, impacts, actions] = await Promise.all([
+        getForecastSummary(auth.session.organizationId, auth.session.token, runId),
+        listChartPoints(auth.session.organizationId, auth.session.token, runId),
+        listComparisonMetrics(
+          auth.session.organizationId,
+          auth.session.token,
+          runId,
+        ),
+        listImpactItems(auth.session.organizationId, auth.session.token, runId),
+        listActionItems(auth.session.organizationId, auth.session.token, runId),
+      ]);
+      if (summary) {
+        setForecast({
+          baseline: summary.baseline_value,
+          projected: summary.projected_value,
+          delta: summary.delta_value,
+          confidence: summary.confidence_label,
+        });
+        setHasRunResults(true);
+      } else {
+        setForecast(null);
+        setHasRunResults(false);
+      }
+      setChartPoints(
+        points.map((p) => ({
+          quarter: p.quarter_label,
+          baseline: p.baseline_amount,
+          projected: p.projected_amount,
+        })),
+      );
+      setComparisons(
+        metrics.map((m) => ({
+          name: m.metric_name,
+          current: m.current_value,
+          simulated: m.simulated_value,
+          change: m.change_value,
+        })),
+      );
+      setImpactItems(
+        impacts.map((item) => ({
+          id: item.id,
+          category: item.category_label,
+          baseline: item.baseline_value,
+          projected: item.projected_value,
+          change: item.change_value,
+          direction: mapImpactDirection(item.direction),
+        })),
+      );
+      setActionItems(
+        actions.map((item) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          status: item.status,
+        })),
+      );
+    },
+    [auth.session],
+  );
 
   const handleCreate = async () => {
     if (!auth.session) return;
@@ -304,7 +307,7 @@ export function SimulationPage() {
       return;
     }
     void loadRunResults(artifacts.simulationRunId).catch(() => undefined);
-  }, [auth.session, artifacts.simulationRunId, resetRunResults]);
+  }, [auth.session, artifacts.simulationRunId, resetRunResults, loadRunResults]);
 
   if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;

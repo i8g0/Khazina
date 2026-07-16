@@ -19,6 +19,9 @@ from app.repositories.organization import OrganizationRepository
 from app.repositories.recommendation import RecommendationRepository
 from app.repositories.report import ReportRepository
 from app.repositories.risk import RiskRepository
+from app.repositories.risk_analysis import RiskAnalysisRepository
+from app.repositories.risk_category import RiskCategoryRepository
+from app.repositories.risk_event import RiskEventRepository
 from app.repositories.settings import SettingsRepository
 from app.repositories.simulation import SimulationRepository
 from app.repositories.timeline import TimelineRepository
@@ -38,6 +41,9 @@ __all__ = [
     "ReportExportRepository",
     "ReportRepository",
     "RiskRepository",
+    "RiskAnalysisRepository",
+    "RiskEventRepository",
+    "RiskCategoryRepository",
     "SettingsRepository",
     "SimulationRepository",
     "TimelineRepository",

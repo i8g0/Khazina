@@ -65,7 +65,7 @@ export function humanizeErrorMessage(message: string): string {
     return "تعذّر الوصول إلى بيانات المنصة. أعد المحاولة بعد قليل.";
   }
 
-  if (lower.includes(" aggregation") || lower.includes("api")) {
+  if (/\bapi\b/i.test(trimmed) || lower.includes(" aggregation")) {
     return trimmed
       .replace(/\bAPI\b/gi, "المنصة")
       .replace(/تجميع/g, "تحليل")

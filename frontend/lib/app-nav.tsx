@@ -80,7 +80,7 @@ export function getAppNavGroups(): AppNavGroup[] {
       id: "analysis",
       label: "مسار التحليل التنفيذي",
       variant: "primary",
-      items: ["data", "waste", "simulation", "reports"].map((id) =>
+      items: ["data", "waste", "risk", "simulation", "reports"].map((id) =>
         buildNavItem(id, byId[id]),
       ),
     },
@@ -91,12 +91,6 @@ export function getAppNavGroups(): AppNavGroup[] {
       items: ["dashboard", "notifications"].map((id) =>
         buildNavItem(id, byId[id]),
       ),
-    },
-    {
-      id: "deferred",
-      label: "وحدات لاحقة",
-      variant: "deferred",
-      items: ["risk"].map((id) => buildNavItem(id, byId[id])),
     },
     {
       id: "admin",

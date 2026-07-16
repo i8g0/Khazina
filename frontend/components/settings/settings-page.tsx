@@ -32,6 +32,7 @@ import {
   useOrganizationDisplay,
   useRequireAuth,
 } from "@/lib/auth/auth-context";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 
 type DraftState = {
   organization_settings: ResolvedSettingsResponse["organization_settings"];
@@ -145,6 +146,7 @@ export function SettingsPage() {
     }
   };
 
+  if (auth.isLoading) return <AuthLoadingShell />;
   if (!auth.session) return null;
 
   return (

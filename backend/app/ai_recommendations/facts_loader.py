@@ -8,7 +8,11 @@ from app.ai_recommendations.exceptions import AiRecommendationError
 from app.business.facts.contract import CONTRACT_VERSION, FactsContract
 
 
-def load_facts_contract(runtime_metadata: dict[str, Any] | None) -> FactsContract:
+def load_facts_contract(
+    runtime_metadata: dict[str, Any] | None,
+    *,
+    expected_engine_id: str = "waste",
+) -> FactsContract:
     if not runtime_metadata:
         raise AiRecommendationError(
             "missing_facts_contract",
@@ -33,9 +37,14 @@ def load_facts_contract(runtime_metadata: dict[str, Any] | None) -> FactsContrac
             f"Unsupported contract_version '{contract.contract_version}'",
             {"expected": CONTRACT_VERSION},
         )
-    if contract.engine_id != "waste":
+    if contract.engine_id != expected_engine_id:
         raise AiRecommendationError(
             "invalid_facts_contract",
-            f"Unsupported engine_id '{contract.engine_id}' for waste AI recommendations",
+            f"Unsupported engine_id '{contract.engine_id}' "
+            f"(expected '{expected_engine_id}')",
         )
     return contract
+
+
+def load_risk_facts_contract(runtime_metadata: dict[str, Any] | None) -> FactsContract:
+    return load_facts_contract(runtime_metadata, expected_engine_id="risk")

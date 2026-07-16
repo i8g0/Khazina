@@ -53,6 +53,49 @@ class RiskLevel(StrEnum):
     HIGH = "high"
 
 
+class RiskFindingStatus(StrEnum):
+    DETECTED = "detected"
+    UNDER_REVIEW = "under_review"
+    REVIEWED = "reviewed"
+    PROMOTED = "promoted"
+    DISMISSED = "dismissed"
+
+
+class EnterpriseRiskLifecycleStatus(StrEnum):
+    """Governance lifecycle for enterprise register risks (Sprint 9.4)."""
+
+    ACCEPTED = "accepted"
+    MONITORING = "monitoring"
+    MITIGATED = "mitigated"
+    RESOLVED = "resolved"
+    ARCHIVED = "archived"
+
+
+class RiskSourceType(StrEnum):
+    MANUAL = "manual"
+    ENGINE = "engine"
+    IMPORT = "import"
+
+
+class RiskReviewAction(StrEnum):
+    APPROVE = "approve"
+    REJECT = "reject"
+    REQUEST_REVIEW = "request_review"
+    DISMISS = "dismiss"
+    REOPEN = "reopen"
+
+
+class RiskEventType(StrEnum):
+    REGISTERED = "registered"
+    UPDATED = "updated"
+    STATUS_TRANSITIONED = "status_transitioned"
+    FINDING_REVIEWED = "finding_reviewed"
+    FINDING_PROMOTED = "finding_promoted"
+    FINDING_DISMISSED = "finding_dismissed"
+    LIFECYCLE_TRANSITIONED = "lifecycle_transitioned"
+    GOVERNANCE_REVIEW = "governance_review"
+
+
 class SimulationScenarioStatus(StrEnum):
     DRAFT = "draft"
     COMPLETED = "completed"

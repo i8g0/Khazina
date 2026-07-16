@@ -42,6 +42,18 @@ def ai_recommendations_completed_message(
     return title, body
 
 
+def risk_ai_recommendations_completed_message(
+    *,
+    run_title: str,
+    recommendation_count: int,
+) -> tuple[str, str]:
+    title = f"تحليل المخاطر بالذكاء الاصطناعي جاهز: {run_title}"
+    body = (
+        f"تم إنشاء {recommendation_count} توصية تخفيف للتحليل «{run_title}»."
+    )
+    return title, body
+
+
 def report_generated_message(*, report_title: str, report_type: str) -> tuple[str, str]:
     title = f"تم إنشاء التقرير: {report_title}"
     body = f"التقرير «{report_title}» ({report_type}) جاهز كمسودة."

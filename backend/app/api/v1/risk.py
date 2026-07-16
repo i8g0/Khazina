@@ -68,14 +68,20 @@ def list_risks(
     service: RiskServiceDep,
     pagination: PaginationDep,
     status_filter: str | None = Query(None, alias="status"),
+    lifecycle_status: str | None = Query(None),
     priority: str | None = Query(None),
     department_id: UUID | None = Query(None),
+    category_code: str | None = Query(None),
+    source_type: str | None = Query(None),
 ) -> ApiResponse[list[RiskResponse]]:
     risks = service.list_risks(
         organization_id,
         status=status_filter,
+        lifecycle_status=lifecycle_status,
         priority=priority,
         department_id=department_id,
+        category_code=category_code,
+        source_type=source_type,
         limit=pagination.limit,
         offset=pagination.offset,
     )

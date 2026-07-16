@@ -1,7 +1,6 @@
 import { ClipboardCheck, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { RiskMitigationPlan } from "@/lib/placeholder-data";
-import { riskMitigationPlans } from "@/lib/placeholder-data";
+import type { RiskMitigationPlanView } from "@/lib/risk/view-types";
 import { cn } from "@/lib/utils";
 
 function formatDate(value: string) {
@@ -23,17 +22,18 @@ function statusVariant(status: string) {
 }
 
 export interface RiskMitigationPlansProps {
+  plans: RiskMitigationPlanView[];
   className?: string;
 }
 
-export function RiskMitigationPlans({ className }: RiskMitigationPlansProps) {
+export function RiskMitigationPlans({ plans, className }: RiskMitigationPlansProps) {
   return (
     <ol className={cn("space-y-0", className)}>
-      {riskMitigationPlans.map((plan, index) => (
+      {plans.map((plan, index) => (
         <MitigationPlanItem
           key={plan.id}
           plan={plan}
-          isLast={index === riskMitigationPlans.length - 1}
+          isLast={index === plans.length - 1}
         />
       ))}
     </ol>
@@ -41,7 +41,7 @@ export function RiskMitigationPlans({ className }: RiskMitigationPlansProps) {
 }
 
 interface MitigationPlanItemProps {
-  plan: RiskMitigationPlan;
+  plan: RiskMitigationPlanView;
   isLast: boolean;
 }
 

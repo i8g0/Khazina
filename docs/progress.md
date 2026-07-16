@@ -9,10 +9,10 @@ Official progress tracker for the Khazina project.
 | Item           | Value                                                         |
 | -------------- | ------------------------------------------------------------- |
 | Project        | Khazina - Enterprise Financial Decision Intelligence Platform |
-| Current Phase  | Phase 8 – Reports and Analytics                                   |
-| Current Sprint | 7.3 (Frontend Freeze) — **Completed**                             |
-| Overall Status | Phase 7 **Completed and frozen** — ready for Phase 8              |
-| Last Updated   | 2026-07-15                                                      |
+| Current Phase  | Phase 9 – Financial Risk Intelligence                             |
+| Current Sprint | — (awaiting Phase 9 charter)                                      |
+| Overall Status | Phases 1–7 **completed and frozen**; Product Polish **complete**; Phase 8 **completed and accepted** — ready for Phase 9 |
+| Last Updated   | 2026-07-16                                                      |
 
 ---
 
@@ -27,7 +27,10 @@ Official progress tracker for the Khazina project.
 | Phase 5 – AI Integration      | ✅ Completed (frozen — Sprint 5.6) |
 | Phase 6 – Business Features   | ✅ Completed (frozen — Sprint 6.10) |
 | Phase 7 – Frontend Features   | ✅ Completed (frozen — Sprint 7.3) |
-| Phase 8 – Reports and Analytics | 🔄 Next active phase |
+| Product Polish (Transition)   | ✅ Completed (Sprints D1–D5; pre-polish 8.x mock removal) |
+| Phase 8 – Testing & Quality Assurance | ✅ Completed (accepted — Sprints 8.1–8.5) |
+| Phase 9 – Financial Risk Intelligence | 🔄 Next active phase |
+| Phase 10 – Reports, Analytics & Production | 📋 Planned |
 
 ---
 
@@ -106,6 +109,16 @@ Services currently persist and return caller-supplied values; they do not yet co
 | 7.1    | Frontend   | Frontend Integration (API wiring)    | Completed |             | 2026-07-15    |
 | 7.2    | Frontend   | Frontend Completion & UX             | Completed |             | 2026-07-15    |
 | 7.3    | Frontend   | Frontend Freeze                      | Completed |             | 2026-07-15    |
+| D1     | Product Polish | User Journey Audit               | Completed |             | 2026-07-16    |
+| D2     | Product Polish | Guided Demo UX                   | Completed |             | 2026-07-16    |
+| D3     | Product Polish | AI Performance Optimization      | Completed |             | 2026-07-16    |
+| D4     | Product Polish | Universal Excel (W-1) Ingestion  | Completed |             | 2026-07-16    |
+| D5     | Product Polish | Logging & Observability          | Completed |             | 2026-07-16    |
+| 8.1    | Testing & QA | Backend Testing & Validation     | Completed |             | 2026-07-16    |
+| 8.2    | Testing & QA | Frontend Testing & Validation    | Completed |             | 2026-07-16    |
+| 8.3    | Testing & QA | Integration & E2E Validation     | Completed |             | 2026-07-16    |
+| 8.4    | Testing & QA | Performance & AI Testing         | Completed |             | 2026-07-16    |
+| 8.5    | Testing & QA | QA Freeze & Release Readiness    | Completed |             | 2026-07-16    |
 
 ---
 
@@ -2132,7 +2145,98 @@ python -m scripts.ai_benchmark.run_benchmark --profile quick --thinking-mode dis
 
 **Definition of Done:** Met — Phase 7 frozen; frontend represents frozen Phase 6 product path; repository ready for Phase 8 charter.
 
-**Next step:** Begin Phase 8 — Reports and Analytics (`docs/PROJECT_ROADMAP.md`) under a new sprint — **do not start under 7.3**.
+**Next step (historical, 2026-07-15):** Begin Phase 8 under a new sprint charter — **do not start under 7.3**. *Superseded:* Product Polish and Phase 8 (Testing & QA) completed 2026-07-16; see sections below and `docs/PHASE_8_COMPLETION_REPORT.md`.
+
+---
+
+## Product Polish (Transition Stage)
+
+**Goal:** Close the gap between frozen Phases 6–7 MVP and presentation-ready executive demo quality without changing core architecture, API contracts, or business logic.
+
+**Deliverables:**
+- Completion report: `docs/PRODUCT_POLISH_COMPLETION_REPORT.md`
+- Sprints D1–D5: user journey audit, guided demo UX, AI performance baseline, W-1 Excel ingestion, logging/observability
+- Pre-polish context: `docs/SPRINT_8.1_MOCK_REMOVAL_REPORT.md`, `docs/SPRINT_8_2_VERIFICATION_REPORT.md`, `docs/SPRINT_8_3_DEMO_POLISH_REPORT.md`
+
+**Definition of Done:** Met — executive pipeline verified; mock data removed from demo path; guided UX and observability in place.
+
+**Next step:** Phase 8 — Testing & Quality Assurance (completed 2026-07-16).
+
+---
+
+## Sprint 8.1 — Backend Testing & Quality Validation
+
+**Goal:** Full backend QA across APIs, services, repositories, and migrations; expand automated tests.
+
+**Deliverables:**
+- Report: `docs/SPRINT_8_1_BACKEND_TESTING_REPORT.md`
+- Test suite expanded **194 → 219** (all passing); import-cycle defect fixed
+- New coverage: HTTP health/auth boundaries, authorization dependencies, `AuthService`, `BaseRepository`
+
+**Definition of Done:** Met — backend suitable for broader Phase 8 QA.
+
+**Next step:** Sprint 8.2 — Frontend Testing.
+
+---
+
+## Sprint 8.2 — Frontend Testing & Quality Validation
+
+**Goal:** Full frontend QA across routes, components, and executive demo pipeline; preserve Product Polish.
+
+**Deliverables:**
+- Report: `docs/SPRINT_8_2_FRONTEND_TESTING_REPORT.md`
+- Six frontend defects fixed (auth loading, health banner, simulation hook, error sanitization, 500 page copy)
+- TypeScript and ESLint clean; Product Polish D2/D5 regression verified
+
+**Definition of Done:** Met.
+
+**Next step:** Sprint 8.3 — Integration Testing.
+
+---
+
+## Sprint 8.3 — Integration Testing & End-to-End Validation
+
+**Goal:** Validate Khazina as an integrated system across the executive demo path.
+
+**Deliverables:**
+- Report: `docs/SPRINT_8_3_INTEGRATION_TESTING_REPORT.md`
+- Harness: `scripts/demo/sprint_8_3_integration_verify.py` — **exit 0** (`sprint_8_3_results.json`)
+
+**Definition of Done:** Met — all automated scenario groups passed.
+
+**Next step:** Sprint 8.4 — Performance & AI Testing.
+
+---
+
+## Sprint 8.4 — Performance & AI Testing
+
+**Goal:** Benchmark pipeline performance; validate AI reliability under paced execution.
+
+**Deliverables:**
+- Report: `docs/SPRINT_8_4_PERFORMANCE_AI_REPORT.md`
+- Harness: `scripts/demo/sprint_8_4_performance_verify.py` (`sprint_8_4_results.json`)
+- Non-AI stages sub-second; AI ~96% wall-clock; paced AI runs **100% success**
+
+**Definition of Done:** Met — performance characterized; no regressions from Product Polish or 8.1/8.2 fixes.
+
+**Next step:** Sprint 8.5 — QA Freeze.
+
+---
+
+## Sprint 8.5 — QA Freeze & Release Readiness
+
+**Goal:** Final Phase 8 QA freeze and release-readiness certification.
+
+**Deliverables:**
+- Report: `docs/SPRINT_8_5_QA_FREEZE_REPORT.md`
+- Phase completion: `docs/PHASE_8_COMPLETION_REPORT.md`
+- Checklist: **11 PASS, 1 WARNING (AI latency/concurrency), 0 FAIL**
+
+**Definition of Done:** Met — Phase 8 **ACCEPTED**; **READY FOR NEXT PHASE**.
+
+**Phase 8 exit:** Testing & Quality Assurance **APPROVED — CLOSED** — ready for Phase 9 Financial Risk Intelligence.
+
+**Next step:** Begin Phase 9 — Financial Risk Intelligence (`docs/PROJECT_ROADMAP.md`).
 
 ---
 
@@ -2146,7 +2250,7 @@ Three-way inconsistency on content max width:
 - `frontend/components/layout/page-container.tsx`: `max-w-[1440px]` (matches spec)
 - `frontend/lib/app-nav.tsx` (line ~42): `max-w-[1760px]` (contradicts spec and `page-container.tsx`)
 
-The Tech Lead must decide the single correct max width. After that decision, both components and spec line 53 will be reconciled in Phase 8+ / design follow-up.
+The Tech Lead must decide the single correct max width. After that decision, both components and spec line 53 will be reconciled in Phase 10 / design follow-up.
 
 ---
 

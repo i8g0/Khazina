@@ -159,7 +159,7 @@ AI tools must not perform the following without explicit Tech Lead approval:
 | Changing folder structure | Directory layout is fixed per architecture document |
 | Adding dependencies | New packages require Tech Lead approval |
 | Changing Docker configuration | Docker setup is governed by approved sprints |
-| Changing CI configuration | CI is not yet established; changes require Phase 9 approval |
+| Changing CI configuration | CI gates are planned for Phase 10; changes require Tech Lead approval |
 | Changing Git workflow | Git workflow is defined in `docs/PROJECT_ROADMAP.md` |
 | Changing API contracts | Response envelope and versioning are fixed standards |
 | Deleting shared code | Shared infrastructure must not be removed without approval |

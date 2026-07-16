@@ -140,18 +140,18 @@ Work **intentionally not completed** during Product Polish (from sprint reports)
 
 | Item | Source | Target |
 |------|--------|--------|
-| Dashboard executive KPI / chart aggregation API | D1, D2, Sprint 8.1 | Future analytics phase |
-| Risk engine executive UI | Sprint 8.1 | Future phase |
+| Dashboard executive KPI / chart aggregation API | D1, D2, Sprint 8.1 | Phase 10 |
+| Risk engine executive UI | Sprint 8.1 | Phase 9 — Financial Risk Intelligence |
 | Auto quality evaluation on upload | D2 deferred | Backend enhancement |
 | AI cancellation during generation | D2 deferred | Requires API support |
 | Fake AI progress percentages | D2 explicitly prohibited | N/A |
 | Report inline preview modal | D2 deferred | Optional UX |
 | Demo-mode nav hiding admin pages | D2 deferred (grouping used instead) | Optional |
-| Log shipping / aggregation / retention (Prometheus, Grafana, etc.) | D5 | Phase 9 / ops |
+| Log shipping / aggregation / retention (Prometheus, Grafana, etc.) | D5 | Phase 10 ops |
 | Cross-org timeline query API | D5 | Future admin tooling |
 | Arbitrary Excel layouts (non-W-1) | D4 | By design — W-1 schema only |
 | Exact header fuzzy matching / multi-row headers | D4 limitations | Future ingest enhancement |
-| Excel / PowerPoint report export | Sprint 8.1 | Phase 8+ |
+| Excel / PowerPoint report export | Sprint 8.1 | Phase 10 |
 | Vendor findings population (engine gap) | D2 known gap | Engine enhancement |
 | LLM inference speed optimization (model swap, parallel tasks) | D3 | Infrastructure / AI sprint |
 
@@ -209,6 +209,8 @@ Work **intentionally not completed** during Product Polish (from sprint reports)
 Product Polish stage is **complete**. All five sprints (D1–D5) delivered documented outcomes. Application code was modified in D3, D4, and D5 only as recorded in their respective sprint reports; D1 was analysis-only; D2 was frontend UX only.
 
 The product is ready to enter **Phase 8 — Testing & Quality Assurance** with a verified executive pipeline, guided UX, schema-driven Excel ingestion, measured AI performance baseline, and operational observability.
+
+**Update (2026-07-16):** Phase 8 (Testing & QA, Sprints 8.1–8.5) is **complete and accepted**. Next active phase: **Phase 9 — Financial Risk Intelligence** — see [PHASE_8_COMPLETION_REPORT.md](PHASE_8_COMPLETION_REPORT.md) and [progress.md](progress.md).
 
 ---
 

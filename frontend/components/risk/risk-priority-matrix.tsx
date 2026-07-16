@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { RiskMatrixItem } from "@/lib/placeholder-data";
-import { riskMatrixItems } from "@/lib/placeholder-data";
+import type { RiskMatrixItemView } from "@/lib/risk/view-types";
 
 const likelihoodLevels = ["منخفض", "متوسط", "مرتفع"] as const;
 const impactLevels = ["مرتفع", "متوسط", "منخفض"] as const;
@@ -32,17 +31,22 @@ function priorityVariant(priority: string) {
   return "border-success/30 bg-success/5 text-success";
 }
 
-function getItemsInCell(likelihood: Likelihood, impact: Impact) {
-  return riskMatrixItems.filter(
+function getItemsInCell(
+  items: RiskMatrixItemView[],
+  likelihood: Likelihood,
+  impact: Impact,
+) {
+  return items.filter(
     (item) => item.likelihood === likelihood && item.impact === impact,
   );
 }
 
 export interface RiskPriorityMatrixProps {
+  items: RiskMatrixItemView[];
   className?: string;
 }
 
-export function RiskPriorityMatrix({ className }: RiskPriorityMatrixProps) {
+export function RiskPriorityMatrix({ items, className }: RiskPriorityMatrixProps) {
   return (
     <article
       className={cn(
@@ -55,7 +59,7 @@ export function RiskPriorityMatrix({ className }: RiskPriorityMatrixProps) {
           مصفوفة أولوية المخاطر
         </h3>
         <p className="text-sm leading-relaxed text-muted md:text-[15px]">
-          تصنيف المخاطر حسب احتمالية الحدوث وتأثيرها — بيانات تجريبية
+          تصنيف النتائج حسب احتمالية الحدوث وتأثيرها — من التحليل الحتمي
         </p>
       </div>
 
@@ -83,13 +87,13 @@ export function RiskPriorityMatrix({ className }: RiskPriorityMatrixProps) {
                   {impact}
                 </div>
                 {likelihoodLevels.map((likelihood) => {
-                  const items = getItemsInCell(likelihood, impact);
+                  const cellItems = getItemsInCell(items, likelihood, impact);
                   return (
                     <MatrixCell
                       key={`${impact}-${likelihood}`}
                       likelihood={likelihood}
                       impact={impact}
-                      items={items}
+                      items={cellItems}
                     />
                   );
                 })}
@@ -121,7 +125,7 @@ export function RiskPriorityMatrix({ className }: RiskPriorityMatrixProps) {
 interface MatrixCellProps {
   likelihood: Likelihood;
   impact: Impact;
-  items: RiskMatrixItem[];
+  items: RiskMatrixItemView[];
 }
 
 function MatrixCell({ likelihood, impact, items }: MatrixCellProps) {

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
 import { useAuth, formatApiError } from "@/lib/auth/auth-context";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 import { SITE_NAME } from "@/app/site";
 
 export default function LoginPage() {
@@ -21,6 +22,10 @@ export default function LoginPage() {
       router.replace("/");
     }
   }, [isLoading, session, router]);
+
+  if (isLoading) {
+    return <AuthLoadingShell />;
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

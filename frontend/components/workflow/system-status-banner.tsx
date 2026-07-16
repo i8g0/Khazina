@@ -54,6 +54,10 @@ export function SystemStatusBanner({ className }: { className?: string }) {
         setAiMessage(ai.message);
       } catch {
         setBackendStatus("unavailable");
+        setDatabaseStatus("unavailable");
+        setAiStatus("unavailable");
+        setDatabaseMessage(undefined);
+        setAiMessage(undefined);
       }
     })();
   }, []);

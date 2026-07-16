@@ -1,0 +1,222 @@
+{
+  "sprint": "8.4",
+  "timestamp": "2026-07-16T16:19:01",
+  "hardware": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cpu_count": 20,
+    "total_ram_gb": 15.63,
+    "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "gpu_vram_total_mb": 8188.0,
+    "gpu_available": true
+  },
+  "ai_ollama_probe": {
+    "cold_ms": 9035.89,
+    "warm_ms": 282.27
+  },
+  "org_id": "7dd234e7-58dd-4844-a38e-92a4fa67d0ed",
+  "platform_pipeline": {
+    "label": "full",
+    "stages": {
+      "upload": 43.58,
+      "waste": 36.32,
+      "ai": 28143.46,
+      "ai_success": true,
+      "simulation": 41.12,
+      "report": 46.32,
+      "pdf": 15.25,
+      "pdf_bytes": 3287
+    },
+    "file_id": "b12f79e0-9c48-491f-9c48-8a4c51d28698",
+    "processing_status": "ready_for_analysis",
+    "snapshot_id": "6480a948-b389-43de-b87a-95d57c7845a1",
+    "run_id": "a2f46923-235c-4566-8fc7-4ad8fc52af26",
+    "total_ms": 29296.98,
+    "resources": {
+      "peak_cpu_percent": 25.0,
+      "peak_system_ram_used_mb": 13406.5,
+      "peak_gpu_utilization_percent": 44.0,
+      "peak_gpu_vram_used_mb": 5012.0
+    }
+  },
+  "ai_consecutive": {
+    "attempts": [
+      {
+        "success": true,
+        "elapsed_ms": 32401.9,
+        "recommendation_count": 5,
+        "http_status": 201
+      },
+      {
+        "success": true,
+        "elapsed_ms": 32892.33,
+        "recommendation_count": 5,
+        "http_status": 201
+      },
+      {
+        "success": true,
+        "elapsed_ms": 32361.85,
+        "recommendation_count": 5,
+        "http_status": 201
+      }
+    ],
+    "success_rate": 1.0,
+    "avg_ms": 32552.03
+  },
+  "ai_back_to_back": {
+    "runs": [
+      {
+        "success": true,
+        "elapsed_ms": 25430.58,
+        "recommendation_count": 5,
+        "http_status": 201,
+        "run_id": "568cea6b-2c99-4f31-b3c3-00a30f3690fa"
+      },
+      {
+        "success": true,
+        "elapsed_ms": 31635.04,
+        "recommendation_count": 5,
+        "http_status": 201,
+        "run_id": "88026101-3b8f-4425-981c-0501726476a3"
+      }
+    ],
+    "success_rate": 1.0
+  },
+  "large_datasets": {
+    "3": {
+      "local": {
+        "parse_ms": 24.46,
+        "validate_ms": 0.03,
+        "quality_ms": 0.05,
+        "total_ms": 24.54,
+        "valid": true,
+        "row_count": 3
+      },
+      "http_upload_ms": 22.8,
+      "processing_status": "ready_for_analysis",
+      "accepted": true
+    },
+    "25": {
+      "local": {
+        "parse_ms": 9.92,
+        "validate_ms": 0.1,
+        "quality_ms": 0.1,
+        "total_ms": 10.12,
+        "valid": true,
+        "row_count": 25
+      },
+      "http_upload_ms": 22.58,
+      "processing_status": "ready_for_analysis",
+      "accepted": true
+    },
+    "100": {
+      "local": {
+        "parse_ms": 13.04,
+        "validate_ms": 0.35,
+        "quality_ms": 0.34,
+        "total_ms": 13.74,
+        "valid": true,
+        "row_count": 100
+      },
+      "http_upload_ms": 29.94,
+      "processing_status": "ready_for_analysis",
+      "accepted": true
+    },
+    "250": {
+      "local": {
+        "parse_ms": 19.47,
+        "validate_ms": 0.81,
+        "quality_ms": 0.75,
+        "total_ms": 21.04,
+        "valid": true,
+        "row_count": 250
+      },
+      "http_upload_ms": 34.41,
+      "processing_status": "failed",
+      "accepted": false
+    }
+  },
+  "long_session": {
+    "runs": [
+      {
+        "run_id": "b6dda6a6-03e2-4cc9-be0b-2bfe5c75ca11",
+        "file_id": "37e9dcfd-adde-4b31-852c-9706188605c2",
+        "upload_ms": 34.36
+      },
+      {
+        "run_id": "08efad87-f93c-4717-bf14-00f72648a391",
+        "file_id": "9a95bf7c-3b6a-4c0d-9e60-5288bb1c2fef",
+        "upload_ms": 31.01
+      },
+      {
+        "run_id": "93719b07-15ac-4891-ba71-290a2a1f6cf2",
+        "file_id": "bc11eccf-0eb6-404b-a1ea-612ad85dfa42",
+        "upload_ms": 39.78
+      }
+    ],
+    "unique_run_ids": 3,
+    "all_unique": true,
+    "memory": {
+      "start_rss_mb": 134.94,
+      "end_rss_mb": 134.97,
+      "start_ram_used_mb": 13707.92,
+      "end_ram_used_mb": 13743.22
+    }
+  },
+  "stress": {
+    "parallel_reports": {
+      "results": [
+        {
+          "success": true,
+          "elapsed_ms": 44.37,
+          "report_id": "9ecc418d-d8b1-4ef8-930e-eafdca1aaa67"
+        },
+        {
+          "success": true,
+          "elapsed_ms": 46.98,
+          "report_id": "26ba75d3-aaca-4463-addb-21c6e8d3d2fe"
+        },
+        {
+          "success": true,
+          "elapsed_ms": 84.79,
+          "report_id": "3997c18a-6ecc-4231-b6e0-fcbe48e9a595"
+        }
+      ],
+      "success_rate": 1.0,
+      "unique_ids": 3
+    },
+    "parallel_uploads": {
+      "results": [
+        {
+          "success": true,
+          "elapsed_ms": 75.19,
+          "file_id": "aad209b7-5530-431c-baa5-0a029006b78d"
+        },
+        {
+          "success": true,
+          "elapsed_ms": 94.57,
+          "file_id": "710ad258-a5bb-4e99-9f65-67fdaf4f081d"
+        },
+        {
+          "success": true,
+          "elapsed_ms": 75.08,
+          "file_id": "76a9a0da-24dc-445b-ba6f-3b04f9314815"
+        }
+      ],
+      "success_rate": 1.0
+    }
+  },
+  "resource_peaks": {
+    "peak_cpu_percent": 21.5,
+    "peak_system_ram_used_mb": 13713.25,
+    "peak_gpu_utilization_percent": 91.0,
+    "peak_gpu_vram_used_mb": 5017.0
+  },
+  "bottleneck_analysis": {
+    "ai_ms": 28143.46,
+    "non_ai_ms": 182.59,
+    "ai_pct_of_total": 96.1,
+    "primary_bottleneck": "Ollama LLM inference",
+    "root_cause_evidence": "AI stage dominates wall-clock; non-AI stages sub-second"
+  }
+}

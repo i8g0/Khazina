@@ -19,6 +19,8 @@ class PipelineStage(StrEnum):
     SNAPSHOT_CREATED = "snapshot_created"
     WASTE_ANALYSIS_STARTED = "waste_analysis_started"
     WASTE_ANALYSIS_COMPLETED = "waste_analysis_completed"
+    RISK_ANALYSIS_STARTED = "risk_analysis_started"
+    RISK_ANALYSIS_COMPLETED = "risk_analysis_completed"
     AI_STARTED = "ai_started"
     AI_COMPLETED = "ai_completed"
     SIMULATION_STARTED = "simulation_started"

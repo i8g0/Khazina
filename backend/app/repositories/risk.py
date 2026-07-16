@@ -30,6 +30,9 @@ class RiskRepository(BaseRepository):
         status: str | None = None,
         priority: str | None = None,
         department_id: uuid.UUID | None = None,
+        lifecycle_status: str | None = None,
+        category_code: str | None = None,
+        source_type: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
     ) -> list[Risk]:
@@ -37,16 +40,28 @@ class RiskRepository(BaseRepository):
         stmt = select(Risk).where(Risk.organization_id == organization_id)
         if status is not None:
             stmt = stmt.where(Risk.status == status)
+        if lifecycle_status is not None:
+            stmt = stmt.where(Risk.lifecycle_status == lifecycle_status)
         if priority is not None:
             stmt = stmt.where(Risk.priority == priority)
         if department_id is not None:
             stmt = stmt.where(Risk.department_id == department_id)
+        if category_code is not None:
+            stmt = stmt.where(Risk.category_code == category_code)
+        if source_type is not None:
+            stmt = stmt.where(Risk.source_type == source_type)
         stmt = self._paginate(
             stmt.order_by(Risk.last_updated_at.desc(), Risk.score.desc()),
             limit,
             offset,
         )
         return self._list(stmt)
+
+    def get_by_source_finding_id(
+        self, source_finding_id: uuid.UUID
+    ) -> Risk | None:
+        stmt = select(Risk).where(Risk.source_finding_id == source_finding_id)
+        return self._session.scalars(stmt).first()
 
     def count_for_organization(
         self,

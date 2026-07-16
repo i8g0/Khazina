@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-import type { RiskItem } from "@/lib/placeholder-data";
-import { riskItems } from "@/lib/placeholder-data";
+import type { RiskItemView } from "@/lib/risk/view-types";
 import { cn } from "@/lib/utils";
 
 function formatDate(value: string) {
@@ -31,14 +31,19 @@ function statusBadgeVariant(status: string) {
   return "outline" as const;
 }
 
-const columns: DataTableColumn<RiskItem>[] = [
+const columns: DataTableColumn<RiskItemView>[] = [
   {
     key: "name",
     header: "الخطر",
     className: "px-6 py-4 min-w-[200px]",
     cell: (row) => (
       <div className="space-y-1">
-        <p className="text-[15px] font-semibold text-black-primary">{row.name}</p>
+        <Link
+          href={`/risk-management/risks/${row.id}`}
+          className="text-[15px] font-semibold text-black-primary hover:text-gold-dark"
+        >
+          {row.name}
+        </Link>
         <p className="text-xs text-muted">{row.description}</p>
       </div>
     ),
@@ -63,6 +68,16 @@ const columns: DataTableColumn<RiskItem>[] = [
         className="px-3 py-1.5 text-xs font-semibold"
       >
         {row.priority}
+      </Badge>
+    ),
+  },
+  {
+    key: "lifecycleStatus",
+    header: "دورة الحياة",
+    className: "px-6 py-4",
+    cell: (row) => (
+      <Badge variant="outline" className="px-3 py-1.5 text-xs font-semibold">
+        {row.lifecycleStatus}
       </Badge>
     ),
   },
@@ -94,14 +109,15 @@ const columns: DataTableColumn<RiskItem>[] = [
 ];
 
 export interface RiskActiveTableProps {
+  data: RiskItemView[];
   className?: string;
 }
 
-export function RiskActiveTable({ className }: RiskActiveTableProps) {
+export function RiskActiveTable({ data, className }: RiskActiveTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={riskItems}
+      data={data}
       className={cn(
         "rounded-2xl border-border/60 shadow-none",
         className,
