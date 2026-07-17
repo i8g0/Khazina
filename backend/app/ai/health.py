@@ -37,12 +37,12 @@ def check_ai_provider_health(provider: AIProvider | None = None) -> AiHealthResu
             message=str(exc),
         )
 
+    is_ollama = active.provider_name == "ollama"
     return AiHealthResult(
         status="ok",
         provider=active.provider_name,
         provider_reachable=True,
-        # Backward compat: frontend waste/risk pages gate on ollama_reachable.
-        ollama_reachable=True,
+        ollama_reachable=is_ollama,
         configured_model=active.configured_model,
         message=f"{active.provider_name} provider is reachable",
     )

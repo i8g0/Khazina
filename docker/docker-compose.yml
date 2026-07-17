@@ -29,9 +29,12 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-khazina}:${POSTGRES_PASSWORD:-khazina}@postgres:5432/${POSTGRES_DB:-khazina}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
-      AI_TIMEOUT: ${AI_TIMEOUT:-30}
+      AI_PROVIDER: ${AI_PROVIDER:-cloud}
+      CLOUD_AI_BASE_URL: ${CLOUD_AI_BASE_URL:-https://api.openai.com/v1}
+      CLOUD_AI_MODEL: ${CLOUD_AI_MODEL:-gpt-4o-mini}
+      CLOUD_AI_API_KEY: ${CLOUD_AI_API_KEY}
+      AI_TIMEOUT: ${AI_TIMEOUT:-180}
+      AI_PARALLEL_TASKS: ${AI_PARALLEL_TASKS:-true}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:

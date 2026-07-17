@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { executivePageContainerClassName, getAppNavGroups, navRouteMap } from "@/lib/app-nav";
+import { DEMO_ARTIFACTS_CHANGED } from "@/lib/demo/state";
 import { buildExecutiveCommandCenter } from "@/lib/dashboard/build-command-center";
 import type { ExecutiveCommandCenterModel } from "@/lib/dashboard/command-center-types";
 import type { RecentAnalysis } from "@/lib/placeholder-data";
@@ -160,6 +161,12 @@ export function DashboardPage() {
 
   React.useEffect(() => {
     void load();
+  }, [load]);
+
+  React.useEffect(() => {
+    const refresh = () => void load();
+    window.addEventListener(DEMO_ARTIFACTS_CHANGED, refresh);
+    return () => window.removeEventListener(DEMO_ARTIFACTS_CHANGED, refresh);
   }, [load]);
 
   if (auth.isLoading) return <AuthLoadingShell />;

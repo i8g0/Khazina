@@ -37,10 +37,15 @@ import {
   executeWasteDecision,
   generateWasteAi,
   getWasteResult,
+  listRecommendations,
   listWasteBreakdowns,
   uploadFinancialFile,
 } from "@/lib/api/khazina-api";
-import { readDemoArtifacts, writeDemoArtifacts } from "@/lib/demo/state";
+import {
+  beginNewFinancialDataset,
+  readDemoArtifacts,
+  writeDemoArtifacts,
+} from "@/lib/demo/state";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import type { RecommendationResponse } from "@/lib/api/types";
 
@@ -94,12 +99,29 @@ export function WastePage() {
 
   React.useEffect(() => {
     const artifacts = readDemoArtifacts();
-    if (auth.session && artifacts.wasteRunId) {
-      setLoading(true);
-      void loadResults(artifacts.wasteRunId)
-        .catch((err) => setError(formatApiError(err)))
-        .finally(() => setLoading(false));
+    if (!auth.session || !artifacts.wasteRunId) {
+      return;
     }
+    const runId = artifacts.wasteRunId;
+    setLoading(true);
+    void (async () => {
+      try {
+        await loadResults(runId);
+        const recs = await listRecommendations(
+          auth.session!.organizationId,
+          auth.session!.token,
+        );
+        const forRun = recs.filter((rec) => rec.analysis_run_id === runId);
+        setRecommendations(forRun);
+        if (forRun.length > 0) {
+          writeDemoArtifacts({ aiRecommendationsReady: true });
+        }
+      } catch (err) {
+        setError(formatApiError(err));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [auth.session, loadResults]);
 
   const runPipeline = async (file?: File) => {
@@ -107,6 +129,7 @@ export function WastePage() {
     setLoading(true);
     setError(null);
     setMessage(null);
+    setRecommendations([]);
     try {
       let artifacts = readDemoArtifacts();
       if (file) {
@@ -118,7 +141,7 @@ export function WastePage() {
         if (!upload.financial_snapshot) {
           throw new Error("فشل إنشاء اللقطة المالية");
         }
-        artifacts = writeDemoArtifacts({
+        artifacts = beginNewFinancialDataset({
           fileId: upload.financial_file.id,
           snapshotId: upload.financial_snapshot.id,
           snapshotVersion: upload.financial_snapshot.snapshot_version,
@@ -146,7 +169,10 @@ export function WastePage() {
         auth.session.token,
         decisionBody,
       );
-      writeDemoArtifacts({ wasteRunId: decision.analysis_run.id });
+      writeDemoArtifacts({
+        wasteRunId: decision.analysis_run.id,
+        aiRecommendationsReady: false,
+      });
       await loadResults(decision.analysis_run.id);
       setMessage("اكتمل تحليل الهدر بنجاح");
     } catch (err) {
@@ -172,6 +198,7 @@ export function WastePage() {
         runId,
       );
       setRecommendations(outcome.recommendations);
+      writeDemoArtifacts({ aiRecommendationsReady: true });
       setMessage(`تم توليد ${outcome.recommendation_count} توصية بالذكاء الاصطناعي`);
     } catch (err) {
       setError(formatApiError(err));

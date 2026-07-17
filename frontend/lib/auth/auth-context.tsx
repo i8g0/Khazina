@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(true);
 
   const signIn = React.useCallback(async (email: string, password: string) => {
+    clearDemoArtifacts();
     const tokenResponse = await login(email, password);
     const org = await getActiveOrganization(tokenResponse.access_token);
     const snapshot: SessionSnapshot = {
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         } catch {
           clearSession();
+          clearDemoArtifacts();
         }
       }
 

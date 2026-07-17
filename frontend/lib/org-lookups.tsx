@@ -55,9 +55,18 @@ export function OrgLookupsProvider({ children }: { children: React.ReactNode }) 
       ]);
       setDepartments(deptRows);
       setFiles(fileRows);
-      setActiveReportingPeriod(
-        periodRows.find((period) => period.is_active) ?? null,
-      );
+      const activePeriod = periodRows.find((period) => period.is_active);
+      if (activePeriod) {
+        setActiveReportingPeriod(activePeriod);
+      } else if (periodRows.length > 0) {
+        const latest = [...periodRows].sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        )[0];
+        setActiveReportingPeriod(latest);
+      } else {
+        setActiveReportingPeriod(null);
+      }
     } finally {
       setIsLoading(false);
     }

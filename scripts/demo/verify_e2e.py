@@ -118,35 +118,54 @@ def main() -> int:
         results.append(_step("Waste decision", waste))
 
         def ai() -> str:
-            data = _unwrap(
-                client.post(
-                    f"/organizations/{state['org_id']}/ai-recommendations/waste/generate",
-                    headers={"Authorization": f"Bearer {state['token']}"},
-                    json={
-                        "analysis_run_id": state["waste_run_id"],
-                        "regenerate": False,
-                    },
-                    timeout=TOTAL_AI_PIPELINE_TIMEOUT,
-                )
-            )
-            count = data.get("recommendation_count", 0)
-            if count < 1:
-                raise RuntimeError("No recommendations generated")
-            return f"recommendations={count}"
+            last_err: Exception | None = None
+            for attempt in range(3):
+                try:
+                    data = _unwrap(
+                        client.post(
+                            f"/organizations/{state['org_id']}/ai-recommendations/waste/generate",
+                            headers={"Authorization": f"Bearer {state['token']}"},
+                            json={
+                                "analysis_run_id": state["waste_run_id"],
+                                "regenerate": attempt > 0,
+                            },
+                            timeout=TOTAL_AI_PIPELINE_TIMEOUT,
+                        )
+                    )
+                    count = data.get("recommendation_count", 0)
+                    if count < 1:
+                        raise RuntimeError("No recommendations generated")
+                    return f"recommendations={count} (attempt {attempt + 1})"
+                except Exception as exc:  # noqa: BLE001
+                    last_err = exc
+            raise RuntimeError(str(last_err))
 
         results.append(_step("AI recommendations", ai))
 
-        def scenario() -> str:
-            scenarios = _unwrap(
-                client.get(
-                    f"/organizations/{state['org_id']}/simulation/scenarios",
+        def risk() -> str:
+            body = {
+                "title": "تحليل المخاطر — E2E",
+                "source_file_id": state["file_id"],
+            }
+            if "snapshot_id" in state:
+                body["source_snapshot_id"] = state["snapshot_id"]
+            elif "snapshot_version" in state:
+                body["snapshot_version"] = int(state["snapshot_version"])
+            data = _unwrap(
+                client.post(
+                    f"/organizations/{state['org_id']}/risk-analyses/execute",
                     headers={"Authorization": f"Bearer {state['token']}"},
+                    json=body,
                 )
             )
-            if not scenarios:
-                raise RuntimeError("No scenarios bootstrapped")
-            scenario_id = scenarios[0]["id"]
+            state["risk_run_id"] = data["analysis_run"]["id"]
+            return f"risk_run={state['risk_run_id']} status={data['analysis_run']['status']}"
+
+        results.append(_step("Risk analysis", risk))
+
+        def scenario() -> str:
             body = {
+                "user_request": "تقليل الإنفاق 10%",
                 "source_file_id": state["file_id"],
                 "baseline_analysis_run_id": state["waste_run_id"],
             }
@@ -156,15 +175,16 @@ def main() -> int:
                 body["snapshot_version"] = int(state["snapshot_version"])
             data = _unwrap(
                 client.post(
-                    f"/organizations/{state['org_id']}/simulation/scenarios/{scenario_id}/execute",
+                    f"/organizations/{state['org_id']}/simulation/ai/execute",
                     headers={"Authorization": f"Bearer {state['token']}"},
                     json=body,
+                    timeout=TOTAL_AI_PIPELINE_TIMEOUT,
                 )
             )
             state["simulation_run_id"] = data["simulation_run"]["id"]
             return f"simulation_run={state['simulation_run_id']}"
 
-        results.append(_step("Scenario execute", scenario))
+        results.append(_step("Simulation AI execute", scenario))
 
         def report() -> str:
             data = _unwrap(
@@ -211,6 +231,20 @@ def main() -> int:
             return f"notifications={len(data)}"
 
         results.append(_step("Notifications", notifications))
+
+        def dashboard() -> str:
+            data = _unwrap(
+                client.get(
+                    f"/organizations/{state['org_id']}/analysis-runs/recent-completed",
+                    headers={"Authorization": f"Bearer {state['token']}"},
+                    params={"limit": 5},
+                )
+            )
+            if not data:
+                raise RuntimeError("Dashboard has no completed analysis runs")
+            return f"recent_runs={len(data)}"
+
+        results.append(_step("Dashboard data", dashboard))
 
     print("\nE2E verification results:")
     failed = 0

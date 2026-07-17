@@ -102,6 +102,8 @@ export interface WasteVendorFindingResponse {
 
 export interface AiHealthResponse {
   status: string;
+  provider?: string;
+  provider_reachable?: boolean;
   ollama_reachable: boolean;
   configured_model: string;
   message: string;

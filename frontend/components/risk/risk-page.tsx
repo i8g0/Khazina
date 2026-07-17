@@ -132,9 +132,11 @@ export function RiskPage() {
   const checkAiHealth = React.useCallback(async () => {
     try {
       const health = await getAiHealth();
-      setAiReady(health.ollama_reachable);
+      const aiAvailable =
+        health.provider_reachable ?? health.ollama_reachable;
+      setAiReady(aiAvailable);
       setAiHealthMessage(
-        health.ollama_reachable ? null : EXECUTIVE_MESSAGES.aiUnavailable,
+        aiAvailable ? null : EXECUTIVE_MESSAGES.aiUnavailable,
       );
     } catch {
       setAiReady(false);
