@@ -43,6 +43,7 @@ import {
 } from "@/lib/api/khazina-api";
 import {
   beginNewFinancialDataset,
+  DEMO_ARTIFACTS_CHANGED,
   readDemoArtifacts,
   writeDemoArtifacts,
 } from "@/lib/demo/state";
@@ -98,18 +99,18 @@ export function WastePage() {
   );
 
   React.useEffect(() => {
-    const artifacts = readDemoArtifacts();
-    if (!auth.session || !artifacts.wasteRunId) {
-      return;
-    }
-    const runId = artifacts.wasteRunId;
-    setLoading(true);
-    void (async () => {
+    const loadFromArtifacts = async () => {
+      const artifacts = readDemoArtifacts();
+      if (!auth.session || !artifacts.wasteRunId) {
+        return;
+      }
+      const runId = artifacts.wasteRunId;
+      setLoading(true);
       try {
         await loadResults(runId);
         const recs = await listRecommendations(
-          auth.session!.organizationId,
-          auth.session!.token,
+          auth.session.organizationId,
+          auth.session.token,
         );
         const forRun = recs.filter((rec) => rec.analysis_run_id === runId);
         setRecommendations(forRun);
@@ -121,7 +122,17 @@ export function WastePage() {
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    void loadFromArtifacts();
+
+    const onArtifactsChanged = () => {
+      void loadFromArtifacts();
+    };
+    window.addEventListener(DEMO_ARTIFACTS_CHANGED, onArtifactsChanged);
+    return () => {
+      window.removeEventListener(DEMO_ARTIFACTS_CHANGED, onArtifactsChanged);
+    };
   }, [auth.session, loadResults]);
 
   const runPipeline = async (file?: File) => {
@@ -197,7 +208,15 @@ export function WastePage() {
         auth.session.token,
         runId,
       );
-      setRecommendations(outcome.recommendations);
+      let recs = outcome.recommendations ?? [];
+      if (recs.length === 0 && outcome.recommendation_count > 0) {
+        const listed = await listRecommendations(
+          auth.session.organizationId,
+          auth.session.token,
+        );
+        recs = listed.filter((rec) => rec.analysis_run_id === runId);
+      }
+      setRecommendations(recs);
       writeDemoArtifacts({ aiRecommendationsReady: true });
       setMessage(`تم توليد ${outcome.recommendation_count} توصية بالذكاء الاصطناعي`);
     } catch (err) {

@@ -14,6 +14,9 @@ from app.ai.client import OllamaClient
 from app.ai.providers.base import AIProvider
 from app.ai.exceptions import AIConfigurationError
 from app.ai.providers.factory import create_ai_provider
+from app.demo_cache.ai_wrapper import DemoCacheAIProvider
+from app.demo_cache.settings import get_demo_cache_settings
+from app.demo_cache.store import DemoCacheStore
 from app.core.config import settings
 from app.core.jwt import decode_access_token
 from app.db.models import User
@@ -782,7 +785,12 @@ CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
 
 def get_ai_provider() -> AIProvider:
-    return create_ai_provider(settings.ai)
+    provider = create_ai_provider(settings.ai)
+    runtime = get_demo_cache_settings()
+    if runtime.is_active:
+        store = DemoCacheStore(runtime.cache_dir)
+        return DemoCacheAIProvider(provider, store)
+    return provider
 
 
 def get_ollama_client() -> OllamaClient:

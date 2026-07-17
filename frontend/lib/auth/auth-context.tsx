@@ -24,11 +24,16 @@ interface AuthContextValue {
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
-const DEMO_AUTOLOGIN_ENABLED =
-  process.env.NEXT_PUBLIC_DEMO_AUTOLOGIN === "true";
-const DEMO_AUTOLOGIN_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL?.trim() ?? "";
+/** Dev/hackathon: auto-login unless explicitly disabled with NEXT_PUBLIC_DEMO_AUTOLOGIN=false */
+export function isDemoAutologinEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_DEMO_AUTOLOGIN !== "false";
+}
+
+const DEMO_AUTOLOGIN_ENABLED = isDemoAutologinEnabled();
+const DEMO_AUTOLOGIN_EMAIL =
+  process.env.NEXT_PUBLIC_DEMO_EMAIL?.trim() || "demo@khazina.sa";
 const DEMO_AUTOLOGIN_PASSWORD =
-  process.env.NEXT_PUBLIC_DEMO_PASSWORD?.trim() ?? "";
+  process.env.NEXT_PUBLIC_DEMO_PASSWORD?.trim() || "DemoExec2026!";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = React.useState<SessionSnapshot | null>(null);
@@ -54,6 +59,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     async function hydrateSession() {
+      // Demo mode: always mint a fresh JWT so expired cached tokens cannot stick.
+      if (
+        DEMO_AUTOLOGIN_ENABLED &&
+        DEMO_AUTOLOGIN_EMAIL &&
+        DEMO_AUTOLOGIN_PASSWORD
+      ) {
+        try {
+          const tokenResponse = await login(
+            DEMO_AUTOLOGIN_EMAIL,
+            DEMO_AUTOLOGIN_PASSWORD,
+          );
+          const org = await getActiveOrganization(tokenResponse.access_token);
+          const snapshot: SessionSnapshot = {
+            token: tokenResponse.access_token,
+            organizationId: org.id,
+            email: DEMO_AUTOLOGIN_EMAIL,
+            organizationName: org.name,
+            platformName: org.platform_name,
+            executiveTitle: org.executive_title,
+          };
+          writeSession(snapshot);
+          if (!cancelled) {
+            setSession(snapshot);
+          }
+        } catch {
+          clearSession();
+          if (!cancelled) {
+            setSession(null);
+          }
+        } finally {
+          if (!cancelled) {
+            setIsLoading(false);
+          }
+        }
+        return;
+      }
+
       const existing = readSession();
       if (existing) {
         try {
@@ -69,44 +111,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      if (
-        !DEMO_AUTOLOGIN_ENABLED ||
-        !DEMO_AUTOLOGIN_EMAIL ||
-        !DEMO_AUTOLOGIN_PASSWORD
-      ) {
-        if (!cancelled) {
-          setSession(null);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      try {
-        const tokenResponse = await login(
-          DEMO_AUTOLOGIN_EMAIL,
-          DEMO_AUTOLOGIN_PASSWORD,
-        );
-        const org = await getActiveOrganization(tokenResponse.access_token);
-        const snapshot: SessionSnapshot = {
-          token: tokenResponse.access_token,
-          organizationId: org.id,
-          email: DEMO_AUTOLOGIN_EMAIL,
-          organizationName: org.name,
-          platformName: org.platform_name,
-          executiveTitle: org.executive_title,
-        };
-        writeSession(snapshot);
-        if (!cancelled) {
-          setSession(snapshot);
-        }
-      } catch {
-        if (!cancelled) {
-          setSession(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+      if (!cancelled) {
+        setSession(null);
+        setIsLoading(false);
       }
     }
 
@@ -153,9 +160,10 @@ export function useRequireAuth(): AuthContextValue {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!auth.isLoading && !auth.session) {
-      router.replace("/login");
-    }
+    if (auth.isLoading) return;
+    if (auth.session) return;
+    if (isDemoAutologinEnabled()) return;
+    router.replace("/login");
   }, [auth.isLoading, auth.session, router]);
 
   return auth;

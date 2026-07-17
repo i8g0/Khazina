@@ -217,6 +217,8 @@ export function DashboardPage() {
               <ExecutiveBriefPanel
                 brief={commandCenter.brief}
                 briefParts={commandCenter.briefParts}
+                briefFacts={commandCenter.briefFacts}
+                briefSections={commandCenter.briefSections}
                 boardRecommendation={commandCenter.boardRecommendation}
                 narrativeStatus={commandCenter.narrativeStatus}
               />

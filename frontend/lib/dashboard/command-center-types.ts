@@ -36,9 +36,25 @@ export interface StoryTimelineStep {
   href?: string;
 }
 
+export interface ExecutiveBriefFact {
+  id: string;
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: "neutral" | "attention" | "positive" | "critical";
+}
+
+export interface ExecutiveBriefSection {
+  id: string;
+  label: string;
+  body: string;
+}
+
 export interface ExecutiveCommandCenterModel {
   brief: string | null;
   briefParts: { domain: string; text: string }[];
+  briefFacts: ExecutiveBriefFact[];
+  briefSections: ExecutiveBriefSection[];
   healthScore: number;
   healthLevel: ExecutiveHealthLevel;
   healthLabelAr: string;

@@ -10,6 +10,8 @@ from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import get_logger, setup_logging
 from app.core.middleware.request_logging import RequestLoggingMiddleware
 from app.core.middleware.security_headers import SecurityHeadersMiddleware
+from app.demo_cache.middleware import DemoCacheMiddleware
+from app.demo_cache.settings import get_demo_cache_settings
 from app.db.session import check_database_connection
 from app.observability.health import check_system_health
 from app.observability.structured_log import log_pipeline_event
@@ -49,6 +51,17 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Database connectivity check failed at startup: %s", exc)
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
+    demo_cache = get_demo_cache_settings()
+    if demo_cache.enabled:
+        logger.warning(
+            "DEMO_CACHE_MODE is ON — serving pre-warmed responses from %s (hackathon only)",
+            demo_cache.cache_dir,
+        )
+    elif demo_cache.recording:
+        logger.warning(
+            "DEMO_CACHE_RECORD is ON — recording API responses to %s",
+            demo_cache.cache_dir,
+        )
     yield
     logger.info("Shutting down %s", settings.app_name)
 
@@ -62,6 +75,8 @@ def create_app() -> FastAPI:
     )
 
     register_exception_handlers(app)
+    # Demo cache must sit INSIDE CORS so cached responses still get CORS headers.
+    app.add_middleware(DemoCacheMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_DEMO_CORS_ORIGINS,

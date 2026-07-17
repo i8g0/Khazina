@@ -8,16 +8,27 @@ import type {
   WasteCategoryBreakdownResponse,
   WasteVendorFindingResponse,
 } from "@/lib/api/types";
-import { formatCurrency, formatPercent, sanitizeExecutiveText } from "@/lib/format";
+import {
+  formatCurrency,
+  formatPercent,
+  formatWasteCategoryName,
+  mapRiskPosture,
+  sanitizeExecutiveText,
+} from "@/lib/format";
 import { navRouteMap } from "@/lib/app-nav";
 import type {
   DecisionPipelineStep,
   ExecutiveAlert,
+  ExecutiveBriefFact,
   ExecutiveCommandCenterModel,
   ExecutiveHealthLevel,
   ExecutiveIndicator,
   StoryTimelineStep,
 } from "@/lib/dashboard/command-center-types";
+import {
+  buildPrimaryBriefNarrative,
+  parseExecutiveBriefSections,
+} from "@/lib/dashboard/parse-executive-brief";
 
 const HEALTH_LABELS: Record<ExecutiveHealthLevel, string> = {
   excellent: "ممتاز",
@@ -270,10 +281,112 @@ export function buildExecutiveCommandCenter(
   const simRun = latestRun(runs, ["simulation"]);
 
   const briefParts = buildBriefParts(wasteRun, riskRun, simRun);
-  const brief =
-    briefParts.length > 0
-      ? briefParts.map((p) => p.text).join(" ")
+  const brief = buildPrimaryBriefNarrative(briefParts);
+  const briefSections = brief ? [...parseExecutiveBriefSections(brief)] : [];
+
+  const topWasteCategory =
+    wasteBreakdowns.length > 0
+      ? [...wasteBreakdowns].sort((a, b) => b.amount - a.amount)[0]
       : null;
+
+  const simJudgment = simulationMeta(simRun)?.executive_judgment as
+    | Record<string, unknown>
+    | undefined;
+  const simRecommendation =
+    typeof simJudgment?.recommendation === "string"
+      ? simJudgment.recommendation
+      : null;
+  const simVerdict =
+    (typeof simJudgment?.executive_verdict === "string" &&
+      simJudgment.executive_verdict) ||
+    (typeof simJudgment?.strategic_recommendation === "string" &&
+      simJudgment.strategic_recommendation) ||
+    null;
+
+  if (
+    typeof simVerdict === "string" &&
+    simVerdict.trim() &&
+    !briefSections.some((s) => s.id === "executive-judgment")
+  ) {
+    briefSections.push({
+      id: "executive-judgment",
+      label: "الحكم التنفيذي",
+      body: sanitizeExecutiveText(simVerdict),
+    });
+  }
+
+  const riskPart = briefParts.find((p) => p.domain === "المخاطر");
+  if (
+    riskPart?.text.trim() &&
+    !briefSections.some((s) => s.id === "business-risks")
+  ) {
+    briefSections.push({
+      id: "risk-summary",
+      label: "ملخص المخاطر",
+      body: riskPart.text.trim(),
+    });
+  }
+
+  const briefFacts: ExecutiveBriefFact[] = [];
+  if (wasteResult) {
+    briefFacts.push({
+      id: "total-waste",
+      label: "إجمالي الهدر",
+      value: formatCurrency(wasteResult.total_waste_amount),
+      hint: `نسبة ${formatPercent(wasteResult.waste_percentage)} من الإنفاق`,
+      tone:
+        wasteResult.waste_percentage >= 15
+          ? "critical"
+          : wasteResult.waste_percentage >= 8
+            ? "attention"
+            : "neutral",
+    });
+    if (wasteResult.potential_savings_amount != null) {
+      briefFacts.push({
+        id: "savings",
+        label: "وفورات قابلة للاسترداد",
+        value: formatCurrency(wasteResult.potential_savings_amount),
+        tone: "positive",
+      });
+    }
+  }
+  if (topWasteCategory) {
+    const categoryLabel = formatWasteCategoryName(topWasteCategory.category_name);
+    briefFacts.push({
+      id: "top-waste-category",
+      label: "أعلى فئة هدر",
+      value: formatCurrency(topWasteCategory.amount),
+      hint: `${categoryLabel} — ${formatPercent(topWasteCategory.percentage)} من الهدر`,
+      tone: "attention",
+    });
+  }
+  if (riskResult) {
+    briefFacts.push({
+      id: "risk-posture",
+      label: "وضع المخاطر",
+      value: mapRiskPosture(riskResult.overall_posture_level),
+      hint: `${riskResult.high_priority_count} حرجة من أصل ${riskResult.total_findings}`,
+      tone:
+        riskResult.high_priority_count >= 3
+          ? "critical"
+          : riskResult.high_priority_count >= 1
+            ? "attention"
+            : "neutral",
+    });
+  }
+  if (simRecommendation) {
+    briefFacts.push({
+      id: "sim-recommendation",
+      label: "توصية المحاكاة",
+      value: simRecommendation,
+      tone:
+        simRecommendation.includes("رفض")
+          ? "critical"
+          : simRecommendation.includes("تعديل")
+            ? "attention"
+            : "positive",
+    });
+  }
 
   const urgentRecs = recommendations.filter((r) => r.priority === "high");
   const leadingVendor = topVendor(vendors);
@@ -494,7 +607,7 @@ export function buildExecutiveCommandCenter(
   const riskInsights = insights(riskRun);
   const boardRecommendation =
     typeof riskInsights?.risk_board_report === "string"
-      ? sanitizeExecutiveText(riskInsights.risk_board_report).slice(0, 200)
+      ? sanitizeExecutiveText(riskInsights.risk_board_report).slice(0, 600)
       : null;
 
   const narrativeStatus =
@@ -507,6 +620,8 @@ export function buildExecutiveCommandCenter(
   return {
     brief,
     briefParts,
+    briefFacts,
+    briefSections,
     healthScore,
     healthLevel,
     healthLabelAr: HEALTH_LABELS[healthLevel],

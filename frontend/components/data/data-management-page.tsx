@@ -83,57 +83,66 @@ export function DataManagementPage() {
 
       const latestFile = rows[0];
       if (latestFile) {
-        const records = await listImportRecords(
-          auth.session.organizationId,
-          auth.session.token,
-          latestFile.id,
-        );
-        setImportHistory(
-          records.map((record) => ({
-            date: formatDate(record.imported_at),
-            file: latestFile.file_name,
-            records:
-              record.record_count != null
-                ? String(record.record_count)
-                : "غير متوفر",
-            status:
-              record.status === "failed" || record.status.includes("fail")
-                ? "فشل"
-                : record.status.includes("process")
-                  ? "قيد المعالجة"
-                  : "نجح",
-          })),
-        );
+        try {
+          const records = await listImportRecords(
+            auth.session.organizationId,
+            auth.session.token,
+            latestFile.id,
+          );
+          setImportHistory(
+            records.map((record) => ({
+              date: formatDate(record.imported_at),
+              file: latestFile.file_name,
+              records:
+                record.record_count != null
+                  ? String(record.record_count)
+                  : "غير متوفر",
+              status:
+                record.status === "failed" || record.status.includes("fail")
+                  ? "فشل"
+                  : record.status.includes("process")
+                    ? "قيد المعالجة"
+                    : "نجح",
+            })),
+          );
+        } catch {
+          setImportHistory([]);
+        }
       } else {
         setImportHistory([]);
       }
 
-      const snapshot = await getLatestQualitySnapshot(
-        auth.session.organizationId,
-        auth.session.token,
-      );
-      if (snapshot) {
-        setQualityScore(
-          snapshot.overall_score != null
-            ? `${snapshot.overall_score.toFixed(1)}%`
-            : "لم يُقيَّم بعد",
-        );
-        const checks = await listQualityChecks(
+      try {
+        const snapshot = await getLatestQualitySnapshot(
           auth.session.organizationId,
           auth.session.token,
-          snapshot.id,
         );
-        setValidationItems(
-          checks
-            .slice()
-            .sort((a, b) => a.display_order - b.display_order)
-            .map((check) => ({
-              check: check.check_name,
-              result: `${check.result_percent.toFixed(1)}%`,
-              details: check.details ?? "لا توجد تفاصيل",
-            })),
-        );
-      } else {
+        if (snapshot) {
+          setQualityScore(
+            snapshot.overall_score != null
+              ? `${snapshot.overall_score.toFixed(1)}%`
+              : "لم يُقيَّم بعد",
+          );
+          const checks = await listQualityChecks(
+            auth.session.organizationId,
+            auth.session.token,
+            snapshot.id,
+          );
+          setValidationItems(
+            checks
+              .slice()
+              .sort((a, b) => a.display_order - b.display_order)
+              .map((check) => ({
+                check: check.check_name,
+                result: `${check.result_percent.toFixed(1)}%`,
+                details: check.details ?? "لا توجد تفاصيل",
+              })),
+          );
+        } else {
+          setQualityScore("لم يُقيَّم بعد");
+          setValidationItems([]);
+        }
+      } catch {
         setQualityScore("لم يُقيَّم بعد");
         setValidationItems([]);
       }

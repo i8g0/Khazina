@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
-import { useAuth, formatApiError } from "@/lib/auth/auth-context";
+import { useAuth, formatApiError, isDemoAutologinEnabled } from "@/lib/auth/auth-context";
 import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 import { SITE_NAME } from "@/app/site";
 
@@ -18,12 +18,13 @@ export default function LoginPage() {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (!isLoading && session) {
+    if (isLoading) return;
+    if (session) {
       router.replace("/");
     }
   }, [isLoading, session, router]);
 
-  if (isLoading) {
+  if (isLoading || isDemoAutologinEnabled()) {
     return <AuthLoadingShell />;
   }
 
