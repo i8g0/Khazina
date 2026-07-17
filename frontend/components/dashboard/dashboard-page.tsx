@@ -1,46 +1,38 @@
 "use client";
 
 import * as React from "react";
-import {
-  AlertTriangle,
-  BrainCircuit,
-  ClipboardCheck,
-  PiggyBank,
-  TrendingDown,
-} from "lucide-react";
 import { AppLayout, PageContainer } from "@/components/layout";
 import { DashboardAnalysesTable } from "@/components/dashboard/dashboard-analyses-table";
 import { DashboardBrand } from "@/components/dashboard/dashboard-brand";
-import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
-import { DashboardHero } from "@/components/dashboard/dashboard-hero";
-import { DashboardGuidanceHero } from "@/components/workflow/dashboard-guidance-hero";
-import { SystemStatusBanner } from "@/components/workflow/system-status-banner";
-import { WorkflowIndicator } from "@/components/workflow/workflow-indicator";
-import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
-import { EXECUTIVE_MESSAGES } from "@/lib/workflow/messages";
+import { ExecutiveAlertsPanel } from "@/components/dashboard/executive-alerts-panel";
+import { ExecutiveBriefPanel } from "@/components/dashboard/executive-brief-panel";
+import { ExecutiveDecisionPipeline } from "@/components/dashboard/executive-decision-pipeline";
+import { ExecutiveHealthBanner } from "@/components/dashboard/executive-health-banner";
+import { ExecutiveIndicatorGrid } from "@/components/dashboard/executive-indicator-grid";
+import { ExecutiveStoryTimeline } from "@/components/dashboard/executive-story-timeline";
+import { ExecutiveWasteChart } from "@/components/dashboard/executive-waste-chart";
 import { DashboardRecommendationCard } from "@/components/dashboard/dashboard-recommendation-card";
 import { DashboardSectionHeader } from "@/components/dashboard/dashboard-section-header";
-import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
-import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline";
+import { AuthLoadingShell } from "@/components/workflow/auth-loading-shell";
 import { DemoHeaderActions } from "@/components/notifications/notification-bell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
-import { executivePageContainerClassName, getAppNavGroups } from "@/lib/app-nav";
-import {
-  type RecentAnalysis,
-  type TimelineEvent,
-} from "@/lib/placeholder-data";
-import {
-  useRequireAuth,
-  formatApiError,
-} from "@/lib/auth/auth-context";
+import { executivePageContainerClassName, getAppNavGroups, navRouteMap } from "@/lib/app-nav";
+import { buildExecutiveCommandCenter } from "@/lib/dashboard/build-command-center";
+import type { ExecutiveCommandCenterModel } from "@/lib/dashboard/command-center-types";
+import type { RecentAnalysis } from "@/lib/placeholder-data";
+import { useRequireAuth, formatApiError } from "@/lib/auth/auth-context";
 import { useOrganizationDisplay, useOrgLookups } from "@/lib/org-lookups";
 import {
+  getRiskResult,
+  getWasteResult,
   listRecentAnalyses,
   listRecommendations,
+  listReports,
   listRisks,
-  listTimeline,
+  listVendorFindings,
+  listWasteBreakdowns,
 } from "@/lib/api/khazina-api";
 import {
   formatDate,
@@ -48,69 +40,80 @@ import {
   mapAnalysisType,
   mapRecommendationPriority,
   mapRunStatus,
-  mapTimelineType,
 } from "@/lib/format";
 
 const dashboardPageSpacingClassName = "space-y-[2.75rem] md:space-y-[3.25rem]";
 const dashboardSectionSpacingClassName = "space-y-4 md:space-y-5";
 
-const kpiIcons = [
-  TrendingDown,
-  AlertTriangle,
-  PiggyBank,
-  BrainCircuit,
-  ClipboardCheck,
-];
-
-const dashboardKpiLabels = [
-  "إجمالي الهدر المالي المكتشف",
-  "عدد المخاطر الحرجة",
-  "المخاطر النشطة",
-  "آخر توصية تنفيذية",
-  "حالة آخر تحليل",
-];
-
-const dashboardKpiEmptyMessage = EXECUTIVE_MESSAGES.dashboardKpiEmpty;
+function latestCompletedRun(
+  runs: Awaited<ReturnType<typeof listRecentAnalyses>>,
+  types: string[],
+) {
+  return runs.find(
+    (run) => types.includes(run.analysis_type) && run.status === "completed",
+  );
+}
 
 export function DashboardPage() {
   const auth = useRequireAuth();
   const org = useOrganizationDisplay();
-  const { fileName } = useOrgLookups();
+  const { departmentName, fileName } = useOrgLookups();
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [timeline, setTimeline] = React.useState<TimelineEvent[]>([]);
+  const [commandCenter, setCommandCenter] =
+    React.useState<ExecutiveCommandCenterModel | null>(null);
   const [analyses, setAnalyses] = React.useState<RecentAnalysis[]>([]);
   const [recommendations, setRecommendations] = React.useState<
     { id: string; title: string; description: string; badge: string; confidence: string }[]
   >([]);
-  const [kpiValues, setKpiValues] = React.useState<(string | null)[]>([
-    null,
-    null,
-    null,
-    null,
-    null,
-  ]);
-  const [riskSummary, setRiskSummary] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     if (!auth.session) return;
     setLoading(true);
     setError(null);
     try {
-      const [events, runs, recs, risks] = await Promise.all([
-        listTimeline(auth.session.organizationId, auth.session.token),
+      const [runs, recs, risks, reports] = await Promise.all([
         listRecentAnalyses(auth.session.organizationId, auth.session.token),
         listRecommendations(auth.session.organizationId, auth.session.token),
         listRisks(auth.session.organizationId, auth.session.token, { limit: 50 }),
+        listReports(auth.session.organizationId, auth.session.token),
       ]);
-      setTimeline(
-        events.slice(0, 5).map((event) => ({
-          id: event.id,
-          date: event.event_date,
-          title: event.title,
-          type: mapTimelineType(event.event_type),
-        })),
-      );
+
+      const wasteRun = latestCompletedRun(runs, ["financial_waste", "waste"]);
+      const riskRun = latestCompletedRun(runs, ["risk"]);
+
+      const [wasteResult, wasteBreakdowns, vendors, riskResult] = await Promise.all([
+        wasteRun
+          ? getWasteResult(
+              auth.session.organizationId,
+              auth.session.token,
+              wasteRun.id,
+            ).catch(() => null)
+          : Promise.resolve(null),
+        wasteRun
+          ? listWasteBreakdowns(
+              auth.session.organizationId,
+              auth.session.token,
+              wasteRun.id,
+            ).catch(() => [])
+          : Promise.resolve([]),
+        wasteRun
+          ? listVendorFindings(
+              auth.session.organizationId,
+              auth.session.token,
+              wasteRun.id,
+              { limit: 10 },
+            ).catch(() => [])
+          : Promise.resolve([]),
+        riskRun
+          ? getRiskResult(
+              auth.session.organizationId,
+              auth.session.token,
+              riskRun.id,
+            ).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
       setAnalyses(
         runs.slice(0, 5).map((run) => ({
           id: run.id,
@@ -123,6 +126,7 @@ export function DashboardPage() {
           status: mapRunStatus(run.status),
         })),
       );
+
       setRecommendations(
         recs.slice(0, 3).map((rec) => ({
           id: rec.id,
@@ -133,35 +137,26 @@ export function DashboardPage() {
         })),
       );
 
-      const riskHigh = risks.filter(
-        (r) => r.priority === "high" && r.status !== "closed",
-      ).length;
-      const activeRisks = risks.filter((r) => r.status !== "closed").length;
-      const latestRiskRun = runs.find((run) => run.analysis_type === "risk");
-      const riskInsights = latestRiskRun?.runtime_metadata?.ai_insights as
-        | Record<string, unknown>
-        | undefined;
-      const riskExecutiveSummary =
-        typeof riskInsights?.risk_executive_summary === "string"
-          ? riskInsights.risk_executive_summary.slice(0, 120)
-          : null;
-      const latestRec = recs[0];
-      const latestRun = runs[0];
-
-      setKpiValues([
-        null,
-        riskHigh > 0 ? String(riskHigh) : null,
-        activeRisks > 0 ? String(activeRisks) : null,
-        latestRec ? latestRec.title.slice(0, 40) : null,
-        latestRun ? mapRunStatus(latestRun.status) : null,
-      ]);
-      setRiskSummary(riskExecutiveSummary);
+      setCommandCenter(
+        buildExecutiveCommandCenter({
+          runs,
+          recommendations: recs,
+          risks,
+          wasteResult,
+          wasteBreakdowns,
+          vendors,
+          riskResult,
+          reports,
+          departmentName,
+          fileName,
+        }),
+      );
     } catch (err) {
       setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
-  }, [auth.session, fileName]);
+  }, [auth.session, departmentName, fileName]);
 
   React.useEffect(() => {
     void load();
@@ -173,7 +168,7 @@ export function DashboardPage() {
   return (
     <AppLayout
       brand={<DashboardBrand />}
-      title="لوحة التحكم"
+      title="مركز القيادة التنفيذي"
       subtitle={org.reportingPeriod ?? undefined}
       activeItemId="dashboard"
       sidebarVariant="executive"
@@ -182,93 +177,67 @@ export function DashboardPage() {
     >
       <PageContainer className={executivePageContainerClassName}>
         <div className={dashboardPageSpacingClassName}>
-          <DashboardGuidanceHero
-            orgName={org.name}
-            executiveTitle={org.executiveTitle}
-            period={org.reportingPeriod}
-          />
-
-          <SystemStatusBanner />
-
-          <WorkflowIndicator />
-
-          <DashboardHero
-            title="نظرة تنفيذية"
-            description={`${org.executiveTitle} — ${org.name}`}
-            period={org.reportingPeriod}
-          />
+          <header className="space-y-2">
+            <p className="text-sm font-medium text-gold-dark">
+              {org.executiveTitle} — {org.name}
+            </p>
+            <h1 className="text-[1.75rem] font-semibold tracking-tight text-black-primary md:text-[2rem]">
+              مركز القيادة التنفيذي
+            </h1>
+            <p className="max-w-3xl text-[15px] leading-relaxed text-muted md:text-base">
+              قصة البيانات المالية — ما حدث بعد الرفع، أين الخطر، وما القرار الموصى به.
+            </p>
+          </header>
 
           {error ? (
             <ErrorState
-              title="تعذّر تحميل لوحة التحكم"
+              title="تعذّر تحميل مركز القيادة"
               description={error}
               onRetry={() => void load()}
             />
           ) : null}
 
-          <section className="space-y-3">
-            <DashboardSectionHeader
-              dense
-              title="مؤشرات الأداء"
-              description={EXECUTIVE_MESSAGES.dashboardKpiSection}
-            />
-            <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
-              {dashboardKpiLabels.map((label, index) => {
-                const Icon = kpiIcons[index];
-                const liveValue = kpiValues[index];
-                return (
-                  <DashboardStatCard
-                    key={label}
-                    label={label}
-                    value={
-                      liveValue ? (
-                        <span className="text-2xl font-semibold tabular-nums text-black-primary">
-                          {liveValue}
-                        </span>
-                      ) : (
-                        <span className="text-sm font-normal leading-relaxed text-muted">
-                          {dashboardKpiEmptyMessage}
-                        </span>
-                      )
-                    }
-                    hint={liveValue ? undefined : EXECUTIVE_MESSAGES.dashboardKpiHint}
-                    emphasis
-                    dense
-                    icon={<Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />}
-                  />
-                );
-              })}
-            </section>
-          </section>
-
-          {riskSummary ? (
-            <section className="rounded-2xl border border-border/60 bg-surface px-5 py-4 md:px-6 md:py-5">
-              <DashboardSectionHeader
-                dense
-                title="ملخص المخاطر التنفيذي"
-                description="من آخر تحليل مخاطر مكتمل — للمراجعة فقط"
+          {loading ? (
+            <LoadingSkeleton className="min-h-[420px] rounded-2xl" />
+          ) : commandCenter ? (
+            <>
+              <ExecutiveHealthBanner
+                score={commandCenter.healthScore}
+                level={commandCenter.healthLevel}
+                labelAr={commandCenter.healthLabelAr}
               />
-              <p className="text-sm leading-7 text-muted md:text-[15px]">{riskSummary}…</p>
-            </section>
-          ) : null}
 
-          <section className="space-y-3">
-            <DashboardSectionHeader dense title="الرسوم البيانية" />
-            <DashboardCharts />
-          </section>
+              <ExecutiveBriefPanel
+                brief={commandCenter.brief}
+                briefParts={commandCenter.briefParts}
+                boardRecommendation={commandCenter.boardRecommendation}
+                narrativeStatus={commandCenter.narrativeStatus}
+              />
+
+              <ExecutiveDecisionPipeline steps={commandCenter.pipeline} />
+
+              <ExecutiveIndicatorGrid indicators={commandCenter.indicators} />
+
+              <ExecutiveAlertsPanel alerts={commandCenter.alerts} />
+
+              <ExecutiveStoryTimeline steps={commandCenter.storySteps} />
+
+              <ExecutiveWasteChart data={commandCenter.departmentChart} />
+            </>
+          ) : null}
 
           <section className={dashboardSectionSpacingClassName}>
             <DashboardSectionHeader
               dense
               title="التوصيات ذات الأولوية"
-              description="من سجل التوصيات الحي"
+              description="قرارات تنفيذية جاهزة للتنفيذ"
             />
             {loading ? (
               <LoadingSkeleton className="min-h-[180px] rounded-2xl" />
             ) : recommendations.length === 0 ? (
               <EmptyState
                 title="لا توجد توصيات"
-                description="نفّذ كشف الهدر ثم أعد التوصيات لعرض التوصيات"
+                description="نفّذ كشف الهدر والمخاطر لإنشاء توصيات تنفيذية"
               />
             ) : (
               <div className="grid gap-5 lg:grid-cols-3 lg:gap-5">
@@ -285,6 +254,7 @@ export function DashboardPage() {
                       description={display.description}
                       badge={item.badge}
                       confidence={item.confidence}
+                      href={navRouteMap.waste}
                     />
                   );
                 })}
@@ -295,35 +265,15 @@ export function DashboardPage() {
           <section className={dashboardSectionSpacingClassName}>
             <DashboardSectionHeader
               dense
-              title="آخر التحديثات"
-              description="أحدث الأحداث من الجدول الزمني"
-            />
-            {loading ? (
-              <LoadingSkeleton className="min-h-[120px] rounded-2xl" />
-            ) : timeline.length === 0 ? (
-              <EmptyState
-                title="لا أحداث بعد"
-                description="ستظهر أحداث المنصة هنا بعد إكمال التحليلات"
-              />
-            ) : (
-              <div className="rounded-2xl border border-border/60 bg-surface px-4 py-4 md:px-5 md:py-4">
-                <DashboardTimeline events={timeline} maxVisible={5} />
-              </div>
-            )}
-          </section>
-
-          <section className={dashboardSectionSpacingClassName}>
-            <DashboardSectionHeader
-              dense
               title="التحليلات الأخيرة"
-              description="آخر التحليلات المكتملة"
+              description="سجل التحليلات المكتملة"
             />
             {loading ? (
               <LoadingSkeleton className="min-h-[200px] rounded-2xl" />
             ) : analyses.length === 0 ? (
               <EmptyState
                 title="لا توجد تحليلات مكتملة"
-                description="نفّذ كشف الهدر أو المحاكاة لملء هذه القائمة"
+                description="ارفع البيانات ونفّذ الهدر أو المخاطر أو المحاكاة"
               />
             ) : (
               <DashboardAnalysesTable data={analyses} />

@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from app.ai.exceptions import AIConnectionError, AITimeoutError
 from app.ai.prompts.tasks import PromptTask
-from app.ai_recommendations.exceptions import AiRecommendationError
-from app.ai_recommendations.pipeline import AiTaskPipeline, TaskExecutionResult
 from app.business.facts.contract import FactsContract
 from app.core.config import settings
 from app.presentation.evidence_registry import EvidenceRegistry, normalize_text
+
+if TYPE_CHECKING:
+    from app.ai_recommendations.pipeline import AiTaskPipeline, TaskExecutionResult
 
 NARRATIVE_REJECTED = "rejected_by_guard"
 NARRATIVE_LLM_UNAVAILABLE = "llm_unavailable"
@@ -106,6 +107,7 @@ def guard_executive_summary_task(
     if guarded == text:
         return task_result, None
     from app.ai.parsers.types import ParsedResponse
+    from app.ai_recommendations.pipeline import TaskExecutionResult
 
     return TaskExecutionResult(
         task=task_result.task,

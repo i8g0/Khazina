@@ -1,14 +1,6 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
-const recommendationDepartments: Record<string, string> = {
-  "rec-w01": "المشتريات",
-  "rec-w02": "العمليات",
-  "rec-w03": "تقنية المعلومات",
-  "rec-s01": "المشتريات",
-  "rec-s02": "المشتريات",
-  "rec-s03": "الشؤون المالية",
-};
 
 export interface DashboardRecommendationCardProps {
   id: string;
@@ -16,6 +8,7 @@ export interface DashboardRecommendationCardProps {
   description: string;
   badge: string;
   confidence: string;
+  href?: string;
   className?: string;
 }
 
@@ -25,15 +18,16 @@ export function DashboardRecommendationCard({
   description,
   badge,
   confidence,
+  href,
   className,
 }: DashboardRecommendationCardProps) {
-  const department = recommendationDepartments[id];
   const isHigh = badge === "عالية";
 
-  return (
+  const card = (
     <article
       className={cn(
         "flex h-full flex-col rounded-2xl border border-border/60 bg-surface px-5 py-5 transition-colors hover:border-gold-primary/25 md:px-6 md:py-6",
+        href && "cursor-pointer",
         className,
       )}
     >
@@ -48,12 +42,6 @@ export function DashboardRecommendationCard({
         {title}
       </h3>
 
-      {department ? (
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-gold-dark">
-          {department}
-        </p>
-      ) : null}
-
       <p className="mb-4 flex-1 text-sm leading-6 text-muted md:text-[15px]">
         {description}
       </p>
@@ -65,4 +53,14 @@ export function DashboardRecommendationCard({
       </div>
     </article>
   );
+
+  if (href) {
+    return (
+      <Link key={id} href={href} className="block h-full">
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 }
